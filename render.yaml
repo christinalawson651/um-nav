@@ -1,0 +1,12 @@
+# Render Blueprint — deploys the Zyter UM Nurse Demo as a static site.
+# Assumes THIS folder (um-nav-site) is the repo root.
+services:
+  - type: web
+    name: um-nurse-demo
+    runtime: static
+    buildCommand: ""
+    staticPublishPath: .
+    headers:
+      - path: /*
+        name: X-Frame-Options
+        value: SAMEORIGIN
