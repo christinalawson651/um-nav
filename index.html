@@ -265,7 +265,19 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-siz
 .main-content.detail .action-bar{flex-shrink:0;}
 /* Status + NBA cluster (left of the page name) */
 .ab-status{display:inline-flex;align-items:center;gap:6px;font-size:12px;background:var(--gray-50);border:1px solid var(--gray-200);border-radius:8px;padding:3px 9px;}
-.ab-pagename{position:absolute;left:0;right:0;text-align:center;font-size:15px;font-weight:700;color:var(--gray-800);pointer-events:none;}
+.ab-pagename{flex:1;min-width:0;text-align:center;font-size:15px;font-weight:700;color:var(--gray-800);pointer-events:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+/* More Actions dropdown */
+.more-actions-wrap{position:relative;display:inline-block;}
+.more-actions-menu{display:none;position:absolute;top:calc(100% + 4px);right:0;background:white;border:1px solid var(--gray-200);border-radius:9px;box-shadow:0 10px 28px rgba(0,0,0,0.16);min-width:230px;z-index:500;padding:5px;}
+.more-actions-menu.open{display:block;}
+.more-actions-menu button{display:flex;align-items:center;gap:9px;width:100%;text-align:left;padding:8px 10px;border:none;background:none;font-size:12.5px;color:var(--gray-700);border-radius:6px;cursor:pointer;font-family:inherit;white-space:nowrap;}
+.more-actions-menu button:hover{background:var(--gray-50);}
+.more-actions-menu .ma-sep{height:1px;background:var(--gray-100);margin:4px 2px;}
+/* Manual document upload */
+.up-drop{border:2px dashed var(--gray-300);border-radius:12px;padding:22px;text-align:center;background:var(--gray-50);}
+.up-doc-row{display:flex;align-items:center;gap:8px;padding:7px 10px;background:var(--gray-50);border:1px solid var(--gray-200);border-radius:7px;margin-top:6px;font-size:12px;}
+.up-doc-row button{border:none;background:none;color:var(--gray-400);cursor:pointer;font-size:12px;padding:2px;}
+.up-doc-row button:hover{color:var(--red);}
 /* Review page top bar (status/NBA left, page name middle) */
 .review-topbar{position:relative;display:flex;align-items:center;gap:10px;padding:8px 20px;background:white;border-bottom:1px solid var(--gray-200);flex-shrink:0;}
 
@@ -393,6 +405,32 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-siz
 .pill{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:14px;font-size:11px;font-weight:500;cursor:pointer;}
 .p-dot{width:6px;height:6px;border-radius:50%;}
 .tbl-wrap{padding:0 20px 20px;}
+/* ===== Intake KPI strip — blueprinted from the CM Referral Intake screen ===== */
+.ik-strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(102px,1fr));gap:9px;padding:14px 20px 0;}
+.ik-card{background:white;border:1px solid var(--gray-200);border-radius:10px;padding:11px 13px;cursor:pointer;position:relative;transition:transform 0.12s,box-shadow 0.12s;}
+.ik-card:hover{transform:translateY(-2px);box-shadow:0 6px 16px rgba(0,0,0,0.08);}
+.ik-card.ik-static{cursor:default;}
+.ik-card.ik-static:hover{transform:none;box-shadow:none;}
+.ik-card.ik-active{outline:2px solid var(--primary);outline-offset:-1px;box-shadow:0 6px 16px rgba(0,0,0,0.10);}
+.ik-n{font-size:22px;font-weight:800;color:var(--gray-800);line-height:1;}
+.ik-lbl{font-size:9.5px;color:var(--gray-500);font-weight:700;text-transform:uppercase;letter-spacing:0.4px;margin-top:5px;}
+.ik-ico{position:absolute;top:10px;right:10px;width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;}
+.ik-red .ik-n{color:#DC2626;} .ik-red .ik-ico{background:var(--red-bg);color:#DC2626;}
+.ik-amber .ik-n{color:#D97706;} .ik-amber .ik-ico{background:var(--amber-bg);color:#D97706;}
+.ik-blue .ik-n{color:var(--primary);} .ik-blue .ik-ico{background:var(--primary-pale);color:var(--primary);}
+.ik-green .ik-n{color:#16A34A;} .ik-green .ik-ico{background:var(--green-bg);color:#16A34A;}
+.ik-gray .ik-ico{background:var(--gray-100);color:var(--gray-500);}
+/* Compact channel filter chips — replaces the old full-size channel cards */
+.chan-chips{display:flex;align-items:center;gap:6px;padding:12px 20px 0;flex-wrap:wrap;}
+.chan-chips-lbl{font-size:10px;font-weight:700;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.4px;margin-right:2px;}
+.chan-chip{display:inline-flex;align-items:center;gap:5px;padding:4px 11px;border-radius:14px;font-size:11.5px;font-weight:600;color:var(--gray-700);background:white;border:1px solid var(--gray-200);cursor:pointer;}
+.chan-chip:hover{background:var(--gray-50);}
+.chan-chip.active{background:var(--primary-pale);border-color:var(--primary-pale2);color:var(--primary);}
+.chan-chip .cc-n{background:var(--gray-100);border-radius:8px;padding:0 5px;font-size:10px;font-weight:700;}
+.chan-chip.active .cc-n{background:var(--primary-pale2);}
+/* Toolbar — Filters badge + search + Columns + Reset, matching the blueprint's clean single row */
+.ik-toolbar{display:flex;align-items:center;gap:8px;padding:12px 20px 0;flex-wrap:wrap;}
+.ik-filters-badge{background:var(--primary);color:#fff;border-radius:9px;padding:0 6px;font-size:10px;font-weight:800;margin-left:5px;}
 table{width:100%;border-collapse:collapse;background:white;border-radius:10px;overflow:hidden;border:1px solid var(--gray-200);margin-top:12px;}
 /* To-Do column hidden — the flow is driven by status + next action, not to-dos */
 .wl-table th:nth-child(6),.wl-table td:nth-child(6){display:none;}
@@ -444,12 +482,82 @@ tr.clickable:hover td{background:var(--primary-pale);cursor:pointer;}
 .nba-act{cursor:pointer;transition:box-shadow 0.12s,transform 0.12s;}
 .nba-act:hover{box-shadow:0 0 0 2px var(--primary-pale2);transform:translateY(-1px);}
 /* AI pre-review pill — separate from the NBA badge; states what the system already did */
-.ai-pill{display:inline-flex;align-items:center;gap:4px;margin-top:4px;padding:2px 8px;border-radius:12px;font-size:9.5px;font-weight:700;background:var(--purple-bg);color:#5B21B6;border:1px solid #DDD6FE;cursor:help;}
+.ai-pill{display:inline-flex;align-items:center;gap:4px;margin-top:4px;padding:2px 8px;border-radius:12px;font-size:9.5px;font-weight:700;background:var(--purple-bg);color:#5B21B6;border:1px solid #DDD6FE;cursor:default;}
 body.ai-off .ai-pill{display:none;}
 /* Fixed-width Next Action column — badge + AI pill line up into a clean grid, not sized to their own text */
 .wl-table td:nth-child(2){width:190px;}
 .wl-table .nba{width:174px;box-sizing:border-box;white-space:normal;line-height:1.3;}
 .wl-table .ai-pill{width:174px;box-sizing:border-box;white-space:normal;line-height:1.35;}
+
+/* ===== INTAKE COORDINATOR DASHBOARD ===== */
+.chan-row{display:flex;gap:10px;padding:14px 20px 0;flex-wrap:wrap;}
+.chan-card{flex:1;min-width:132px;background:white;border:1px solid var(--gray-200);border-radius:10px;padding:10px 12px;cursor:pointer;transition:transform 0.15s,box-shadow 0.15s;border-top:3px solid var(--gray-300);}
+.chan-card:hover{transform:translateY(-2px);box-shadow:0 6px 16px rgba(0,0,0,0.08);}
+.chan-card.active{outline:2px solid var(--primary);outline-offset:-1px;}
+.chan-top{display:flex;align-items:center;gap:7px;}
+.chan-ico{font-size:15px;}
+.chan-name{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:0.4px;color:var(--gray-600);}
+.chan-num{font-size:21px;font-weight:800;color:var(--gray-800);margin-top:5px;line-height:1;}
+.chan-sub{font-size:10px;color:var(--gray-500);margin-top:3px;}
+.chan-fax{border-top-color:#7C3AED;}
+.chan-call{border-top-color:#0EA5E9;}
+.chan-portal{border-top-color:var(--teal);}
+.chan-client{border-top-color:#F59E0B;}
+.chan-api{border-top-color:#64748B;}
+/* Routing summary band */
+.route-band{display:flex;gap:10px;padding:12px 20px 0;flex-wrap:wrap;}
+.route-card{flex:1;min-width:210px;border-radius:10px;padding:11px 14px;display:flex;align-items:center;gap:12px;}
+.route-auto{background:var(--green-bg);border:1px solid var(--green-border);}
+.route-excep{background:var(--red-bg);border:1px solid var(--red-border);}
+.route-dup{background:var(--amber-bg);border:1px solid var(--amber-border);}
+.route-n{font-size:24px;font-weight:800;line-height:1;}
+.route-auto .route-n{color:var(--green);}
+.route-excep .route-n{color:var(--red);}
+.route-dup .route-n{color:var(--amber);}
+.route-lbl{font-size:11px;font-weight:700;color:var(--gray-700);}
+.route-sub{font-size:10px;color:var(--gray-500);margin-top:2px;line-height:1.4;}
+/* Intake queue table */
+.intake-tbl td{vertical-align:top;}
+.src-chip{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:11px;font-size:10px;font-weight:700;white-space:nowrap;}
+.src-fax{background:var(--purple-bg);color:#5B21B6;}
+.src-call{background:#E0F2FE;color:#0369A1;}
+.src-portal{background:var(--teal-light);color:var(--teal);}
+.src-client{background:var(--amber-bg);color:var(--amber);}
+.src-api{background:var(--gray-100);color:var(--gray-600);}
+.flag{display:inline-flex;align-items:center;gap:4px;padding:2px 7px;border-radius:4px;font-size:9.5px;font-weight:700;margin:2px 3px 0 0;white-space:nowrap;}
+.flag-red{background:var(--red-bg);color:var(--red);border:1px solid var(--red-border);}
+.flag-amber{background:var(--amber-bg);color:var(--amber);border:1px solid var(--amber-border);}
+.flag-ok{background:var(--green-bg);color:var(--green);border:1px solid var(--green-border);}
+.flag-gray{background:var(--gray-100);color:var(--gray-500);border:1px solid var(--gray-200);}
+/* KPI drill-down breakdown rows */
+.kd-row{display:flex;align-items:center;gap:9px;padding:7px 0;border-bottom:1px solid var(--gray-100);}
+.kd-row:last-child{border-bottom:none;}
+.kd-lbl{flex:1.4;font-size:12px;color:var(--gray-700);}
+.kd-bar-wrap{flex:2;height:7px;background:var(--gray-100);border-radius:4px;overflow:hidden;}
+.kd-bar{height:100%;border-radius:4px;}
+.kd-count{width:30px;text-align:right;font-size:13px;font-weight:800;color:var(--gray-800);}
+.conf-bar{width:56px;height:5px;background:var(--gray-200);border-radius:3px;overflow:hidden;margin-top:3px;}
+.conf-fill{height:100%;border-radius:3px;}
+/* Information-complete checklist — replaces a narrative "what OCR read" line with scannable required-field status */
+.info-chk{display:flex;flex-wrap:wrap;gap:4px;}
+.chk-item{display:inline-flex;align-items:center;gap:2px;font-size:9.5px;font-weight:700;padding:1px 5px;border-radius:4px;cursor:default;}
+.chk-ok{background:var(--green-bg);color:var(--green);}
+.chk-bad{background:var(--red-bg);color:var(--red);}
+.chk-warn{background:var(--amber-bg);color:var(--amber);}
+.ocr-doc{background:var(--gray-50);border:1px solid var(--gray-200);border-radius:8px;padding:11px 13px;font-family:'Courier New',monospace;font-size:11px;color:var(--gray-700);line-height:1.7;max-height:190px;overflow-y:auto;}
+.ocr-lo{background:#FEF08A;border-bottom:2px solid #EAB308;padding:0 2px;}
+.ex-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px 16px;}
+.ex-lbl{font-size:9px;font-weight:800;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.4px;}
+.ex-val{font-size:12px;color:var(--gray-800);font-weight:600;margin-top:1px;}
+.ex-val.miss{color:var(--red);}
+.dup-card{border:1px solid var(--amber-border);background:#FFFBEB;border-radius:9px;padding:10px 12px;margin-top:8px;}
+/* Compare banner — shown on an existing auth's detail screen when reached via Intake's "Compare" action */
+.compare-banner{margin:0 20px;background:var(--amber-bg);border:1px solid var(--amber-border);border-radius:9px;padding:10px 13px;animation:cbFlash 1.4s ease 0s 2;}
+.cb-hdr{font-size:11.5px;font-weight:800;color:var(--amber);text-transform:uppercase;letter-spacing:0.3px;}
+.cb-body{font-size:12px;color:var(--gray-700);margin-top:5px;line-height:1.6;}
+.cb-body b{color:var(--gray-800);}
+.cb-match{background:#FDE68A;padding:0 3px;border-radius:3px;font-weight:700;}
+@keyframes cbFlash{0%,100%{box-shadow:0 0 0 0 rgba(217,119,6,0.35);}50%{box-shadow:0 0 0 6px rgba(217,119,6,0);}}
 #ai-assist-btn{background:var(--primary-pale);border-color:var(--primary-pale2);color:var(--primary);font-weight:700;}
 body.ai-off #ai-assist-btn{background:white;color:var(--gray-500);border-color:var(--gray-300);font-weight:500;}
 .mem-id{font-size:10px;color:var(--gray-400);}
@@ -762,7 +870,7 @@ mark.ev-flash{animation:evFlash 1.4s ease;}
 .modal-close{color:var(--gray-400);cursor:pointer;font-size:18px;background:none;border:none;line-height:1;}
 .modal-body{padding:18px 20px;}
 .modal-footer{padding:11px 20px;border-top:1px solid var(--gray-200);display:flex;justify-content:flex-end;gap:8px;}
-.info-banner{background:var(--blue-bg);border:1px solid var(--blue-border);border-radius:6px;padding:9px 12px;margin-bottom:14px;font-size:12px;color:#1D4ED8;display:flex;align-items:center;gap:8px;}
+.info-banner{background:var(--blue-bg);border:1px solid var(--blue-border);border-radius:6px;padding:9px 12px;margin-bottom:14px;font-size:12px;color:#1D4ED8;line-height:1.6;}
 .form-group{margin-bottom:13px;}
 .form-label{font-size:10px;font-weight:700;color:var(--gray-600);text-transform:uppercase;letter-spacing:0.4px;margin-bottom:5px;display:block;}
 .form-ctrl{width:100%;border:1px solid var(--gray-300);border-radius:6px;padding:8px 10px;font-size:12px;color:var(--gray-800);font-family:inherit;}
@@ -825,6 +933,7 @@ mark.ev-flash{animation:evFlash 1.4s ease;}
   <div class="app-layout">
     <nav class="app-rail">
       <div class="rail-item active" onclick="showScreen('s-dashboard')"><div class="rail-ico">&#9638;</div><div class="rail-lbl">Dashboard</div></div>
+      <div class="rail-item" onclick="showScreen('s-intake')"><div class="rail-ico">&#128228;</div><div class="rail-lbl">Intake</div></div>
       <div class="rail-item"><div class="rail-ico">&#128101;</div><div class="rail-lbl">Members</div></div>
     </nav>
     <div class="main-content">
@@ -961,6 +1070,104 @@ mark.ev-flash{animation:evFlash 1.4s ease;}
   </div>
 </div>
 
+<!-- ==================== SCREEN: INTAKE COORDINATOR DASHBOARD ==================== -->
+<div id="s-intake" class="screen">
+  <nav class="top-nav">
+    <div class="logo">Z<span>y</span>ter</div>
+    <div class="nav-right">
+      <span><span class="status-dot"></span>Online</span>
+      <button class="btn btn-secondary btn-sm">&#8593; Export</button>
+      <div style="display:flex;align-items:center;gap:6px;">
+        <div class="user-avatar">DR</div>
+        <div><div class="user-name">D Reyes</div><div class="user-role">Intake Coordinator</div></div>
+      </div>
+    </div>
+  </nav>
+  <div class="app-layout">
+    <nav class="app-rail">
+      <div class="rail-item" onclick="showScreen('s-dashboard')"><div class="rail-ico">&#9638;</div><div class="rail-lbl">Dashboard</div></div>
+      <div class="rail-item active"><div class="rail-ico">&#128228;</div><div class="rail-lbl">Intake</div></div>
+      <div class="rail-item"><div class="rail-ico">&#128101;</div><div class="rail-lbl">Members</div></div>
+    </nav>
+    <div class="main-content">
+      <div class="page-header">
+        <div class="page-title">
+          <span style="color:var(--primary)">&#128228;</span>
+          Intake Coordinator
+          <span class="page-subtitle">Authorization Intake &amp; Smart Routing</span>
+        </div>
+        <div style="margin-left:auto;display:flex;gap:8px;align-items:center;">
+          <button class="btn btn-secondary btn-sm" onclick="openModal('m-intake-upload')">&#8593; Upload Fax / Document</button>
+          <button class="btn btn-secondary btn-sm" onclick="openEligibility()" title="Real-time eligibility &amp; benefits check — verify a member's coverage on the date of service before routing an authorization.">&#128179; Eligibility</button>
+          <button class="btn btn-teal btn-sm" onclick="openAuthWizard()" title="Key a new authorization — phone / call center intake">+ New Authorization</button>
+          <div class="search-box"><span style="color:var(--gray-400)">&#128269;</span><input type="text" placeholder="Search intake queue..."></div>
+        </div>
+      </div>
+
+      <!-- KPI strip — blueprinted from the CM Referral Intake screen's stat-card row. Every tile drills down. -->
+      <div class="ik-strip">
+        <div class="ik-card ik-gray" data-kind="today" onclick="openKpiDrill('today')" title="Click for a channel breakdown of today's volume">
+          <div class="ik-n">81</div><div class="ik-lbl">New Today</div><div class="ik-ico">&#128229;</div>
+        </div>
+        <div class="ik-card ik-gray" data-kind="received" onclick="openKpiDrill('received')" title="Arrived, not yet read by the UMR agent">
+          <div class="ik-n" id="ik-received-n">1</div><div class="ik-lbl">Received</div><div class="ik-ico">&#128228;</div>
+        </div>
+        <div class="ik-card ik-red ik-active" data-kind="exception" onclick="openKpiDrill('needinfo')" title="Illegible, missing clinicals, missing CPT, or eligibility fail — needs a coordinator">
+          <div class="ik-n" id="ik-needinfo-n">4</div><div class="ik-lbl">Information Needed</div><div class="ik-ico">&#9888;</div>
+        </div>
+        <div class="ik-card ik-blue" data-kind="rfi" onclick="openKpiDrill('rfi')" title="RFI sent back to submitter; awaiting the missing item">
+          <div class="ik-n" id="ik-rfi-n">1</div><div class="ik-lbl">RFI</div><div class="ik-ico">&#128232;</div>
+        </div>
+        <div class="ik-card ik-amber" data-kind="duplicate" onclick="openKpiDrill('continue')" title="Duplicates &amp; non-blocking flags — needs a coordinator look, but nothing is missing">
+          <div class="ik-n" id="ik-continue-n">2</div><div class="ik-lbl">Continue</div><div class="ik-ico">&#8635;</div>
+        </div>
+        <div class="ik-card ik-green" data-kind="auto" onclick="openKpiDrill('assigned')" title="Complete &amp; matched — assigned straight to a queue or auto-approved">
+          <div class="ik-n">67</div><div class="ik-lbl">Assigned</div><div class="ik-ico">&#9889;</div>
+        </div>
+        <div class="ik-card ik-gray" onclick="openKpiDrill('turnaround')" title="Median time from intake to routed/resolved, trailing 7 days">
+          <div class="ik-n" style="font-size:18px;">1.4 days</div><div class="ik-lbl">Avg Turnaround</div><div class="ik-ico">&#9201;</div>
+        </div>
+        <div class="ik-card ik-gray" onclick="openKpiDrill('completed')" title="Intake items resolved this week, by resolution type">
+          <div class="ik-n">38</div><div class="ik-lbl">Completed (Week)</div><div class="ik-ico">&#10003;</div>
+        </div>
+      </div>
+
+      <!-- Channels: where auths arrive from — compact filter chips -->
+      <div class="chan-chips">
+        <span class="chan-chips-lbl">Channels:</span>
+        <span class="chan-chip chan-card chan-fax" onclick="intakeChan(this,'Fax')" title="OCR by UMR agent">&#128232; Fax <span class="cc-n">14</span></span>
+        <span class="chan-chip chan-card chan-call" onclick="intakeChan(this,'Call Center')" title="Keyed by agent">&#9742; Call Center <span class="cc-n">6</span></span>
+        <span class="chan-chip chan-card chan-portal" onclick="intakeChan(this,'Provider Portal')" title="Zyter provider portal">&#127760; Provider Portal <span class="cc-n">21</span></span>
+        <span class="chan-chip chan-card chan-client" onclick="intakeChan(this,'Client Portal')" title="Health plan / client's own portal">&#127970; Client Portal <span class="cc-n">9</span></span>
+        <span class="chan-chip chan-card chan-api" onclick="intakeChan(this,'API')" title="X12 278 / FHIR">&#8644; API <span class="cc-n">31</span></span>
+      </div>
+
+      <div class="ik-toolbar">
+        <span style="font-size:12px;font-weight:700;color:var(--gray-700);">&#9776; Filters<span class="ik-filters-badge" id="ik-filters-badge">1</span></span>
+        <span class="pill sb-gray pill-int" onclick="intakeFilter(this,'all')" style="cursor:pointer;">View All</span>
+        <div class="search-box" style="margin-left:8px;"><span style="color:var(--gray-400)">&#128269;</span><input type="text" placeholder="Search intake queue..."></div>
+        <div style="margin-left:auto;display:flex;gap:8px;">
+          <button class="btn btn-secondary btn-sm">&#9638; Columns</button>
+          <button class="btn btn-secondary btn-sm" onclick="intakeResetAll()">&#8635; Reset</button>
+          <span style="font-size:11px;color:var(--gray-500);align-self:center;" id="int-count">4 of 73</span>
+        </div>
+      </div>
+
+      <div class="tbl-wrap">
+        <table class="intake-tbl">
+          <thead>
+            <tr>
+              <th>Priority &#8597;</th><th>Received &#8597;</th><th>Source &#8597;</th><th>Member / Provider</th>
+              <th>Request</th><th>Information Complete</th><th>Eligibility</th><th>Intake Status &#8597;</th><th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="intake-body"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- ==================== SCREEN 2: AUTH DETAIL ==================== -->
 <div id="s-auth-detail" class="screen">
   <nav class="top-nav">
@@ -990,9 +1197,14 @@ mark.ev-flash{animation:evFlash 1.4s ease;}
         <a>Maria Benitez (ID: 112)</a><span class="bc-sep">&#8250;</span>
         <strong>Auth BH784201</strong>
         <div style="margin-left:auto;display:flex;gap:8px;">
-          <button class="btn btn-secondary btn-sm" onclick="showScreen('s-dashboard')">&#8592; Back to UM Dashboard</button>
+          <button class="btn btn-primary btn-sm" id="back-to-intake-btn" onclick="backToIntakeFromCompare()" style="display:none;">&#8592; Back to Intake Queue</button>
+          <button class="btn btn-secondary btn-sm" onclick="hideCompareBanner();showScreen('s-dashboard')">&#8592; Back to UM Dashboard</button>
           <span class="badge-tag">AUTH DETAIL</span>
         </div>
+      </div>
+      <div class="compare-banner" id="compare-banner" style="display:none;">
+        <div class="cb-hdr">&#128209; Comparing against a possible duplicate from Intake</div>
+        <div class="cb-body" id="compare-banner-body"></div>
       </div>
       <div class="member-header">
         <div class="member-av">MB</div>
@@ -1013,9 +1225,16 @@ mark.ev-flash{animation:evFlash 1.4s ease;}
       <div class="action-bar">
         <button class="btn btn-secondary btn-sm">&#128221; Notes</button>
         <span class="ab-status" id="detail-status-m"><span class="status-lbl">Status:</span> <span class="sb sb-amber">Ready for Review</span> <span class="status-lbl" style="margin-left:4px;">Next:</span> <button class="next-action-btn" onclick="showScreen('s-um-review')">&#9655; Initial Review</button></span>
-        <div style="flex:1"></div>
-        <button class="btn btn-secondary btn-sm">More Actions &#8964;</button>
         <div class="ab-pagename">Authorization Detail</div>
+        <div class="more-actions-wrap">
+          <button class="btn btn-secondary btn-sm" onclick="toggleMoreActions(this)">More Actions &#8964;</button>
+          <div class="more-actions-menu">
+            <button onclick="moreActionsAction('rfi')">&#128232; Request Information (RFI)</button>
+            <button onclick="moreActionsAction('upload')">&#128206; Upload Additional Documents</button>
+            <div class="ma-sep"></div>
+            <button onclick="moreActionsAction('print')">&#128424;&#65039; Print / Export Summary</button>
+          </div>
+        </div>
       </div>
 
       <div class="content-area">
@@ -1610,9 +1829,16 @@ mark.ev-flash{animation:evFlash 1.4s ease;}
       <div class="action-bar">
         <button class="btn btn-secondary btn-sm">&#128221; Notes</button>
         <span class="ab-status" id="detail-status-rc"><span class="status-lbl">Status:</span> <span class="sb sb-amber">Ready for Review</span> <span class="status-lbl" style="margin-left:4px;">Next:</span> <button class="next-action-btn" onclick="showScreen('s-auth-detail-rc')">&#9655; Initial Review</button></span>
-        <div style="flex:1"></div>
-        <button class="btn btn-secondary btn-sm">More Actions &#8964;</button>
         <div class="ab-pagename">Authorization Detail</div>
+        <div class="more-actions-wrap">
+          <button class="btn btn-secondary btn-sm" onclick="toggleMoreActions(this)">More Actions &#8964;</button>
+          <div class="more-actions-menu">
+            <button onclick="moreActionsAction('rfi')">&#128232; Request Information (RFI)</button>
+            <button onclick="moreActionsAction('upload')">&#128206; Upload Additional Documents</button>
+            <div class="ma-sep"></div>
+            <button onclick="moreActionsAction('print')">&#128424;&#65039; Print / Export Summary</button>
+          </div>
+        </div>
       </div>
 
       <div class="content-area">
@@ -1897,9 +2123,16 @@ mark.ev-flash{animation:evFlash 1.4s ease;}
       <div class="action-bar">
         <button class="btn btn-secondary btn-sm">&#128221; Notes</button>
         <span class="ab-status" id="detail-status-ip"></span>
-        <div style="flex:1"></div>
-        <button class="btn btn-secondary btn-sm">More Actions &#8964;</button>
         <div class="ab-pagename">Concurrent Review</div>
+        <div class="more-actions-wrap">
+          <button class="btn btn-secondary btn-sm" onclick="toggleMoreActions(this)">More Actions &#8964;</button>
+          <div class="more-actions-menu">
+            <button onclick="moreActionsAction('rfi')">&#128232; Request Information (RFI)</button>
+            <button onclick="moreActionsAction('upload')">&#128206; Upload Additional Documents</button>
+            <div class="ma-sep"></div>
+            <button onclick="moreActionsAction('print')">&#128424;&#65039; Print / Export Summary</button>
+          </div>
+        </div>
       </div>
       <div class="content-area">
 
@@ -2378,6 +2611,32 @@ mark.ev-flash{animation:evFlash 1.4s ease;}
     <div class="modal-footer">
       <button class="btn btn-secondary" onclick="closeModal('m-rfi')">Cancel</button>
       <button class="btn btn-primary" onclick="rfiSend()">&#128232; Send RFI</button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== MODAL: Upload Additional Documents (manual — bypasses AI extraction) ==================== -->
+<div id="m-upload-docs" class="modal-overlay">
+  <div class="modal-box">
+    <div class="modal-hdr">
+      <span style="font-size:15px;">&#128206;</span>
+      <span class="modal-title">Upload Additional Documents</span>
+      <button class="modal-close" onclick="closeModal('m-upload-docs')">&#10005;</button>
+    </div>
+    <div class="modal-body">
+      <div class="info-banner" id="upload-banner">&#8505;&#65039; Use this when you have information the UMR agent didn&rsquo;t surface &mdash; a fax received outside the system, a provider phone call, extra clinicals. These attach directly to the case file under <b>Docs</b>; they are not re-run through OCR/AI extraction.</div>
+      <div class="up-drop">
+        <div style="font-size:28px;">&#128206;</div>
+        <div style="font-size:12.5px;font-weight:700;color:var(--gray-700);margin-top:6px;">Drop files here or click to browse</div>
+        <div style="font-size:11px;color:var(--gray-500);margin-top:3px;">PDF, JPG, PNG, TIFF &middot; up to 25MB each</div>
+        <button class="btn btn-primary btn-sm" style="margin-top:10px;" onclick="simulateUpload()">Choose Files</button>
+      </div>
+      <div id="upload-doc-list"></div>
+      <div class="form-group" style="margin-top:12px;"><label class="form-label">Note <span style="color:var(--gray-400);font-weight:400;text-transform:none;">(optional)</span></label><textarea class="form-ctrl" id="upload-doc-note" rows="2" placeholder="Where this came from, why it's needed..."></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('m-upload-docs')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveUploadedDocs()">&#10003; Attach to Case</button>
     </div>
   </div>
 </div>
@@ -4895,6 +5154,77 @@ function toggleRfiExt() {
 }
 // Open the RFI popup. opts.extendDays (optional) pre-checks the "extend timeframe" toggle at that length
 // (used when the request is routed here from the Timeliness & Compliance extension action).
+/* More Actions dropdown */
+function toggleMoreActions(btn) {
+  var menu = btn.nextElementSibling;
+  var wasOpen = menu.classList.contains('open');
+  document.querySelectorAll('.more-actions-menu.open').forEach(function (m) { m.classList.remove('open'); });
+  if (!wasOpen) menu.classList.add('open');
+}
+document.addEventListener('click', function (e) {
+  if (!e.target.closest('.more-actions-wrap')) document.querySelectorAll('.more-actions-menu.open').forEach(function (m) { m.classList.remove('open'); });
+});
+function moreActionsAction(action) {
+  document.querySelectorAll('.more-actions-menu.open').forEach(function (m) { m.classList.remove('open'); });
+  var activeId = (document.querySelector('.screen.active') || {}).id;
+  if (action === 'rfi') {
+    if (activeId === 's-auth-detail-ip') openExtension(currentCase);  // concurrent-review cases use the timeframe/RFI extension flow
+    else openRfi();
+  } else if (action === 'upload') {
+    uploadDocsCtx = null;  // generic nurse-side upload, not tied to an intake row
+    document.getElementById('upload-banner').innerHTML = '&#8505;&#65039; Use this when you have information the UMR agent didn&rsquo;t surface &mdash; a fax received outside the system, a provider phone call, extra clinicals. These attach directly to the case file under <b>Docs</b>; they are not re-run through OCR/AI extraction.';
+    openModal('m-upload-docs');
+  } else if (action === 'print') {
+    window.print();
+  }
+}
+/* Manual document upload — for info the UMR agent/AI didn't surface (received by phone, fax outside the system, etc.) */
+var uploadedDocs = [];
+var uploadDocsCtx = null;  // null = generic (nurse auth-detail); an INTAKE row object = came from that row's "Upload Response"
+function simulateUpload() {
+  var pool = ['Clinical_Notes_07-28.pdf', 'Provider_Fax_Cover.pdf', 'Lab_Results.pdf', 'Progress_Note.pdf'];
+  uploadedDocs.push({ name: pool[uploadedDocs.length % pool.length], size: (Math.random() * 2.6 + 0.4).toFixed(1) + ' MB' });
+  renderUploadDocList();
+}
+function renderUploadDocList() {
+  var wrap = document.getElementById('upload-doc-list'); if (!wrap) return;
+  wrap.innerHTML = uploadedDocs.map(function (d, i) {
+    return '<div class="up-doc-row"><span>&#128196;</span><span style="flex:1;color:var(--gray-700);">' + d.name + '</span>'
+      + '<span style="color:var(--gray-400);font-size:10.5px;">' + d.size + '</span>'
+      + '<button onclick="uploadedDocs.splice(' + i + ',1);renderUploadDocList();" title="Remove">&#10005;</button></div>';
+  }).join('');
+}
+/* Reached from an intake row's "Upload Response" — the missing item came back but wasn't captured automatically */
+function openIntakeRfiUpload() {
+  uploadDocsCtx = irfiCase;
+  document.getElementById('upload-banner').innerHTML = uploadDocsCtx
+    ? '&#8505;&#65039; Attach the response for <b>' + uploadDocsCtx.mem + '</b> (' + uploadDocsCtx.req + ') since it wasn&rsquo;t captured automatically. Once attached, this item routes to the clinical queue like any other resolved RFI.'
+    : '&#8505;&#65039; Use this when you have information the UMR agent didn&rsquo;t surface &mdash; a fax received outside the system, a provider phone call, extra clinicals. These attach directly to the case file under <b>Docs</b>; they are not re-run through OCR/AI extraction.';
+  closeModal('m-intake-rfi');
+  openModal('m-upload-docs');
+}
+function saveUploadedDocs() {
+  if (!uploadedDocs.length) { crToast('&#9888; Choose at least one file first'); return; }
+  var n = uploadedDocs.length;
+  closeModal('m-upload-docs');
+  if (uploadDocsCtx) {
+    var r = uploadDocsCtx;
+    r.kind = 'auto';
+    r.complete = { mem: true, cpt: true, clin: true, elig: true };
+    r.conf = 96;
+    r.flags = [['ok', '&#10003; Response uploaded by coordinator (' + n + ' doc' + (n > 1 ? 's' : '') + ') — routed to clinical queue']];
+    r.status = ['sb-green', 'Routed'];
+    r.act = null;
+    intakeApplyKindFilter('auto');
+    crToast('&#10003; ' + n + ' document' + (n > 1 ? 's' : '') + ' uploaded for ' + r.mem + ' — routed to the clinical queue');
+    uploadDocsCtx = null;
+  } else {
+    crToast('&#10003; ' + n + ' document' + (n > 1 ? 's' : '') + ' attached to the case file — available under Docs.');
+  }
+  uploadedDocs = [];
+  document.getElementById('upload-doc-list').innerHTML = '';
+  var note = document.getElementById('upload-doc-note'); if (note) note.value = '';
+}
 function openRfi(opts) {
   opts = opts || {};
   ['rfi-info', 'rfi-provider', 'rfi-notes'].forEach(function (id) { var e = document.getElementById(id); if (e) e.value = ''; });
@@ -5146,6 +5476,365 @@ function renderInbox() {
 }
 function ibMarkAll() { IB_MSGS.forEach(function (m) { ibRead[m.id] = true; }); renderInbox(); }
 renderInbox();
+/* ===== Intake Coordinator dashboard ===== */
+var INTAKE = [
+  { id: 'i11', kind: 'received', src: 'Fax', when: '2m ago', mem: '—', memSub: 'Not yet processed', prov: '—',
+    req: 'Pending UMR agent read', reqSub: '', conf: null,
+    complete: null,
+    flags: [['gray', '&#128229; Queued for OCR']],
+    status: ['sb-gray', 'Received'], act: 'Run OCR' },
+  { id: 'i1', kind: 'exception', src: 'Fax', when: '9:12 AM', mem: 'M?ria Benit?z', memSub: 'ID NYM02948?? · unmatched', prov: 'Meridian Behavioral Health Center',
+    req: '90870 · PHP, partial hospitalization', reqSub: 'DOS 08/01/2026', conf: 71,
+    complete: { mem: false, cpt: true, clin: true, elig: true },
+    flags: [['red', '&#9888; Illegible member'], ['amber', '&#128209; Possible duplicate']],
+    status: ['sb-red', 'Information Needed'], act: 'Review & fix' },
+  { id: 'i2', kind: 'exception', src: 'Fax', when: '8:55 AM', mem: 'Alan Whitcomb', memSub: 'TXM0119402', prov: 'Northside Cardiology',
+    req: '93458 · Cardiac cath', reqSub: 'DOS 08/09/2026', conf: 94,
+    complete: { mem: true, cpt: true, clin: false, elig: true },
+    flags: [['red', '&#128203; No clinicals']],
+    status: ['sb-red', 'Information Needed'], act: 'Request records',
+    rfiAsk: 'Clinical documentation supporting medical necessity for CPT 93458 — recent cardiology consult note, stress test or imaging results, and current medication list. The faxed request contained the order only; no clinicals were attached.' },
+  { id: 'i3', kind: 'exception', src: 'Call Center', when: '8:40 AM', mem: 'Rosa Delgado', memSub: 'Eligibility not found', prov: 'Dr. K. Ahmed',
+    req: '70553 · MRI brain w/wo', reqSub: 'DOS 08/01/2026', conf: 88,
+    complete: { mem: true, cpt: true, clin: true, elig: false },
+    flags: [['red', '&#10005; Eligibility fail']],
+    status: ['sb-red', 'Information Needed'], act: 'Verify eligibility' },
+  { id: 'i4', kind: 'exception', src: 'Client Portal', when: '8:02 AM', mem: 'Peter Nkemdi', memSub: 'FLA0000231', prov: 'Gulf Coast Ortho',
+    req: 'CPT missing', reqSub: 'Free-text: "knee surgery"', conf: 62,
+    complete: { mem: true, cpt: false, clin: true, elig: true },
+    flags: [['red', '&#9888; Missing CPT']],
+    status: ['sb-red', 'Information Needed'], act: 'Request CPT',
+    rfiAsk: 'A valid CPT/HCPCS procedure code for the requested knee surgery. The portal submission contained free-text ("knee surgery") only, which cannot be matched to a guideline or benefit.' },
+  { id: 'i5', kind: 'duplicate', src: 'Provider Portal', when: '7:48 AM', mem: 'Maria Benitez', memSub: 'NYM0294831', prov: 'Meridian Behavioral Health Center',
+    req: '90870 · PHP, partial hospitalization', reqSub: 'DOS 08/01/2026', conf: 99,
+    complete: { mem: true, cpt: true, clin: true, elig: true },
+    flags: [['amber', '&#128209; Duplicate of BH784201']],
+    status: ['sb-amber', 'Continue'], act: 'Compare', dupScreen: 's-auth-detail' },
+  { id: 'i6', kind: 'duplicate', src: 'API', when: '7:31 AM', mem: 'Thomas Jackson', memSub: 'NYM0890123', prov: 'Metro Physical Therapy',
+    req: '97110 · Therapeutic exercise', reqSub: 'DOS 08/03–09/03', conf: 99,
+    complete: { mem: true, cpt: true, clin: true, elig: true },
+    flags: [['amber', '&#128209; Overlapping span']],
+    status: ['sb-amber', 'Continue'], act: 'Compare' },
+  { id: 'i10', kind: 'rfi', src: 'Fax', when: 'Yest. 3:14 PM', mem: 'Miguel Santos', memSub: 'TXM0288417', prov: 'Valley Spine Institute',
+    req: '63030 · Lumbar discectomy', reqSub: 'DOS 08/12/2026', conf: 93,
+    complete: { mem: true, cpt: true, clin: false, elig: true },
+    flags: [['amber', '&#128232; RFI sent &middot; due 07/31'], ['ok', '&#9889; Auto-route on receipt']],
+    status: ['sb-blue', 'RFI'], act: 'View RFI',
+    rfiSentAsk: 'Clinical documentation supporting medical necessity for CPT 63030 — recent imaging (MRI/CT), conservative treatment history, and neurological exam findings. The faxed request contained the order only.',
+    rfiSentVia: 'Fax back to sender', rfiSentDue: '2026-07-31' },
+  { id: 'i7', kind: 'auto', src: 'API', when: '9:20 AM', mem: 'Karen Liu', memSub: 'NYM0771244', prov: 'Summit Imaging',
+    req: '72148 · MRI lumbar', reqSub: 'DOS 08/06/2026', conf: 100,
+    complete: { mem: true, cpt: true, clin: true, elig: true },
+    flags: [['ok', '&#10003; Auto-routed → Ready for Review']],
+    status: ['sb-green', 'Routed'], act: null },
+  { id: 'i8', kind: 'auto', src: 'Provider Portal', when: '9:04 AM', mem: 'Daniel Okonkwo', memSub: 'TXM0455310', prov: 'Bayside Surgical',
+    req: '64483 · Epidural injection', reqSub: 'DOS 08/11/2026', conf: 98,
+    complete: { mem: true, cpt: true, clin: true, elig: true },
+    flags: [['ok', '&#10003; Auto-routed → Ready for Review']],
+    status: ['sb-green', 'Routed'], act: null },
+  { id: 'i9', kind: 'auto', src: 'Fax', when: '8:33 AM', mem: 'Grace Adeyemi', memSub: 'FLA0000512', prov: 'Coastal Home Health',
+    req: 'G0299 · Skilled nursing visit', reqSub: 'DOS 08/02–08/30', conf: 96,
+    complete: { mem: true, cpt: true, clin: true, elig: true },
+    flags: [['ok', '&#9889; Auto-approved']],
+    status: ['sb-green', 'Routed'], act: null }
+];
+/* Icon-only issue badges (missing / duplicate / illegible) — all detail lives in the tooltip to keep the row compact */
+var INFO_CHK_ITEMS = [['mem', 'Member identified'], ['cpt', 'Procedure code present'], ['clin', 'Clinicals attached']];
+function findFlagText(r, re) {
+  var f = r.flags.filter(function (x) { return re.test(x[1]); })[0];
+  return f ? f[1].replace(/^(&#\d+;\s*)+/, '').trim() : '';
+}
+function issueIconsHtml(r) {
+  if (!r.complete) return '<span class="chk-item" style="background:var(--gray-100);color:var(--gray-400);" title="Not yet read by the UMR agent.">&#8987;</span>';
+  var icons = [];
+  var illegibleTxt = findFlagText(r, /illegible/i);
+  if (illegibleTxt) icons.push(['&#9888;', 'chk-bad', illegibleTxt + ' — ' + r.conf + '% OCR confidence, identity unconfirmed.']);
+  var dupTxt = findFlagText(r, /duplicate|overlap/i);
+  if (dupTxt) icons.push(['&#128209;', 'chk-warn', dupTxt + ' — needs a coordinator compare.']);
+  var missing = INFO_CHK_ITEMS.filter(function (it) { return !r.complete[it[0]] && !(it[0] === 'mem' && illegibleTxt); }).map(function (it) { return it[1]; });
+  if (missing.length) icons.push(['&#128203;', 'chk-bad', 'Missing: ' + missing.join(', ') + '.']);
+  if (!icons.length) return '<span class="chk-item chk-ok" title="Complete — member, procedure code, and clinicals all present.">&#10003;</span>';
+  return icons.map(function (ic) { return '<span class="chk-item ' + ic[1] + '" title="' + ic[2] + '">' + ic[0] + '</span>'; }).join('');
+}
+/* Separate Eligibility column — icon only, full detail in the tooltip, click to run/re-check */
+function eligColHtml(r) {
+  if (!r.complete) return '<span class="chk-item" style="background:var(--gray-100);color:var(--gray-400);cursor:default;" title="Not yet checked — eligibility runs after the UMR agent reads the request.">&#8212;</span>';
+  var ok = r.complete.elig;
+  var tip = ok ? 'Eligibility confirmed for the date of service. Click to view or re-run the check.' : 'No active coverage found for the date of service. Click to view the eligibility result or re-check.';
+  return '<span class="chk-item ' + (ok ? 'chk-ok' : 'chk-bad') + '" style="cursor:pointer;" title="' + tip + '" onclick="event.stopPropagation();openEligibility(\'' + r.mem.replace(/'/g, "\\'") + '\',\'' + r.reqSub + '\')">' + (ok ? '&#10003;' : '&#10005;') + '</span>';
+}
+var intakeView = 'exception', intakeSrc = null;
+var INTAKE_PRIORITY = { exception: ['High', '#DC2626'], duplicate: ['Medium', '#D97706'], rfi: ['Medium', '#2563EB'], auto: ['Routine', '#64748B'], received: ['—', '#94A3B8'] };
+function intakeRender() {
+  var tb = document.getElementById('intake-body'); if (!tb) return;
+  tb.innerHTML = '';
+  var shown = 0;
+  INTAKE.forEach(function (r) {
+    if (intakeView !== 'all' && r.kind !== intakeView) return;
+    if (intakeSrc && r.src !== intakeSrc) return;
+    shown++;
+    var srcCls = { 'Fax': 'src-fax', 'Call Center': 'src-call', 'Provider Portal': 'src-portal', 'Client Portal': 'src-client', 'API': 'src-api' }[r.src];
+    var srcIco = { 'Fax': '&#128232;', 'Call Center': '&#9742;', 'Provider Portal': '&#127760;', 'Client Portal': '&#127970;', 'API': '&#8644;' }[r.src];
+    var confColor = r.conf >= 95 ? '#16A34A' : (r.conf >= 85 ? '#F59E0B' : '#DC2626');
+    var pr = INTAKE_PRIORITY[r.kind] || ['—', 'var(--gray-400)'];
+    var tr = document.createElement('tr');
+    tr.innerHTML =
+      '<td><span style="font-size:11.5px;font-weight:700;color:' + pr[1] + ';">' + pr[0] + '</span></td>' +
+      '<td style="font-size:11px;color:var(--gray-600);white-space:nowrap;">' + r.when + '</td>' +
+      '<td><span class="src-chip ' + srcCls + '">' + srcIco + ' ' + r.src + '</span></td>' +
+      '<td><div style="font-weight:600;color:var(--gray-800);font-size:12px;">' + r.mem + '</div>' +
+        '<div style="font-size:10px;color:var(--gray-500);">' + r.memSub + '</div>' +
+        '<div style="font-size:10px;color:var(--gray-400);margin-top:2px;">' + r.prov + '</div></td>' +
+      '<td><div style="font-size:11.5px;color:var(--gray-800);">' + r.req + '</div>' +
+        '<div style="font-size:10px;color:var(--gray-500);">' + r.reqSub + '</div></td>' +
+      '<td style="min-width:96px;"><div class="info-chk">' + issueIconsHtml(r) + '</div>' +
+        (r.complete ? '<div class="conf-bar"><div class="conf-fill" style="width:' + r.conf + '%;background:' + confColor + ';"></div></div>' +
+          '<div style="font-size:9px;color:var(--gray-500);margin-top:2px;">' + r.conf + '% read confidence</div>' : '') + '</td>' +
+      '<td>' + eligColHtml(r) + '</td>' +
+      '<td><span class="sb ' + r.status[0] + '">' + r.status[1] + '</span></td>' +
+      '<td>' + (r.act ? '<button class="btn btn-primary btn-xs" onclick="intakeOpen(\'' + r.id + '\')">' + r.act + ' &#9655;</button>' : '<span style="font-size:10px;color:var(--gray-400);">FYI only</span>') + '</td>';
+    tb.appendChild(tr);
+  });
+  if (!shown) tb.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:26px;color:var(--gray-500);font-size:12px;">Nothing in this view.</td></tr>';
+  var c = document.getElementById('int-count'); if (c) c.textContent = shown + ' of 73';
+  // Keep the KPI strip's live counts in sync as items move between statuses (RFI sent, confirmed, etc.)
+  ['received', 'rfi', 'needinfo', 'continue'].forEach(function (key) {
+    var kindMap = { received: 'received', rfi: 'rfi', needinfo: 'exception', continue: 'duplicate' };
+    var el = document.getElementById('ik-' + key + '-n');
+    if (el) el.textContent = INTAKE.filter(function (x) { return x.kind === kindMap[key]; }).length;
+  });
+  var fb = document.getElementById('ik-filters-badge');
+  if (fb) fb.textContent = (intakeView !== 'all' ? 1 : 0) + (intakeSrc ? 1 : 0);
+}
+function intakeFilter(el, view) {
+  intakeView = view;
+  document.querySelectorAll('.pill-int').forEach(function (p) { p.classList.remove('active'); });
+  document.querySelectorAll('.ik-card[data-kind]').forEach(function (c) { c.classList.remove('ik-active'); });
+  el.classList.add('active');
+  intakeRender();
+}
+/* Used by KPI drill-down "View in queue" buttons — filters the table and highlights the matching KPI tile */
+function intakeApplyKindFilter(kind) {
+  intakeView = kind;
+  document.querySelectorAll('.pill-int').forEach(function (p) { p.classList.remove('active'); });
+  document.querySelectorAll('.ik-card[data-kind]').forEach(function (c) { c.classList.remove('ik-active'); });
+  var card = document.querySelector('.ik-card[data-kind="' + kind + '"]');
+  if (card) card.classList.add('ik-active');
+  intakeRender();
+}
+function intakeGoTo(kind) {
+  intakeApplyKindFilter(kind);
+  closeModal('m-kpi-drill');
+}
+function intakeChan(el, src) {
+  var on = intakeSrc === src;
+  intakeSrc = on ? null : src;
+  document.querySelectorAll('.chan-card').forEach(function (c) { c.classList.remove('active'); });
+  if (!on) el.classList.add('active');
+  intakeRender();
+}
+function intakeResetAll() {
+  intakeSrc = null;
+  document.querySelectorAll('.chan-card').forEach(function (c) { c.classList.remove('active'); });
+  intakeGoTo('exception');
+}
+function intakeOpen(id) {
+  var r = INTAKE.filter(function (x) { return x.id === id; })[0];
+  if (!r) return;
+  if (r.kind === 'rfi') { intakeRfiOpen(r, true); return; }  // RFI already sent — view it, don't re-trigger OCR
+  if (r.kind === 'duplicate') {
+    if (r.dupScreen) { showScreen(r.dupScreen); showCompareBanner(r); return; }    // real existing authorization on file — compare directly
+    crToast('&#128209; ' + findFlagText(r, /duplicate|overlap/i) + ' — no existing authorization record is on file to open for this one.');
+    return;
+  }
+  if (r.complete && r.complete.elig === false) { openEligibility(r.mem, r.reqSub); return; }  // eligibility fail → run the check
+  if (r.rfiAsk) { intakeRfiOpen(r); return; }          // missing item → RFI back to the submitter
+  if (r.src === 'Fax') { openModal('m-intake-upload'); intakeRunOcr(); return; }
+  crToast('&#128228; Opening intake work item — ' + r.mem);
+}
+/* Compare-from-Intake: highlight what matched + a clear path back to the coordinator's queue */
+var compareReturnKind = null;
+function showCompareBanner(r) {
+  compareReturnKind = intakeView;
+  document.getElementById('compare-banner-body').innerHTML =
+    'New request from Intake: <b>' + r.req + '</b> &middot; ' + r.reqSub + ' &middot; via ' + r.src + ' (' + r.prov + ').<br>'
+    + 'Matches this authorization on: <span class="cb-match">member</span>, <span class="cb-match">procedure code</span>, and <span class="cb-match">service date within range</span>. Confirm below whether this is the same request or a new one.';
+  document.getElementById('compare-banner').style.display = '';
+  document.getElementById('back-to-intake-btn').style.display = '';
+}
+function hideCompareBanner() {
+  var b = document.getElementById('compare-banner'); if (b) b.style.display = 'none';
+  var btn = document.getElementById('back-to-intake-btn'); if (btn) btn.style.display = 'none';
+}
+function backToIntakeFromCompare() {
+  hideCompareBanner();
+  showScreen('s-intake');
+  intakeGoTo(compareReturnKind || 'duplicate');
+}
+/* Intake RFI — asks the submitting provider for the missing item, pre-routing (no decision clock) */
+var irfiCase = null;
+function intakeRfiOpen(r, viewOnly) {
+  irfiCase = r;
+  document.getElementById('irfi-mem').textContent = r.mem + '  ·  ' + r.memSub;
+  document.getElementById('irfi-req').textContent = r.req + '  ·  ' + r.prov;
+  document.getElementById('irfi-flags').innerHTML = r.flags.map(function (f) { return '<span class="flag flag-' + f[0] + '">' + f[1] + '</span>'; }).join('');
+  document.getElementById('irfi-to').value = r.prov;
+  var viaOpts = ['Fax back to sender', 'Provider portal message', 'Phone', 'Secure email'];
+  var pref = { 'Fax': 0, 'Provider Portal': 1, 'Client Portal': 1, 'Call Center': 2, 'API': 1 }[r.src] || 0;
+  var sel = document.getElementById('irfi-via');
+  sel.innerHTML = viaOpts.map(function (o, i) { return '<option' + (i === pref ? ' selected' : '') + '>' + o + '</option>'; }).join('');
+
+  var isView = viewOnly && r.kind === 'rfi';
+  document.getElementById('irfi-title').textContent = isView ? 'RFI Sent — Awaiting Response' : 'Request Information — Intake';
+  document.getElementById('irfi-info-lbl').textContent = isView ? 'Information Requested' : 'Information Needed';
+  document.getElementById('irfi-info').value = isView ? (r.rfiSentAsk || r.rfiAsk || '') : r.rfiAsk;
+  document.getElementById('irfi-info').disabled = !!isView;
+  document.getElementById('irfi-to').disabled = !!isView;
+  sel.disabled = !!isView;
+  document.getElementById('irfi-due').value = isView && r.rfiSentDue ? r.rfiSentDue : document.getElementById('irfi-due').value;
+  document.getElementById('irfi-due').disabled = !!isView;
+  document.getElementById('irfi-auto-wrap').style.display = isView ? 'none' : '';
+  document.getElementById('irfi-banner').innerHTML = isView
+    ? '&#8505;&#65039; This RFI was sent to <b>' + r.prov + '</b> via ' + (r.rfiSentVia || 'the original channel').toLowerCase() + ', due <b>' + (r.rfiSentDue ? r.rfiSentDue.slice(5).replace('-', '/') : '—') + '</b>. Mark it received if the UMR agent already captured the response, or upload it yourself if it came back some other way &mdash; a phone call, a fax outside the system &mdash; and wasn&rsquo;t added automatically.'
+    : '&#8505;&#65039; This request can&rsquo;t be routed to a clinical queue until the missing item arrives. The RFI goes back to the submitting provider on the channel it came in on, and the item moves to <b>RFI</b> status in your intake queue. No decision clock is started &mdash; the authorization has not been accepted yet.';
+  document.getElementById('irfi-send-btn').style.display = isView ? 'none' : '';
+  document.getElementById('irfi-received-btn').style.display = isView ? '' : 'none';
+  document.getElementById('irfi-resend-btn').style.display = isView ? '' : 'none';
+  var upBtn = document.getElementById('irfi-upload-btn');
+  upBtn.style.display = '';
+  upBtn.innerHTML = isView ? '&#128206; Upload Response' : '&#128206; Already Have It? Upload';
+  upBtn.title = isView
+    ? 'Use this if the response came back but wasn’t captured automatically — e.g. a phone call or a document received outside the system.'
+    : 'Skip the RFI — attach the missing item directly if you already have it in hand.';
+  openModal('m-intake-rfi');
+}
+function intakeRfiSend() {
+  if (!irfiCase) return;
+  var via = document.getElementById('irfi-via').value;
+  var due = document.getElementById('irfi-due').value;
+  var auto = document.getElementById('irfi-auto').checked;
+  irfiCase.kind = 'rfi';
+  irfiCase.status = ['sb-blue', 'RFI'];
+  irfiCase.flags = [['amber', '&#128232; RFI sent &middot; due ' + (due ? due.slice(5).replace('-', '/') : '08/05')]]
+    .concat(auto ? [['ok', '&#9889; Auto-route on receipt']] : []);
+  irfiCase.act = 'View RFI';
+  irfiCase.rfiSentAsk = document.getElementById('irfi-info').value;
+  irfiCase.rfiSentVia = via;
+  irfiCase.rfiSentDue = due;
+  irfiCase.rfiAsk = null;
+  closeModal('m-intake-rfi');
+  intakeApplyKindFilter('rfi');  // follow the item to its new status instead of letting it vanish from the current view
+  crToast('&#128232; RFI sent to ' + irfiCase.prov + ' via ' + via.toLowerCase() + (auto ? ' — will auto-route on receipt' : ''));
+  irfiCase = null;
+}
+function intakeRfiReceived() {
+  if (!irfiCase) return;
+  var r = irfiCase;
+  r.kind = 'auto';
+  r.complete = { mem: true, cpt: true, clin: true, elig: true };
+  r.conf = 97;
+  r.flags = [['ok', '&#10003; RFI response received — re-read by UMR agent']];
+  r.status = ['sb-green', 'Routed'];
+  r.act = null;
+  closeModal('m-intake-rfi');
+  intakeApplyKindFilter('auto');
+  crToast('&#10003; Response received from ' + r.prov + ' — re-read and routed to the clinical queue');
+  irfiCase = null;
+}
+function intakeRfiResend() {
+  if (!irfiCase) return;
+  intakeRfiOpen(irfiCase, false);
+  crToast('&#8635; Editing the RFI to resend — update the due date and send again');
+}
+/* ===== KPI drill-down — one modal, breakdown data per tile ===== */
+var KPI_DRILL = {
+  today: { ico: '📥', title: 'New Today', sub: '81 authorizations received today, by channel', kind: null,
+    rows: [['Fax', 14, '#0EA5E9'], ['Call Center', 6, '#8B5CF6'], ['Provider Portal', 21, '#0A6B8A'], ['Client Portal', 9, '#F59E0B'], ['API', 31, '#16A34A']] },
+  received: { ico: '📤', title: 'Received', sub: 'Arrived, waiting on the UMR agent to read it', kind: 'received',
+    rows: [['Queued for OCR (Fax)', 1, '#64748B']] },
+  needinfo: { ico: '⚠️', title: 'Information Needed', sub: 'Blocked on one missing or unreadable item', kind: 'exception',
+    rows: [['Illegible member', 1, '#DC2626'], ['No clinicals attached', 1, '#DC2626'], ['Eligibility not found', 1, '#DC2626'], ['Missing procedure code', 1, '#DC2626']] },
+  rfi: { ico: '📨', title: 'RFI', sub: 'Sent back to the submitter; auto-routes on a clean response', kind: 'rfi',
+    rows: [['Awaiting response', 1, '#2563EB'], ['Overdue', 0, '#DC2626']] },
+  continue: { ico: '↻', title: 'Continue', sub: 'Nothing missing — needs a coordinator decision', kind: 'duplicate',
+    rows: [['Duplicate suspected', 1, '#D97706'], ['Overlapping date span', 1, '#D97706']] },
+  assigned: { ico: '⚡', title: 'Assigned', sub: 'Complete on arrival — routed without a coordinator touch', kind: 'auto',
+    rows: [['Routed to UM Nurse queue', 52, '#16A34A'], ['Auto-approved on criteria', 15, '#0A6B8A']] },
+  turnaround: { ico: '⏱', title: 'Avg Turnaround — 1.4 days', sub: 'Median time from intake to routed/resolved, trailing 7 days', kind: null,
+    rows: [['Complete on arrival', 0.4, '#16A34A'], ['Required coordinator fix', 1.1, '#F59E0B'], ['Required an RFI round-trip', 3.6, '#DC2626']], unit: ' d' },
+  completed: { ico: '✓', title: 'Completed (Week) — 38', sub: 'How this week\'s 38 resolved items were closed out', kind: null,
+    rows: [['Auto-routed / auto-approved', 25, '#16A34A'], ['Coordinator confirmed & routed', 9, '#0A6B8A'], ['Marked duplicate', 4, '#D97706']] }
+};
+function openKpiDrill(key) {
+  var d = KPI_DRILL[key]; if (!d) return;
+  if (d.kind) intakeApplyKindFilter(d.kind);  // grid reflects the tile immediately, not only after "View in queue"
+  document.getElementById('kd-ico').innerHTML = d.ico;
+  document.getElementById('kd-title').textContent = d.title;
+  document.getElementById('kd-sub').textContent = d.sub;
+  var max = Math.max.apply(null, d.rows.map(function (r) { return r[1]; })) || 1;
+  document.getElementById('kd-rows').innerHTML = d.rows.map(function (r) {
+    return '<div class="kd-row"><div class="kd-lbl">' + r[0] + '</div>'
+      + '<div class="kd-bar-wrap"><div class="kd-bar" style="width:' + Math.round(r[1] / max * 100) + '%;background:' + r[2] + ';"></div></div>'
+      + '<div class="kd-count">' + r[1] + (d.unit || '') + '</div></div>';
+  }).join('');
+  var btn = document.getElementById('kd-view-btn');
+  if (d.kind) { btn.style.display = ''; btn.onclick = function () { intakeGoTo(d.kind); }; }
+  else { btn.style.display = 'none'; }
+  openModal('m-kpi-drill');
+}
+/* ===== Eligibility & benefits check ===== */
+var ELIG_DB = {
+  'rosa delgado': { active: false, plan: 'PPO Gold 500', note: 'Termed 06/30/2026 — no active coverage on the requested date of service.' }
+};
+function openEligibility(prefillMem, prefillDos) {
+  document.getElementById('elig-result').innerHTML = '';
+  document.getElementById('elig-mem').value = prefillMem || '';
+  if (prefillDos) {
+    var m = prefillDos.match(/(\d{2})\/(\d{2})\/(\d{4})/);
+    if (m) document.getElementById('elig-dos').value = m[3] + '-' + m[1] + '-' + m[2];
+  }
+  openModal('m-eligibility');
+  if (prefillMem) eligCheck();
+}
+function eligCheck() {
+  var name = (document.getElementById('elig-mem').value || '').trim();
+  var rec = ELIG_DB[name.toLowerCase()];
+  var box = document.getElementById('elig-result');
+  if (!rec) rec = { active: true, plan: 'PPO Silver 250', note: 'Active coverage confirmed for the requested date of service.' };
+  box.innerHTML = '<div style="border:1px solid ' + (rec.active ? 'var(--green-border)' : 'var(--red-border)') + ';background:' + (rec.active ? 'var(--green-bg)' : 'var(--red-bg)') + ';border-radius:9px;padding:11px 13px;">'
+    + '<div style="font-weight:800;font-size:12.5px;color:' + (rec.active ? 'var(--green)' : 'var(--red)') + ';">' + (rec.active ? '✓ Active Coverage' : '✕ Not Eligible') + '</div>'
+    + '<div style="font-size:11.5px;color:var(--gray-700);margin-top:4px;">Plan: <b>' + rec.plan + '</b></div>'
+    + '<div style="font-size:11.5px;color:var(--gray-600);margin-top:3px;line-height:1.5;">' + rec.note + '</div></div>';
+}
+function intakeRunOcr() {
+  document.getElementById('int-up-step1').style.display = 'none';
+  document.getElementById('int-up-step2').style.display = '';
+  document.getElementById('int-up-ftr').style.display = '';
+}
+function intakeResolve(how) {
+  closeModal('m-intake-upload');
+  document.getElementById('int-up-step1').style.display = '';
+  document.getElementById('int-up-step2').style.display = 'none';
+  document.getElementById('int-up-ftr').style.display = 'none';
+  if (how === 'rfi') {
+    var rf = INTAKE.filter(function (x) { return x.id === 'i1'; })[0];
+    if (rf) { rf.rfiAsk = 'A legible copy of the authorization request showing the full member name and complete member ID. The faxed page was partially illegible (OCR confidence 71%), and the member could not be matched to eligibility.'; intakeRfiOpen(rf); }
+    return;
+  }
+  if (how === 'duplicate') {
+    INTAKE = INTAKE.filter(function (r) { return r.id !== 'i1'; });
+    crToast('&#128209; Marked as duplicate of BH784201 — removed from intake queue');
+  } else {
+    var r = INTAKE.filter(function (x) { return x.id === 'i1'; })[0];
+    if (r) { r.kind = 'auto'; r.mem = 'Maria Benitez'; r.memSub = 'NYM0294831 · confirmed'; r.conf = 100;
+      r.complete = { mem: true, cpt: true, clin: true, elig: true }; r.flags = [['ok', '&#10003; Routed → Ready for Review']];
+      r.status = ['sb-green', 'Routed']; r.act = null; }
+    crToast('&#10003; Confirmed &amp; routed to Ready for Review queue');
+  }
+  intakeRender();
+}
+intakeRender();
+
 /* AI Assist toggle — shows/hides the AI pre-review layer on Next Best Actions */
 function toggleAiAssist() {
   var off = document.body.classList.toggle('ai-off');
@@ -5322,6 +6011,162 @@ function showAuthCreatedToast(authType, ip) {
   setTimeout(function () { t.classList.remove('show'); }, 3600);
 }
 </script>
+<!-- ===== Intake: upload / OCR review modal ===== -->
+<div id="m-intake-upload" class="modal-overlay">
+  <div class="modal-box modal-wide">
+    <div class="modal-hdr">
+      <span style="font-size:15px;color:var(--primary);">&#128228;</span>
+      <span class="modal-title">Fax Intake &mdash; UMR Agent Read</span>
+      <button class="modal-close" onclick="closeModal('m-intake-upload')">&#10005;</button>
+    </div>
+    <div class="modal-body" style="max-height:70vh;overflow-y:auto;">
+      <div id="int-up-step1">
+        <div style="border:2px dashed var(--gray-300);border-radius:12px;padding:26px;text-align:center;background:var(--gray-50);">
+          <div style="font-size:32px;">&#128228;</div>
+          <div style="font-size:13px;font-weight:700;color:var(--gray-700);margin-top:7px;">Drop a fax or document here</div>
+          <div style="font-size:11px;color:var(--gray-500);margin-top:4px;">PDF or TIFF &middot; the UMR agent will OCR, extract, and match guidelines</div>
+          <button class="btn btn-primary btn-sm" style="margin-top:12px;" onclick="intakeRunOcr()">Simulate incoming fax &#9655;</button>
+        </div>
+      </div>
+      <div id="int-up-step2" style="display:none;">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+          <span class="sb sb-primary">&#10024; UMR Agent</span>
+          <span style="font-size:11px;color:var(--gray-500);">OCR complete &middot; 3.2s &middot; 6 pages</span>
+          <span class="sb sb-amber" style="margin-left:auto;">2 fields low confidence</span>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+          <div>
+            <div class="ex-lbl" style="margin-bottom:5px;">Source document (OCR text)</div>
+            <div class="ocr-doc">
+FAX &mdash; PRIOR AUTHORIZATION REQUEST<br>
+From: Meridian Behavioral Health Center &nbsp; (555) 240-3311<br>
+-------------------------------------<br>
+Patient: <span class="ocr-lo">M?ria Benit?z</span><br>
+DOB: 03/14/1971 &nbsp; ID: <span class="ocr-lo">NYM02948??</span><br>
+Requested: 90870 &mdash; PHP, partial hospitalization<br>
+Dx: F41.0 &mdash; Panic disorder<br>
+Facility: Meridian Behavioral Health Center<br>
+Requested date: 08/01/2026<br>
+Clinicals attached: Psychiatric eval 07/26/2026, medication log<br>
+            </div>
+          </div>
+          <div>
+            <div class="ex-lbl" style="margin-bottom:5px;">Extracted fields</div>
+            <div class="ex-grid">
+              <div><div class="ex-lbl">Member</div><div class="ex-val miss">Maria Benitez &#9888;</div></div>
+              <div><div class="ex-lbl">Member ID</div><div class="ex-val miss">NYM02948?? &#9888;</div></div>
+              <div><div class="ex-lbl">CPT</div><div class="ex-val">90870</div></div>
+              <div><div class="ex-lbl">Diagnosis</div><div class="ex-val">F41.0</div></div>
+              <div><div class="ex-lbl">Service date</div><div class="ex-val">08/01/2026</div></div>
+              <div><div class="ex-lbl">Clinicals</div><div class="ex-val" style="color:var(--green)">&#10003; 2 attached</div></div>
+            </div>
+            <div style="margin-top:12px;">
+              <div class="ex-lbl">Guideline match</div>
+              <div style="background:var(--primary-pale);border:1px solid var(--primary-pale2);border-radius:8px;padding:9px 11px;margin-top:4px;">
+                <div style="font-size:11.5px;font-weight:700;color:var(--primary);">ABCD Behavioral Health &mdash; PHP Level of Care</div>
+                <div style="font-size:10.5px;color:var(--gray-600);margin-top:3px;line-height:1.5;">Matched from CPT 90870 + F41.0 via policy mapping. Policy QI: chunked from <i>Behavioral Health PHP Policy v3.1</i>.</div>
+              </div>
+            </div>
+            <div class="dup-card">
+              <div style="font-size:11px;font-weight:800;color:var(--amber);">&#128209; Possible duplicate</div>
+              <div style="font-size:10.5px;color:var(--gray-600);margin-top:3px;line-height:1.5;">BH784201 &mdash; same member + CPT 90870, service date within 14 days (received 07/21 via Provider Portal).</div>
+            </div>
+          </div>
+        </div>
+        <div style="background:var(--amber-bg);border:1px solid var(--amber-border);border-radius:9px;padding:10px 12px;margin-top:12px;">
+          <div style="font-size:11.5px;font-weight:800;color:var(--amber);">&#9888; Smart routing held this request</div>
+          <div style="font-size:11px;color:var(--gray-700);margin-top:4px;line-height:1.5;">Member name and ID are below the 90% confidence threshold, and a possible duplicate was found. Coordinator confirmation required before it can be routed to a clinical queue.</div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer" id="int-up-ftr" style="display:none;">
+      <button class="btn btn-secondary btn-sm" onclick="closeModal('m-intake-upload')">Cancel</button>
+      <button class="btn btn-secondary btn-sm" onclick="intakeResolve('rfi')">&#128232; Request info</button>
+      <button class="btn btn-secondary btn-sm" onclick="intakeResolve('duplicate')">Mark as duplicate</button>
+      <button class="btn btn-primary btn-sm" onclick="intakeResolve('confirm')">Confirm &amp; route to queue &#9655;</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== Intake: Request for Information (pre-routing) ===== -->
+<div id="m-intake-rfi" class="modal-overlay">
+  <div class="modal-box">
+    <div class="modal-hdr">
+      <span style="font-size:15px;">&#128232;</span>
+      <span class="modal-title" id="irfi-title">Request Information &mdash; Intake</span>
+      <button class="modal-close" onclick="closeModal('m-intake-rfi')">&#10005;</button>
+    </div>
+    <div class="modal-body">
+      <div class="info-banner" id="irfi-banner">&#8505;&#65039; This request can&rsquo;t be routed to a clinical queue until the missing item arrives. The RFI goes back to the submitting provider on the channel it came in on, and the item moves to <b>RFI</b> status in your intake queue. No decision clock is started &mdash; the authorization has not been accepted yet.</div>
+      <div style="background:var(--gray-50);border:1px solid var(--gray-200);border-radius:9px;padding:10px 12px;margin-bottom:14px;">
+        <div class="ex-lbl">Request</div>
+        <div style="font-size:12.5px;font-weight:700;color:var(--gray-800);margin-top:2px;" id="irfi-mem">&mdash;</div>
+        <div style="font-size:11px;color:var(--gray-600);margin-top:2px;" id="irfi-req">&mdash;</div>
+        <div style="margin-top:6px;" id="irfi-flags"></div>
+      </div>
+      <div class="form-group"><label class="form-label" id="irfi-info-lbl">Information Needed</label><textarea class="form-ctrl" id="irfi-info" rows="3"></textarea></div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Send Via</label><select class="form-ctrl" id="irfi-via"></select></div>
+        <div class="form-group"><label class="form-label">Response Due</label><input type="date" class="form-ctrl" id="irfi-due" value="2026-08-05"></div>
+      </div>
+      <div class="form-group"><label class="form-label">Send To</label><input type="text" class="form-ctrl" id="irfi-to"></div>
+      <div style="border-top:1px solid var(--gray-200);padding-top:12px;" id="irfi-auto-wrap">
+        <label style="display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--gray-700);cursor:pointer;font-weight:600;"><input type="checkbox" id="irfi-auto" checked style="accent-color:var(--primary);width:15px;height:15px;"> Auto-route once the missing item is received and validated</label>
+        <div style="font-size:11px;color:var(--gray-500);margin-top:5px;line-height:1.5;padding-left:23px;">When the response arrives, the UMR agent re-reads the submission. If it clears the confidence threshold it routes straight to the clinical queue &mdash; no second coordinator touch.</div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('m-intake-rfi')">Cancel</button>
+      <button class="btn btn-secondary" id="irfi-resend-btn" onclick="intakeRfiResend()" style="display:none;">&#8635; Resend</button>
+      <button class="btn btn-secondary" id="irfi-upload-btn" onclick="openIntakeRfiUpload()" style="display:none;" title="Use this if the response came back but wasn't captured automatically — e.g. a phone call or a document received outside the system.">&#128206; Upload Response</button>
+      <button class="btn btn-primary" id="irfi-send-btn" onclick="intakeRfiSend()">&#128232; Send RFI</button>
+      <button class="btn btn-primary" id="irfi-received-btn" onclick="intakeRfiReceived()" style="display:none;">&#10003; Mark Received</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== KPI drill-down — every intake tile opens this with a breakdown ===== -->
+<div id="m-kpi-drill" class="modal-overlay">
+  <div class="modal-box" style="max-width:440px;">
+    <div class="modal-hdr">
+      <span style="font-size:15px;" id="kd-ico">&#128202;</span>
+      <span class="modal-title" id="kd-title">Breakdown</span>
+      <button class="modal-close" onclick="closeModal('m-kpi-drill')">&#10005;</button>
+    </div>
+    <div class="modal-body">
+      <div style="font-size:11.5px;color:var(--gray-500);margin-bottom:12px;" id="kd-sub"></div>
+      <div id="kd-rows"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('m-kpi-drill')">Close</button>
+      <button class="btn btn-primary" id="kd-view-btn">View in queue &#9655;</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== Eligibility check — standalone toolbar entry + reachable from the eligibility-fail exception ===== -->
+<div id="m-eligibility" class="modal-overlay">
+  <div class="modal-box">
+    <div class="modal-hdr">
+      <span style="font-size:15px;">&#128179;</span>
+      <span class="modal-title">Eligibility &amp; Benefits Check</span>
+      <button class="modal-close" onclick="closeModal('m-eligibility')">&#10005;</button>
+    </div>
+    <div class="modal-body">
+      <div class="info-banner">&#8505;&#65039; Real-time 270/271 check against the plan's eligibility system. Use this before routing to confirm coverage was active on the date of service.</div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Member Name or ID</label><input type="text" class="form-ctrl" id="elig-mem" placeholder="e.g. Rosa Delgado or NYM0912345"></div>
+        <div class="form-group"><label class="form-label">Date of Service</label><input type="date" class="form-ctrl" id="elig-dos" value="2026-08-01"></div>
+      </div>
+      <button class="btn btn-primary btn-sm" onclick="eligCheck()" style="margin-bottom:14px;">&#128269; Check Eligibility</button>
+      <div id="elig-result"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('m-eligibility')">Close</button>
+    </div>
+  </div>
+</div>
+
 <!-- New Authorization wizard overlay -->
 <div id="aw-overlay" class="aw-overlay" onclick="if(event.target===this)closeAuthWizard()">
   <button class="aw-close" onclick="closeAuthWizard()" title="Close (Esc)">&times;</button>
