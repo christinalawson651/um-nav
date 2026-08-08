@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Criteria Lookup</title>
+<style>
+  :root {
+    --purple: #4a3b8c;
+    --border: #d9d7d0;
+    --surface-1: #f3f1ea;
+    --surface-2: #ffffff;
+    --text-primary: #1f1e1c;
+    --text-secondary: #5f5e5a;
+    --text-muted: #888780;
+    --danger: #a32d2d;
+    --green: #1a7f37;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: var(--text-primary);
+    background: #fbfaf7;
+    margin: 0;
+    padding: 32px 24px;
+    line-height: 1.5;
+  }
+  .wrap { max-width: 900px; margin: 0 auto; }
+  label.field-label { display: block; font-size: 13px; color: var(--text-secondary); margin-bottom: 6px; }
+  select, input[type="text"] {
+    height: 36px; padding: 0 10px; font-size: 14px;
+    border: 1px solid var(--border); border-radius: 8px;
+    background: var(--surface-2); color: var(--text-primary);
+    font-family: inherit;
+  }
+  input[readonly], input:disabled, select:disabled {
+    background: var(--surface-1); color: var(--text-secondary); cursor: default;
+  }
+  button.action {
+    height: 36px; padding: 0 16px; font-size: 14px; font-weight: 500;
+    background: var(--purple); color: #fff; border: 1px solid var(--purple);
+    border-radius: 8px; cursor: pointer; font-family: inherit;
+  }
+  button.action:hover { opacity: 0.92; }
+  button.action:disabled { opacity: 0.5; cursor: default; }
+  button.reset {
+    font-size: 12px; padding: 5px 12px; color: var(--text-secondary);
+    background: none; border: 1px solid var(--border); border-radius: 8px;
+    cursor: pointer; font-family: inherit;
+  }
+  button.reset:hover { background: var(--surface-1); }
+  .section { margin-bottom: 20px; }
+  .radios { display: flex; gap: 20px; align-items: center; margin-bottom: 16px; }
+  .radios label { display: flex; align-items: center; gap: 6px; font-size: 14px; cursor: pointer; }
+  .toggle-btn {
+    width: 100%; display: flex; align-items: center; gap: 8px;
+    background: none; border: none; padding: 10px 0; font-size: 14px;
+    color: var(--text-primary); cursor: pointer; text-align: left; font-family: inherit;
+  }
+  .chevron { transition: transform 0.15s ease; display: inline-block; }
+  .collapse-body { padding: 4px 0 12px 24px; font-size: 13px; color: var(--text-secondary); }
+  .detail-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; margin-bottom: 20px; }
+  .detail-grid p, .detail-day p { margin: 0; }
+  .detail-title { font-size: 13px; font-weight: 500; margin: 0 0 4px !important; }
+  .detail-val { font-size: 13px; color: var(--text-secondary); }
+  .divider { border-top: 1px solid var(--border); padding-top: 12px; }
+  table.gl { width: 100%; border-collapse: collapse; font-size: 13px; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+  table.gl th { text-align: left; padding: 10px 12px; font-weight: 500; background: var(--surface-1); border-bottom: 1px solid var(--border); }
+  table.gl td { padding: 10px 12px; color: var(--text-secondary); border-bottom: 1px solid var(--border); }
+  table.gl tr:last-child td { border-bottom: none; }
+  .tree { font-size: 13px; line-height: 1.9; }
+  .disclaimer { font-size: 12px; color: var(--text-muted); line-height: 1.6; margin-top: 16px; }
+  .cwqi p { line-height: 1.7; }
+  .hidden { display: none; }
+  h3.gl-title { font-size: 16px; font-weight: 500; margin: 0 0 12px; }
+  .real-crit-row { display: flex; align-items: flex-start; gap: 8px; margin-bottom: 8px; cursor: pointer; }
+  .real-crit-row input { margin-top: 3px; }
+  .real-crit-row.met span { color: var(--text-primary); }
+  .linked-banner { background: #eef0fb; border: 1px solid #ccd0f0; border-radius: 8px; padding: 9px 14px; font-size: 12.5px; color: var(--purple); margin-bottom: 16px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div id="linkedBanner" class="linked-banner hidden">Linked to the utilization review in the originating tab &mdash; use <b>Complete &amp; Return to Review</b> below to transfer your result back automatically.</div>
+
+  <div style="display:flex; justify-content:flex-end; margin-bottom: 8px;">
+    <button class="reset" id="resetDemo">&#8635; Reset (demo)</button>
+  </div>
+
+  <div class="section">
+    <label class="field-label">Criteria source <span style="color: var(--danger);">*</span></label>
+    <div style="display:flex; gap: 10px; align-items:center; flex-wrap: wrap;">
+      <select id="criteriaSource" style="width: 260px;">
+        <option>InterQual&reg;</option>
+        <option>CWQI</option>
+        <option>Custom</option>
+      </select>
+      <button class="action" id="launchCriteria">Launch criteria</button>
+      <button class="action" id="bookView">InterQual&reg; book view</button>
+      <button class="action" id="saveBtn" style="background:#b45309;border-color:#b45309;display:none;">&#128190; Save Progress &amp; Return</button>
+      <button class="action" id="completeBtn" style="background:var(--green);border-color:var(--green);display:none;">&#10003; Complete &amp; Return to Review</button>
+    </div>
+  </div>
+
+  <div class="section">
+    <label class="field-label">Select a diagnosis code or procedure code</label>
+    <div class="radios">
+      <label><input type="radio" name="lookupType" value="diagnosis" checked> Diagnosis</label>
+      <label><input type="radio" name="lookupType" value="procedure"> Procedure</label>
+      <label><input type="radio" name="lookupType" value="none"> None</label>
+    </div>
+    <div>
+      <label class="field-label">Diagnosis</label>
+      <input id="lookupValue" type="text" value="Asthma, unspecified, unspecified status | 493.90 | ICD9" readonly style="width: 100%;">
+    </div>
+  </div>
+
+  <div id="criteriaDetails" class="section divider hidden">
+    <div class="detail-grid" id="detailGrid">
+      <div><p class="detail-title">Version</p><p class="detail-val">InterQual&reg; 2026, Mar. 2026 Release</p></div>
+      <div><p class="detail-title">Review status</p><p class="detail-val">In Primary</p></div>
+      <div><p class="detail-title">Status</p><p class="detail-val">Observation Met</p></div>
+      <div><p class="detail-title">Product description</p><p class="detail-val">LOC:Acute Adult</p></div>
+      <div><p class="detail-title">Product subset</p><p class="detail-val">Acetaminophen Overdose</p></div>
+    </div>
+    <div class="detail-day">
+      <p class="detail-title">Episode day</p><p class="detail-val">Episode Day 1</p>
+    </div>
+  </div>
+
+  <div id="guidelineSummary" class="section divider hidden">
+    <h3 class="gl-title">Guideline summary</h3>
+    <table class="gl">
+      <thead>
+        <tr>
+          <th>Guideline name</th><th>Guideline code</th><th>Indication status</th><th>Review date</th>
+        </tr>
+      </thead>
+      <tbody id="glTableBody">
+        <tr>
+          <td>Pneumonia</td><td>M-282 (ISC)</td><td>Indications Met</td><td>06/25/2026</td>
+        </tr>
+        <tr>
+          <td>Sepsis and Other Febrile Illness, with&hellip;</td><td>M-160 (ISC)</td><td>Supplemental Medicare Criteria Met</td><td>06/25/2026</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="divider" style="padding-top: 4px;">
+    <button class="toggle-btn" id="reviewToggle" aria-expanded="true">
+      <span class="chevron" id="reviewChevron">&#9662;</span> Review summary
+    </button>
+    <div class="collapse-body" id="reviewContent">
+      <span id="reviewEmpty">No review items yet.</span>
+
+      <div id="reviewTree" class="tree hidden">
+        <div>&#9745; Select day, one:</div>
+        <div style="padding-left: 20px;">Initial review, one:</div>
+        <div style="padding-left: 20px;">&#9745; Episode day 1, one:</div>
+        <div style="padding-left: 40px;">&#9745; Observation, one:</div>
+        <div style="padding-left: 60px;">&#9745; N-Acetylcysteine (NAC) (includes IV, PO or NG)</div>
+        <div style="padding-left: 60px;">Acute, both:</div>
+        <div style="padding-left: 80px;">Finding, &gt;= one:</div>
+        <div style="padding-left: 80px;">&#9745; N-Acetylcysteine (NAC) (includes IV, PO or NG)</div>
+        <div style="padding-left: 60px;">Critical, both:</div>
+        <div style="padding-left: 80px;">Finding, &gt;= one:</div>
+        <div style="padding-left: 80px;">&#9745; N-Acetylcysteine (NAC) (includes IV, PO or NG)</div>
+        <div style="padding-left: 40px;">Episode day 2, one:</div>
+        <div style="padding-left: 40px;">Episode day 3, one:</div>
+        <div style="padding-left: 40px;">Episode day 4, one:</div>
+      </div>
+
+      <div id="realCritWrap" class="hidden" style="margin-top: 4px;">
+        <p class="detail-title" style="margin-bottom:10px !important;">Guideline criteria &mdash; check each item met on review of the clinicals</p>
+        <div id="realCritList"></div>
+      </div>
+
+      <p id="reviewDisclaimer" class="disclaimer hidden">
+        InterQual&reg; criteria (IQ) is confidential and proprietary information and is being provided to you solely as it pertains to the information requested. IQ may contain advanced clinical knowledge which we recommend you discuss with your physician upon disclosure to you. Use permitted by and subject to license with Optum, Inc. and/or one of its subsidiaries. IQ reflects clinical interpretations and analyses and cannot alone either (a) resolve medical ambiguities of particular situations; or (b) provide the sole basis for definitive decisions. IQ is intended solely for use as screening guidelines with respect to medical appropriateness of healthcare services. All ultimate care decisions are strictly and solely the obligation and responsibility of your health care provider. &copy; 2026 Optum, Inc. and/or one of its subsidiaries. All Rights Reserved. CPT&reg; only &copy; 2011-2025 American Medical Association. All Rights Reserved.
+      </p>
+
+      <div id="reviewCwqi" class="cwqi hidden" style="font-size: 13px;">
+        <p style="margin: 0 0 16px;">Aggregate Interface Note</p>
+        <p style="margin: 0 0 16px;">Documented with MCG CareWebQI</p>
+        <p style="margin: 0 0 16px;">Episode Status: In Primary Review</p>
+        <p id="cwqiPatientBlock" style="margin: 0 0 16px; white-space: pre-line;">Patient: M1000210000
+Patient Name: Oles, Mike
+Gender: Male
+DOB: 5/2/1965
+Line Of Business Name: Primary Entity &gt; Line of business 1 &gt; Employer &gt; Sub-region &gt; Division
+Benefit Plan Name: (No Entry)</p>
+        <p id="cwqiEpisodeBlock" style="margin: 0 0 16px; white-space: pre-line;">Episode: IP0000000370
+Admit Date: 6/1/2026</p>
+        <p style="margin: 0 0 16px; white-space: pre-line;">Attending Provider: ., Open Arms Foster Care for AB
+Admitting Provider: Nadler, Gary
+Primary Care Provider: (No Entry)</p>
+        <p style="margin: 0 0 16px; white-space: pre-line;">Facility: Open Arms Foster Care for AB    Episode Type: (No Entry)
+Primary Reviewer: TCAdministrator, TCAdmin
+Episode Created By: TCAdministrator, TCAdmin on 6/25/2026 11:22 PM GMT
+Most Recent Episode Editor: TCAdministrator, TCAdmin on 7/7/2026 9:25 PM GMT
+Next Review Date: (No Entry)
+Episode Discharge Date: (No Entry)
+Episode Discharge To: (No Entry)</p>
+        <p id="cwqiCodesBlock" style="margin: 0; white-space: pre-line;">Episode Codes:
+    * ICD-10 Diagnosis J18.9 - Pneumonia, unspecified organism</p>
+      </div>
+    </div>
+  </div>
+
+  <div>
+    <button class="toggle-btn" id="decisionToggle" aria-expanded="true">
+      <span class="chevron" id="decisionChevron">&#9662;</span> Decision reasons
+    </button>
+    <div class="collapse-body" id="decisionContent" style="line-height: 1.6;">
+      <span id="decisionEmpty">No decision reasons recorded yet.</span>
+      <div id="decisionText" class="hidden">
+        <p style="margin: 0 0 12px;">Hospital care at the inpatient level was requested to treat an acetaminophen (Tylenol) overdose. Based on the records we received, you did not need the type of care and frequency of services that are normally given at this level. This was determined by a review of what was medically necessary. It does not reflect the quality of care that was given.</p>
+        <p style="margin: 0 0 12px;">&mdash; The level of care is determined by how severe the condition is and what medical care is needed to treat it. 'Observation' level of care is for people who need to be monitored for a short time. When more care is needed, you might be admitted to the 'inpatient' level of care. The records we received show that you could have been cared for at the observation level. You were treated in the emergency room (ER). The records we received showed that your problem improved after you were treated and you could have been safely treated (in a clinic, in a provider's office, in a nursing facility, at home).</p>
+        <p style="margin: 0 0 12px;">&mdash; We need to review health records to help us make this decision. At this time, we have not received (enough records, the records we need) to make this decision. Medical records give details about your health and the care you received. They are used to help decide if you were cared for in the right type of facility. They are usually sent by the provider or a health care center.</p>
+        <p style="margin: 0;">&mdash; Testing can be done to look at how your body systems are working. It can be used to find out how bad a problem is and what is causing it. The records we received did not show that your blood test results required inpatient level of care.</p>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  function $(id) { return document.getElementById(id); }
+  function show(id) { $(id).classList.remove('hidden'); }
+  function hide(id) { $(id).classList.add('hidden'); }
+
+  // ---- Real-case handoff (set by um-nav.html's "Launch Criteria" button via localStorage right before
+  // window.open — same-origin, no size/encoding limits). Absent this, the page behaves exactly like the
+  // original reference demo (Asthma/Acetaminophen/Mike Oles placeholder content, no transfer button). ----
+  var payload = null;
+  try {
+    var raw = localStorage.getItem('ipGuidelineLaunch');
+    if (raw) { payload = JSON.parse(raw); localStorage.removeItem('ipGuidelineLaunch'); }
+  } catch (e) { payload = null; }
+  var linked = !!payload;
+
+  var DEFAULTS = {
+    criteriaSource: 'InterQual®',
+    lookupValue: 'Asthma, unspecified, unspecified status | 493.90 | ICD9'
+  };
+  // "CWQI" in this tool corresponds to MCG CareWebQI (see the reviewCwqi content below) — so a real
+  // payload with source 'mcg' should default the picker to CWQI, and 'iq' to InterQual®.
+  var SOURCE_TO_OPTION = { mcg: 'CWQI', iq: 'InterQual®' };
+
+  if (payload) {
+    DEFAULTS.lookupValue = (payload.dxName ? payload.dxName + ', unspecified' : '') + ' | ' + (payload.dxCode || '') + ' | ICD-10';
+    DEFAULTS.criteriaSource = SOURCE_TO_OPTION[payload.source] || 'InterQual®';
+  }
+
+  function wireToggle(btnId, chevronId, contentId) {
+    var btn = $(btnId), chevron = $(chevronId), content = $(contentId);
+    btn.addEventListener('click', function () {
+      var expanded = btn.getAttribute('aria-expanded') === 'true';
+      btn.setAttribute('aria-expanded', String(!expanded));
+      content.style.display = expanded ? 'none' : 'block';
+      chevron.style.transform = expanded ? 'rotate(-90deg)' : 'rotate(0deg)';
+    });
+  }
+  wireToggle('reviewToggle', 'reviewChevron', 'reviewContent');
+  wireToggle('decisionToggle', 'decisionChevron', 'decisionContent');
+
+  function setLookupTypeDisabled(disabled) {
+    var radios = document.querySelectorAll('input[name="lookupType"]');
+    for (var i = 0; i < radios.length; i++) radios[i].disabled = disabled;
+  }
+
+  var lookupRadios = document.querySelectorAll('input[name="lookupType"]');
+  for (var i = 0; i < lookupRadios.length; i++) {
+    lookupRadios[i].addEventListener('change', function (e) {
+      $('lookupValue').disabled = e.target.value === 'none';
+    });
+  }
+
+  function updateSourceButtons() {
+    var val = $('criteriaSource').value;
+    var launch = $('launchCriteria'), bookView = $('bookView');
+    if (val === 'Custom') { launch.style.display = 'none'; bookView.style.display = 'none'; }
+    else if (val === 'CWQI') { launch.style.display = 'inline-block'; bookView.style.display = 'none'; }
+    else { launch.style.display = 'inline-block'; bookView.style.display = 'inline-block'; }
+  }
+  $('criteriaSource').addEventListener('change', updateSourceButtons);
+
+  function lockForm() {
+    $('lookupValue').readOnly = true;
+    $('criteriaSource').disabled = true;
+    setLookupTypeDisabled(true);
+  }
+
+  // Builds the real, interactive criteria checklist (replaces/augments the reference's static decorative
+  // tree) from the guideline criteria passed in by the review screen — so ticks here reflect this case.
+  function renderRealCriteria() {
+    if (!payload || !payload.criteria || !payload.criteria.length) { hide('realCritWrap'); return; }
+    show('realCritWrap');
+    $('realCritList').innerHTML = payload.criteria.map(function (text, i) {
+      return '<label class="real-crit-row" id="realCritRow-' + i + '"><input type="checkbox" data-i="' + i + '"> <span>' + text + '</span></label>';
+    }).join('');
+  }
+  document.addEventListener('change', function (e) {
+    if (e.target.matches('#realCritList input[type=checkbox]')) {
+      e.target.closest('.real-crit-row').classList.toggle('met', e.target.checked);
+    }
+  });
+
+  $('launchCriteria').addEventListener('click', function () {
+    var val = $('criteriaSource').value;
+    hide('reviewEmpty'); hide('decisionEmpty');
+    if (val === 'InterQual®') {
+      show('criteriaDetails'); hide('guidelineSummary');
+      show('reviewTree'); show('reviewDisclaimer'); hide('reviewCwqi');
+      show('decisionText');
+      lockForm();
+    } else if (val === 'CWQI') {
+      hide('criteriaDetails'); show('guidelineSummary');
+      hide('reviewTree'); hide('reviewDisclaimer'); show('reviewCwqi');
+      hide('decisionText'); show('decisionEmpty');
+      lockForm();
+    }
+    renderRealCriteria();
+    if (linked) { $('completeBtn').style.display = 'inline-block'; $('saveBtn').style.display = 'inline-block'; }
+  });
+
+  // Captures the reference-style summary content currently on screen (Criteria Details grid for
+  // InterQual, Guideline Summary table + aggregate note for CWQI) so um-nav can render the SAME
+  // summary back in its left panel instead of just a bare checklist.
+  function gridVal(idx) {
+    var cells = document.querySelectorAll('#detailGrid .detail-val');
+    return cells[idx] ? cells[idx].textContent : '';
+  }
+  function currentDetail(final) {
+    var source = $('criteriaSource').value;
+    if (source === 'InterQual®') {
+      return {
+        kind: 'iq',
+        version: gridVal(0), reviewStatus: gridVal(1),
+        status: final ? 'Criteria Met' : gridVal(2),
+        productDesc: gridVal(3), productSubset: gridVal(4),
+        episodeDay: (document.querySelector('.detail-day .detail-val') || {}).textContent || ''
+      };
+    }
+    if (source === 'CWQI') {
+      return {
+        kind: 'cwqi',
+        guidelineRow: { name: (payload && payload.guideline) || 'Pneumonia', code: '—', status: final ? 'Indications Met' : 'In Review', date: new Date().toLocaleDateString() },
+        patientBlock: ($('cwqiPatientBlock') || {}).textContent || '',
+        episodeBlock: ($('cwqiEpisodeBlock') || {}).textContent || ''
+      };
+    }
+    return null;
+  }
+  // Freezes a read-only snapshot of the ENTIRE page (not just the curated summary fields) so the
+  // reviewing screen can show exactly what the nurse saw here — decision tree, decision reasons, the
+  // diagnosis lookup, all of it — not a re-derived subset. Scripts are stripped (this is a frozen
+  // snapshot, not a live re-render) and every collapsible section is forced open.
+  function captureFullScreenHtml() {
+    var clone = document.documentElement.cloneNode(true);
+    clone.querySelectorAll('script').forEach(function (s) { s.remove(); });
+    ['launchCriteria', 'bookView', 'saveBtn', 'completeBtn', 'resetDemo'].forEach(function (id) {
+      var el = clone.querySelector('#' + id); if (el) el.style.display = 'none';
+    });
+    clone.querySelectorAll('input,select,textarea').forEach(function (el) { el.setAttribute('disabled', 'disabled'); });
+    clone.querySelectorAll('.collapse-body').forEach(function (el) { el.style.display = 'block'; });
+    clone.querySelectorAll('.chevron').forEach(function (el) { el.style.transform = 'rotate(0deg)'; });
+    var banner = clone.querySelector('#linkedBanner'); if (banner) banner.remove();
+    return '<!DOCTYPE html>' + clone.outerHTML;
+  }
+  function buildResult(final) {
+    var boxes = document.querySelectorAll('#realCritList input[type=checkbox]');
+    var result = [];
+    if (payload && payload.criteria) boxes.forEach(function (b, i) { result.push({ text: payload.criteria[i], met: b.checked }); });
+    var met = result.filter(function (r) { return r.met; }).length;
+    return {
+      source: (SOURCE_TO_OPTION[payload.source] || $('criteriaSource').value),
+      criteria: result, metCount: met, total: result.length,
+      detail: currentDetail(final), final: final,
+      fullScreenHtml: captureFullScreenHtml(),
+      context: (payload && payload.context) || null
+    };
+  }
+
+  $('completeBtn').addEventListener('click', function () {
+    var result = buildResult(true);
+    if (window.opener && !window.opener.closed) {
+      window.opener.postMessage(Object.assign({ type: 'ip-guideline-complete' }, result), '*');
+      window.close();
+    } else {
+      $('completeBtn').textContent = '✓ Completed (' + result.metCount + '/' + result.total + ' met) — no linked review tab to return to';
+      $('completeBtn').disabled = true;
+    }
+  });
+
+  $('saveBtn').addEventListener('click', function () {
+    var result = buildResult(false);
+    if (window.opener && !window.opener.closed) {
+      window.opener.postMessage(Object.assign({ type: 'ip-guideline-save' }, result), '*');
+      window.close();
+    } else {
+      $('saveBtn').textContent = '💾 Saved (' + result.metCount + '/' + result.total + ' met so far) — no linked review tab to return to';
+      $('saveBtn').disabled = true;
+    }
+  });
+
+  $('resetDemo').addEventListener('click', function () {
+    $('criteriaSource').value = DEFAULTS.criteriaSource;
+    $('criteriaSource').disabled = false;
+    $('lookupValue').value = DEFAULTS.lookupValue;
+    $('lookupValue').readOnly = true;
+    $('lookupValue').disabled = false;
+    document.querySelector('input[name="lookupType"][value="diagnosis"]').checked = true;
+    setLookupTypeDisabled(false);
+
+    hide('criteriaDetails'); hide('guidelineSummary');
+    show('reviewEmpty'); hide('reviewTree'); hide('reviewDisclaimer'); hide('reviewCwqi'); hide('realCritWrap');
+    show('decisionEmpty'); hide('decisionText');
+    $('completeBtn').style.display = 'none'; $('completeBtn').disabled = false;
+    $('completeBtn').textContent = '✓ Complete & Return to Review';
+    $('saveBtn').style.display = 'none'; $('saveBtn').disabled = false;
+    $('saveBtn').textContent = '💾 Save Progress & Return';
+
+    $('reviewToggle').setAttribute('aria-expanded', 'true');
+    $('reviewContent').style.display = 'block';
+    $('reviewChevron').style.transform = 'rotate(0deg)';
+    $('decisionToggle').setAttribute('aria-expanded', 'true');
+    $('decisionContent').style.display = 'block';
+    $('decisionChevron').style.transform = 'rotate(0deg)';
+
+    updateSourceButtons();
+  });
+
+  // Seed real-case data (falls back to the reference demo defaults when opened standalone).
+  $('lookupValue').value = DEFAULTS.lookupValue;
+  $('criteriaSource').value = DEFAULTS.criteriaSource;
+  if (payload) {
+    document.title = 'Criteria Lookup — ' + (payload.member || '');
+    if (linked) show('linkedBanner');
+    // Real member/episode context replaces the CWQI branch's hardcoded Mike Oles sample.
+    $('cwqiPatientBlock').textContent = 'Patient: ' + (payload.mrn || '') + '\nPatient Name: ' + (payload.member || '') + '\nLine Of Business Name: Primary Entity > UM > Concurrent Review';
+    $('cwqiEpisodeBlock').textContent = 'Episode: ' + (payload.mrn || '') + '\nGuideline: ' + (payload.guideline || '');
+    $('cwqiCodesBlock').textContent = 'Episode Codes:\n    * ICD-10 Diagnosis ' + (payload.dxCode || '') + ' - ' + (payload.dxName || '');
+    $('glTableBody').innerHTML = '<tr><td>' + (payload.guideline || '') + '</td><td>&mdash;</td><td>In Review</td><td>&mdash;</td></tr>';
+  }
+
+  updateSourceButtons();
+  // A real linked payload means the nurse already clicked "Launch Criteria" once, back on the review
+  // screen, to open this tab — auto-advance past this page's own Launch step instead of making her
+  // click it again here.
+  if (linked) { $('launchCriteria').click(); }
+</script>
+</body>
+</html>
