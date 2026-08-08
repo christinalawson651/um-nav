@@ -3949,10 +3949,9 @@ function commitPN() {
     el.querySelector('div:nth-child(3)').textContent = allMet
       ? 'Use the Determination button in the action bar below to record it.'
       : 'Use Send to MD Review in the action bar below — a peer-to-peer, if needed, is initiated by the MD as a separate step.';
-    // MD Review already has its own button in the action bar below — no need to duplicate it here.
+    // Both actions already have their own button in the action bar below — no need to duplicate either here.
     var btnPN = el.querySelector('button');
-    btnPN.style.display = allMet ? '' : 'none';
-    if (allMet) { btnPN.setAttribute('onclick', "toggleDD('dd-decision')"); btnPN.innerHTML = '&#9654; Record Determination'; }
+    btnPN.style.display = 'none';
   }
   flowStage = allMet ? 'decision' : 'review';
   if (allMet) setStatus('review-status-maria', '<span class="status-lbl">Status:</span> <span class="sb sb-blue">Ready for Determination</span>'
@@ -4009,10 +4008,9 @@ function commitPNrc() {
     el.querySelector('div:nth-child(3)').textContent = allMet
       ? 'AI recommends approve — use the Determination button in the action bar below to record it.'
       : 'Use Send to MD Review in the action bar below — a peer-to-peer, if needed, is initiated by the MD as a separate step.';
-    // MD Review already has its own button in the action bar below — no need to duplicate it here.
+    // Both actions already have their own button in the action bar below — no need to duplicate either here.
     var btnPNrc = el.querySelector('button');
-    btnPNrc.style.display = allMet ? '' : 'none';
-    if (allMet) { btnPNrc.setAttribute('onclick', "flashTop('btn-decision-rc');setTimeout(function(){toggleDD('dd-decision-rc')},0)"); btnPNrc.innerHTML = '&#9654; Record Determination'; }
+    btnPNrc.style.display = 'none';
   }
   // Advance the bar based on the ACTUAL criteria state, not an assumption that Robert is always fully met.
   flowStage = allMet ? 'decision' : 'review';
@@ -6269,13 +6267,11 @@ function iprCommitPN() {
   var met = crMetCount(), total = Math.max(crTotalCrit(), 1);
   var allMet = (total - met) <= 0 && total > 0;
   var title = document.getElementById('ipr-pn-next-title'), sub = document.getElementById('ipr-pn-next-sub'), btn = document.getElementById('ipr-pn-next-btn'), step = document.getElementById('ipr-pn-next-step');
-  // MD Review already has its own button in the action bar below — no need to duplicate it here.
+  // Both actions already have their own button in the action bar below — no need to duplicate either here.
   if (allMet) {
     title.innerHTML = '&#9989; Determination &mdash; all ' + total + ' criteria met; record the determination';
-    sub.textContent = 'Use Record Determination in the action bar below, or jump there now.';
-    btn.style.display = '';
-    btn.innerHTML = '&#9654; Record Determination';
-    btn.onclick = function () { crDetermPrimary(); };
+    sub.textContent = 'Use Record Determination in the action bar below.';
+    btn.style.display = 'none';
   } else {
     title.innerHTML = '&#128104;&#8205;&#9877;&#65039; MD Review &mdash; ' + (total - met) + ' of ' + total + ' criteria not met; route for MD review';
     sub.textContent = 'Use Send to MD Review in the action bar below — a peer-to-peer, if needed, is initiated by the MD as a separate step.';
