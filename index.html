@@ -315,6 +315,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-siz
 .page-title{font-size:15px;font-weight:600;color:var(--gray-800);display:flex;align-items:center;gap:8px;}
 .page-subtitle{font-size:12px;color:var(--primary);font-weight:400;}
 .breadcrumb{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--gray-500);padding:7px 20px;background:white;border-bottom:1px solid var(--gray-200);}
+/* The IP review screen's Line Details/criteria/AI-note content can run long — without this, the only
+   "Back to Auth" affordance (in the breadcrumb) scrolled out of view, leaving just the sidebar to get back. */
+#s-ip-review .breadcrumb{position:sticky;top:0;z-index:5;}
 .breadcrumb a{color:var(--primary);text-decoration:none;cursor:pointer;}
 .breadcrumb a:hover{text-decoration:underline;}
 .bc-sep{color:var(--gray-300);}
@@ -1426,7 +1429,7 @@ mark.ev-flash{animation:evFlash 1.4s ease;}
             <div class="acc-num">5</div><div class="acc-title">Line Items</div>
             <span class="acc-next-badge">&#9654; Next Action</span>
             <span class="sb sb-primary" style="font-weight:700;" id="li-count">1</span>
-            <button class="btn btn-outline btn-sm" style="margin-left:6px;" onclick="event.stopPropagation();addLine('maria')">+ Add Line</button>
+            <button class="btn btn-outline btn-sm" style="margin-left:6px;" onclick="event.stopPropagation();openAddLineChooser()">+ Add Line</button>
             <span class="acc-chev">&#9650;</span>
           </div>
           <div class="acc-body">
@@ -1953,7 +1956,7 @@ mark.ev-flash{animation:evFlash 1.4s ease;}
           <div class="acc-body"><div class="det-grid"><div class="det-item"><div class="det-label">Requesting Provider</div><div class="det-val">Dr. Michael Torres — Orthopedic Surgery</div></div><div class="det-item"><div class="det-label">Servicing Facility</div><div class="det-val">Springfield Sports Medicine Surgery Center</div></div></div></div>
         </div>
         <div class="accordion acc-next" id="li-acc-rc">
-          <div class="acc-hdr open" onclick="toggleAcc(this)"><div class="acc-num">5</div><div class="acc-title">Line Items</div><span class="acc-next-badge">&#9654; Next Action</span><span class="sb sb-primary" style="font-weight:700;" id="li-count-rc">1</span><button class="btn btn-outline btn-sm" style="margin-left:6px;" onclick="event.stopPropagation();addLine('robert')">+ Add Line</button><span class="acc-chev">&#9650;</span></div>
+          <div class="acc-hdr open" onclick="toggleAcc(this)"><div class="acc-num">5</div><div class="acc-title">Line Items</div><span class="acc-next-badge">&#9654; Next Action</span><span class="sb sb-primary" style="font-weight:700;" id="li-count-rc">1</span><button class="btn btn-outline btn-sm" style="margin-left:6px;" onclick="event.stopPropagation();openAddLineChooser()">+ Add Line</button><span class="acc-chev">&#9650;</span></div>
           <div class="acc-body">
             <div id="li-body-rc"></div>
           </div>
@@ -2336,6 +2339,7 @@ mark.ev-flash{animation:evFlash 1.4s ease;}
             <div class="acc-num">5</div><div class="acc-title" id="ip-li-acc-title">Line Items</div>
             <span class="acc-next-badge">&#9654; Next Action</span>
             <span class="sb sb-primary" style="font-weight:700;" id="ip-li-count">0</span>
+            <button class="btn btn-outline btn-sm" style="margin-left:6px;" onclick="event.stopPropagation();openAddLineChooser()">+ Add Line</button>
             <span class="acc-chev">&#9650;</span>
           </div>
           <div class="acc-body"><div id="ip-lines"></div></div>
@@ -2473,6 +2477,10 @@ mark.ev-flash{animation:evFlash 1.4s ease;}
             </div>
             </div><!-- ipr-crit-sel-body -->
           </div>
+          <!-- Selected-lines chip strip — Line Review mode only. Mirrors OP's "Line Details" chips:
+               shows every candidate line collapsed, lets the nurse add/remove lines from THIS review
+               without leaving the screen, positioned above the AI Authorization Note. -->
+          <div id="ipr-line-chips" style="display:none;padding:0 20px;margin-top:12px;"></div>
           <!-- AI Authorization Note — collapsible, mirrors the OP review's AI-note pattern. -->
           <div id="ipr-ai-note-wrap">
             <div class="ai-note-collapse-hdr" onclick="iprToggleAiNote()">
@@ -2490,13 +2498,18 @@ mark.ev-flash{animation:evFlash 1.4s ease;}
           <div class="review-body">
             <!-- LEFT PANEL — mode-specific (nurse review OR MD/P2P determination) -->
             <div class="left-panel" id="ipr-left">
-              <!-- NURSE MODE: continued-stay / admission review -->
-              <div id="ipr-nurse-panel" style="padding:14px 20px;">
+              <!-- CRITERIA BLOCK — shared by nurse AND MD/P2P (never toggled off): both roles run the same
+                   live Criteria Selection experience independently, each their own pass. Split out of the
+                   nurse-only determination fields below so MD/P2P get it too, per explicit request. -->
+              <div id="ipr-crit-block" style="padding:14px 20px 0 20px;">
                 <div class="form-label" style="margin-bottom:7px;"><span id="cr-crit-label">Continued-Stay Criteria</span> <span style="font-weight:400;color:var(--gray-500);text-transform:none;" id="cr-crit-src"></span></div>
                 <div id="cr-crit-list"></div>
                 <!-- MCG/InterQual/CWQI: read-only recap of the externally-completed review (that content is
                      proprietary and was reviewed on the separate Launch Criteria page, not editable here). -->
                 <div id="cr-crit-readonly" style="display:none;"></div>
+              </div>
+              <!-- NURSE MODE: continued-stay / admission review -->
+              <div id="ipr-nurse-panel" style="padding:14px 20px;">
                 <!-- Level of Care Evaluation — required; sits between the clinical criteria and the
                      determination fields, expanded by default so it isn't overlooked (unlike the
                      optional Discharge Planning section below, which stays collapsed until needed). -->
@@ -2550,17 +2563,29 @@ mark.ev-flash{animation:evFlash 1.4s ease;}
                 </div>
               </div>
               <!-- MD / P2P MODE: physician determination (nurse recommendation shown read-only) -->
-              <div id="ipr-md-panel" style="display:none;padding:14px 20px;">
+              <div id="ipr-md-panel" style="display:none;padding:0 20px 14px 20px;">
                 <div id="crmd-ctx" style="font-size:12px;color:#8a5a08;background:#FFFBEB;border:1px solid #FDE68A;border-radius:8px;padding:9px 12px;margin-bottom:14px;"></div>
-                <div class="form-label" style="margin-bottom:5px;">Nurse Recommendation (read-only)</div>
+                <!-- Previous Nurse Review — frozen snapshot of exactly what the nurse concluded, kept
+                     alongside (not replaced by) the shared live criteria block above, which the MD/P2P
+                     uses to run their own independent pass. -->
+                <div class="form-label" style="margin-bottom:5px;">Previous Nurse Review</div>
                 <div id="crmd-nurse-note" style="font-size:12px;color:var(--gray-600);background:var(--gray-50);border:1px solid var(--gray-200);border-radius:8px;padding:9px 12px;margin-bottom:12px;"></div>
-                <div class="form-label" style="margin-bottom:7px;">Continued-Stay Criteria</div>
+                <div class="form-label" style="margin-bottom:7px;">Criteria as Reviewed by Nurse</div>
                 <div id="crmd-crit"></div>
                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px;">
                   <div><label class="form-label">MD Certified Days</label><input type="number" min="0" class="form-ctrl" id="crmd-cert"></div>
                   <div><label class="form-label">Denial Code <span style="font-weight:400;color:var(--gray-500);text-transform:none;">(required if denying)</span></label><select class="form-ctrl" id="crmd-code"></select></div>
                 </div>
                 <div class="form-group" style="margin-top:12px;"><label class="form-label">Physician Rationale <span style="color:var(--red);">*</span> <span style="font-weight:400;color:var(--gray-500);text-transform:none;">(required to deny)</span></label><textarea class="form-ctrl" id="crmd-note" rows="2" placeholder="MD clinical rationale for the determination..."></textarea></div>
+              </div>
+              <!-- PROCEDURE LINE MODE: independent determination for one or several selected service/
+                   procedure lines — separate from the bed-day stay's own concurrent-review determination. -->
+              <div id="ipr-procline-panel" style="display:none;padding:14px 20px;">
+                <div class="form-label" style="margin-bottom:7px;">Line(s) Under Review <span style="font-weight:400;color:var(--gray-500);text-transform:none;">— set an outcome for each</span></div>
+                <div id="procline-lines"></div>
+                <div class="form-group" style="margin-top:14px;"><label class="form-label">Clinical Rationale / Note <span style="font-weight:400;color:var(--gray-500);text-transform:none;">(required if any line is denied)</span></label><textarea class="form-ctrl" id="procline-note" rows="3" placeholder="Medical necessity rationale for this determination..."></textarea></div>
+                <div><label class="form-label">Denial Code <span style="font-weight:400;color:var(--gray-500);text-transform:none;">(required if any line is denied)</span></label><select class="form-ctrl" id="procline-deny-code"></select></div>
+                <div class="li-edit-actions" style="margin-top:14px;justify-content:flex-start;"><button class="btn btn-primary btn-sm" onclick="ipProcDetermConfirm()">&#10003; Record Determination</button></div>
               </div>
             </div>
 
@@ -2910,6 +2935,19 @@ mark.ev-flash{animation:evFlash 1.4s ease;}
     <div class="modal-footer" style="justify-content:space-between;">
       <button class="btn btn-outline btn-sm" onclick="rrOverride()">&#10007; Not a Readmission</button>
       <button class="btn btn-primary btn-sm" onclick="rrConfirm()">&#10003; Confirm Readmission</button>
+    </div>
+  </div>
+</div>
+
+<!-- Single "Add Line" entry point (IP + OP) — choose the line type before adding, rather than a
+     separate button per group. IP offers all three types; OP hides Inpatient (no bed-day concept). -->
+<div id="m-add-line-type" class="modal-overlay">
+  <div class="modal-box" style="max-width:360px;">
+    <div class="modal-hdr"><span style="font-size:15px;">&#10133;</span><span class="modal-title">Add Line</span><button class="modal-close" onclick="closeModal('m-add-line-type')">&#10005;</button></div>
+    <div class="modal-body" style="display:flex;flex-direction:column;gap:8px;">
+      <button type="button" class="btn btn-outline" id="altc-ip-btn" style="justify-content:flex-start;" onclick="addLineTypeChosen('ip')">&#128719; Inpatient Line</button>
+      <button type="button" class="btn btn-outline" style="justify-content:flex-start;" onclick="addLineTypeChosen('proc')">&#129658; Procedure Code Line</button>
+      <button type="button" class="btn btn-outline" style="justify-content:flex-start;" onclick="addLineTypeChosen('rx')">&#128138; RX Line</button>
     </div>
   </div>
 </div>
@@ -4057,7 +4095,40 @@ var caseInfo = {
 function advisorInfo() { return caseInfo[currentCase] || caseInfo.maria; }
 function determBodyEl() { return document.getElementById(currentCase === 'robert' ? 'determ-body-rc' : 'determ-body'); }
 function openAccordionFor(body) { if (!body) return; var hdr = body.previousElementSibling; if (hdr && !hdr.classList.contains('open')) hdr.classList.add('open'); }
+// MD's OWN independent criteria pass — kept collapsed by default (many MDs just use the nurse's review
+// above, unchanged), expandable into a live Source/Guideline + interactive checklist for MDs who want
+// to run their own review instead. Separate from the nurse's own OP_GUIDELINES state (op-m-*/op-rc-*)
+// so the MD's in-progress picks never clobber what the nurse already selected.
+var advCrit = { m: { source: 'manual', guideline: 'abcd-php', checked: {} }, rc: { source: 'manual', guideline: 'aaos-acl', checked: {} } };
+function advOwnGuidelineOpts(suf) { return Object.keys(OP_GUIDELINES[suf]).map(function (k) { return '<option value="' + k + '"' + (k === advCrit[suf].guideline ? ' selected' : '') + '>' + OP_GUIDELINES[suf][k].label + '</option>'; }).join(''); }
+function advOwnCritHtml(suf) {
+  var st = advCrit[suf]; var g = OP_GUIDELINES[suf][st.guideline] || OP_GUIDELINES[suf][Object.keys(OP_GUIDELINES[suf])[0]];
+  return g.criteria.map(function (t, i) {
+    var met = !!st.checked[i];
+    return '<label class="cr-crit' + (met ? ' met' : '') + '"><input type="checkbox" ' + (met ? 'checked' : '') + ' onchange="advToggleCrit(\'' + suf + '\',' + i + ',this.checked)"><span class="cc-txt">' + t + '</span></label>';
+  }).join('');
+}
+function advToggleOwnPanel(isRc) {
+  var suf = isRc ? 'rc' : 'm';
+  var body = document.getElementById('adv-own-body-' + suf), chev = document.getElementById('adv-own-chev-' + suf);
+  var open = body.style.display !== 'none';
+  body.style.display = open ? 'none' : 'block';
+  chev.innerHTML = open ? '&#9656;' : '&#9662;';
+}
+function advSourceChange(isRc) {
+  var suf = isRc ? 'rc' : 'm';
+  advCrit[suf].source = ipVal('adv-source-' + suf);
+  document.getElementById('adv-crit-' + suf).innerHTML = advOwnCritHtml(suf);
+}
+function advGuidelineChange(isRc) {
+  var suf = isRc ? 'rc' : 'm';
+  advCrit[suf].guideline = ipVal('adv-guideline-' + suf);
+  advCrit[suf].checked = {};
+  document.getElementById('adv-crit-' + suf).innerHTML = advOwnCritHtml(suf);
+}
+function advToggleCrit(suf, i, checked) { advCrit[suf].checked[i] = checked; }
 function advisorPanelHtml(info) {
+  var isRc = currentCase === 'robert', suf = isRc ? 'rc' : 'm';
   function cell(l, v) { return '<div><div class="adv-lbl">' + l + '</div>' + v + '</div>'; }
   return '<div class="adv-card">'
     + '<div class="adv-hdr"><span>&#128105;&#8205;&#9877;</span><strong style="font-size:12px;color:var(--gray-800);">MD Review</strong>'
@@ -4068,6 +4139,19 @@ function advisorPanelHtml(info) {
     +   cell('Requested Service', info.svc) + cell('Primary Diagnosis', info.dx) + cell('Member', info.member) + cell('Level of Care', info.loc) + '</div></div>'
     + '<div class="adv-sec"><div class="adv-lbl" style="margin-bottom:6px;">Initial Review Summary <span class="sb sb-blue" style="font-size:9px;">read-only</span></div><div class="adv-grid">'
     +   cell('Clinical Guideline', info.guideline) + cell('Criteria Status', info.criteria) + '</div></div>'
+    + '<div class="adv-sec">'
+    +   '<div style="display:flex;align-items:center;gap:8px;cursor:pointer;" onclick="advToggleOwnPanel(' + isRc + ')">'
+    +     '<span id="adv-own-chev-' + suf + '" style="font-size:11px;color:var(--gray-500);">&#9656;</span>'
+    +     '<div class="adv-lbl" style="margin-bottom:0;">&#128269; Conduct My Own Criteria Review <span style="font-weight:400;color:var(--gray-500);text-transform:none;">(optional &mdash; otherwise use the nurse\'s review above)</span></div>'
+    +   '</div>'
+    +   '<div id="adv-own-body-' + suf + '" style="display:none;margin-top:10px;">'
+    +     '<div style="display:flex;gap:16px;align-items:center;flex-wrap:wrap;margin-bottom:8px;">'
+    +       '<label class="form-label" style="margin:0;">Criteria Source</label><select class="form-ctrl" id="adv-source-' + suf + '" style="width:140px;" onchange="advSourceChange(' + isRc + ')"><option value="manual"' + (advCrit[suf].source === 'manual' ? ' selected' : '') + '>Manual</option><option value="custom"' + (advCrit[suf].source === 'custom' ? ' selected' : '') + '>Custom</option></select>'
+    +       '<label class="form-label" style="margin:0;">Guideline</label><select class="form-ctrl" id="adv-guideline-' + suf + '" style="width:260px;" onchange="advGuidelineChange(' + isRc + ')">' + advOwnGuidelineOpts(suf) + '</select>'
+    +     '</div>'
+    +     '<div id="adv-crit-' + suf + '">' + advOwnCritHtml(suf) + '</div>'
+    +   '</div>'
+    + '</div>'
     + '<div class="adv-sec"><div class="adv-lbl" style="margin-bottom:6px;">Clinical Highlights</div><div class="adv-grid">'
     +   cell('Key Labs', info.labs) + cell('Imaging', info.imaging) + cell('Comorbidities', info.comorbid) + '</div></div>'
     + '<div class="adv-sec"><div class="adv-lbl" style="margin-bottom:4px;">Pending Line Item for Review</div><div style="font-size:12px;color:var(--gray-800);">' + info.line + '</div></div>'
@@ -4376,12 +4460,35 @@ function opSaveReReview() {
 var lastDetermination = null; // remembered so the notification letter can reflect the recorded decision
 // Determination recorded → notification auto-fires → auth is Complete, pending an automatic close.
 function finishDetermination(label, kind, isRc) {
-  flowStage = 'complete';
-  p2pActive = false; // determination recorded — no P2P in progress
+  // Each line item can be reviewed and determined independently — a determination covers whichever
+  // line(s) are currently selected (could be one, several, or all of them). The whole-auth completion
+  // flow below (status/notice/notification) only fires once every line on the case has an outcome —
+  // if some lines still don't, just record this group's outcome and stop there.
+  var caseKey = isRc ? 'robert' : 'maria';
+  var arr = lineItems[caseKey];
+  var rxArr = rxLineItems[caseKey] || [];
   var p2pNotes = document.getElementById('p2p-notes');
   var rat = document.getElementById('adv-rationale');
   var by = p2pNotes ? 'P2P Reviewer' : (mdRouted ? 'MD Reviewer' : 'M Craft, UM Nurse');
   var rationale = (p2pNotes && p2pNotes.value.trim()) || (rat && rat.value.trim()) || '';
+  var targetIds = arr.filter(function (x) { return x.selected && !x.determId; }).map(function (x) { return x.id; });
+  var rxTargetIds = rxArr.filter(function (x) { return x.selected && !x.determId; }).map(function (x) { return x.id; });
+  if (!targetIds.length && !rxTargetIds.length) return; // nothing selected/eligible — nothing to record
+  opLineDeterminations[caseKey] = opLineDeterminations[caseKey] || [];
+  opLineDetermSeq[caseKey] = (opLineDetermSeq[caseKey] || 0) + 1;
+  var lineRec = { id: opLineDetermSeq[caseKey], lineIds: targetIds, rxLineIds: rxTargetIds, kind: kind, label: label, note: rationale, by: by, date: NOTIFY_DATE, amendments: [] };
+  opLineDeterminations[caseKey].push(lineRec);
+  arr.forEach(function (x) { if (targetIds.indexOf(x.id) > -1) { x.determId = lineRec.id; x.selected = false; } });
+  rxArr.forEach(function (x) { if (rxTargetIds.indexOf(x.id) > -1) { x.determId = lineRec.id; x.selected = false; } });
+  var allDetermined = arr.every(function (x) { return x.determId; }) && rxArr.every(function (x) { return x.determId; });
+  if (!allDetermined) {
+    renderLineItems(caseKey);
+    crToast('✓ ' + (targetIds.length + rxTargetIds.length) + ' line(s) determined (' + label + ') — ' + (arr.filter(function (x) { return !x.determId; }).length + rxArr.filter(function (x) { return !x.determId; }).length) + ' line(s) remaining');
+    return;
+  }
+  // Every line now has an outcome — proceed with the existing whole-auth completion flow, unchanged.
+  flowStage = 'complete';
+  p2pActive = false; // determination recorded — no P2P in progress
   var adverse = (kind === 'deny' || kind === 'partial');
   var regNow = regGet(currentCase) || {};
   lastDetermination = {
@@ -4406,6 +4513,7 @@ function finishDetermination(label, kind, isRc) {
   updateCompletePanel(pnId, label, meta);
   var el = document.getElementById(pnId);
   if (el) el.scrollIntoView({behavior:'smooth', block:'nearest'});
+  renderLineItems(caseKey);
   syncBar();
 }
 // Determination-complete panel. Two states: notice DRAFTED (manual review required) → edit-and-send gate;
@@ -5092,6 +5200,13 @@ var liSeq = { maria: 1, robert: 1 };
 // Items accordion adds either a Procedure Code Line via the existing addLine()/lineItems, or an RX line here).
 var rxLineItems = { maria: [], robert: [] };
 var rxLiSeq = { maria: 0, robert: 0 };
+// Independent per-line(s) determinations for OP — mirrors IP's procDeterminations. A determination
+// covers whichever lines are selected at record-time (could be one, several, or all of them); the
+// existing whole-auth completion flow (flowStage='complete', notices, etc.) only fires once every
+// line on the case has been covered by some determination — see finishDetermination().
+var opLineDeterminations = { maria: [], robert: [] };
+var opLineDetermSeq = { maria: 0, robert: 0 };
+function opToggleLineDetermDetail(caseKey, id) { var el = document.getElementById('linedet-' + caseKey + '-' + id); if (el) el.style.display = el.style.display === 'none' ? 'block' : 'none'; }
 function liFind(caseKey, id) { return lineItems[caseKey].find(function (x) { return x.id === id; }); }
 // Eligibility check surfaced inline when adding/editing any line (IP or OP) — same demo benefits shape
 // the New Auth wizard used, personalized to the case's actual member/plan instead of a fixed member.
@@ -5119,19 +5234,43 @@ function rxLiCard(caseKey, it) {
       + ipFld('Quantity', '<input type="number" min="1" class="form-ctrl" id="rxli-qty-' + caseKey + '-' + it.id + '" value="' + (it.qty || 30) + '">')
       + ipFld('Days Supply', '<input type="number" min="1" class="form-ctrl" id="rxli-days-' + caseKey + '-' + it.id + '" value="' + (it.days || 30) + '">')
       + ipFld('Refills', '<input type="number" min="0" class="form-ctrl" id="rxli-refills-' + caseKey + '-' + it.id + '" value="' + (it.refills || 0) + '">')
-      + ipFld('Prescribing Provider', '<input class="form-ctrl" id="rxli-presc-' + caseKey + '-' + it.id + '" value="' + (it.prescriber || '') + '">')
+      + ipFld('Request Date', '<input type="date" class="form-ctrl" id="rxli-reqdate-' + caseKey + '-' + it.id + '" value="' + (it.reqDate || LI_TODAY) + '">')
+      + '<div><div style="display:flex;align-items:center;justify-content:space-between;gap:8px;"><label class="form-label" style="margin-bottom:3px;">Prescribing Provider</label>'
+      +   '<label style="display:flex;align-items:center;gap:5px;font-size:11.5px;font-weight:400;color:var(--gray-600);cursor:pointer;"><input type="checkbox" id="rxli-sameas-' + caseKey + '-' + it.id + '" ' + (it.sameAsReq ? 'checked' : '') + ' onchange="rxLiToggleSame(\'' + caseKey + '\',' + it.id + ',this.checked)"> same as requesting</label></div>'
+      +   '<input class="form-ctrl" id="rxli-presc-' + caseKey + '-' + it.id + '" ' + (it.sameAsReq ? 'disabled' : '') + ' value="' + (it.sameAsReq ? (LI_REQ_PROVIDER[caseKey] || '') : (it.prescriber || '')) + '"></div>'
+      + ipFld('Dispensing Pharmacy <span style="font-weight:400;color:var(--gray-500);text-transform:none;">(optional)</span>', '<input class="form-ctrl" id="rxli-pharm-' + caseKey + '-' + it.id + '" value="' + (it.pharmacy || '') + '" placeholder="Specialty pharmacy, if required...">')
       + '</div>'
       + '<div style="margin-top:8px;"><button type="button" class="btn btn-outline btn-xs" onclick="rxLiToggleElig(\'' + caseKey + '\',' + it.id + ')">' + (it._elig ? '&#10003; Eligibility Checked' : '&#10003; Check Eligibility') + '</button></div>'
       + (it._elig ? eligBenefitsHtml(caseKey) : '')
       + '<div class="li-edit-actions"><button class="btn btn-outline btn-xs" onclick="rxLiCancel(\'' + caseKey + '\',' + it.id + ')">Cancel</button><button class="btn btn-primary btn-xs" onclick="rxLiSave(\'' + caseKey + '\',' + it.id + ')">Save Line</button></div></div>';
   }
-  return '<div class="li-card"><div class="li-card-top"><div><span class="li-code">&#128138; ' + (it.drug || 'RX line') + '</span> <span class="li-desc">' + (it.form ? it.form + ' &middot; ' : '') + 'Qty ' + it.qty + ' &middot; ' + it.days + ' day(s) &middot; ' + it.refills + ' refill' + (it.refills == 1 ? '' : 's') + '</span></div>'
-    + '<div style="display:flex;gap:6px;"><button class="btn btn-outline btn-xs" onclick="rxLiEdit(\'' + caseKey + '\',' + it.id + ')">&#9998; Edit</button><button class="btn btn-ghost btn-xs" style="color:var(--red);" onclick="rxLiRemove(\'' + caseKey + '\',' + it.id + ')">&#128465;</button></div></div>'
-    + '<div class="li-meta">Prescriber: ' + (it.prescriber || '—') + '</div></div>';
+  // Once independently determined (see finishDetermination), the line shows its own frozen outcome
+  // instead of the selection checkbox/Edit/Review controls — same pattern as Procedure Code lines.
+  if (it.determId) {
+    var rxRec = (opLineDeterminations[caseKey] || []).find(function (x) { return x.id === it.determId; });
+    var rxTagCls = rxRec && rxRec.kind === 'deny' ? 't-deny' : (rxRec && rxRec.kind === 'partial' ? 't-pend' : 't-cert');
+    return '<div class="li-card"><div class="li-card-top"><div><span class="li-code">&#128138; ' + (it.drug || 'RX line') + '</span> <span class="li-desc">Qty ' + it.qty + ' &middot; ' + it.days + ' day(s)</span></div>'
+      + '<div style="display:flex;gap:6px;align-items:center;"><span class="cr-tag ' + rxTagCls + '">' + (rxRec ? rxRec.label : 'Determined') + '</span><button class="btn btn-outline btn-xs" onclick="opToggleLineDetermDetail(\'' + caseKey + '\',' + it.id + ')">&#128203; Details</button></div></div>'
+      + '<div id="linedet-' + caseKey + '-' + it.id + '" style="display:none;margin:8px 14px 12px;font-size:11.5px;color:var(--gray-600);background:var(--gray-50);border:1px solid var(--gray-200);border-radius:8px;padding:8px 10px;">' + (rxRec ? ('Reviewed &amp; decided by ' + rxRec.by + ' &middot; ' + rxRec.date + (rxRec.note ? ' — ' + rxRec.note : '')) : '') + '</div>'
+      + '</div>';
+  }
+  var rxLiCols = liColsHtml([
+    { label: 'Qty', value: it.qty },
+    { label: 'Days Supply', value: it.days },
+    { label: 'Refills', value: it.refills },
+    { label: 'Req Date', value: it.reqDate }
+  ]);
+  return '<div class="li-card"><div class="li-card-top" style="align-items:flex-start;"><div style="display:flex;align-items:flex-start;gap:8px;flex:1;min-width:170px;">'
+    + '<input type="checkbox" class="li-sel" style="margin-top:2px;" ' + (it.selected ? 'checked' : '') + ' onchange="selRxLine(\'' + caseKey + '\',' + it.id + ',this.checked)">'
+    + '<div><div><span class="li-code">&#128138; ' + (it.drug || 'RX line') + '</span> <span class="li-desc">' + (it.form || '') + '</span></div>'
+    +   '<div style="font-size:11px;color:var(--gray-500);margin-top:2px;">Prescriber: ' + (it.sameAsReq ? (LI_REQ_PROVIDER[caseKey] || '—') : (it.prescriber || '—')) + (it.pharmacy ? ' &middot; Pharmacy: ' + it.pharmacy : '') + '</div></div></div>'
+    + rxLiCols
+    + '<div style="display:flex;gap:6px;"><button class="btn btn-outline btn-xs" onclick="selectOnlyRx(\'' + caseKey + '\',' + it.id + ');reviewSelected(\'' + caseKey + '\')">&#128269; Review Medical Necessity</button><button class="btn btn-outline btn-xs" onclick="rxLiEdit(\'' + caseKey + '\',' + it.id + ')">&#9998; Edit</button><button class="btn btn-ghost btn-xs" style="color:var(--red);" onclick="rxLiRemove(\'' + caseKey + '\',' + it.id + ')">&#128465;</button></div></div></div>';
 }
-function rxLiAdd(caseKey) { rxLineItems[caseKey] = rxLineItems[caseKey] || []; rxLiSeq[caseKey] = (rxLiSeq[caseKey] || 0) + 1; rxLineItems[caseKey].push({ id: rxLiSeq[caseKey], drug: '', form: '', qty: 30, days: 30, refills: 0, prescriber: LI_REQ_PROVIDER[caseKey] || '', reqDate: LI_TODAY, editing: true, isNew: true, _elig: false }); renderLineItems(caseKey); }
+function rxLiAdd(caseKey) { rxLineItems[caseKey] = rxLineItems[caseKey] || []; rxLiSeq[caseKey] = (rxLiSeq[caseKey] || 0) + 1; rxLineItems[caseKey].push({ id: rxLiSeq[caseKey], drug: '', form: '', qty: 30, days: 30, refills: 0, prescriber: '', sameAsReq: true, pharmacy: '', reqDate: LI_TODAY, editing: true, isNew: true, selected: true, determId: null, _elig: false }); renderLineItems(caseKey); }
 function rxLiEdit(caseKey, id) { var it = rxLiFind(caseKey, id); if (it) { it.editing = true; renderLineItems(caseKey); } }
-function rxLiSave(caseKey, id) { var it = rxLiFind(caseKey, id); if (!it) return; it.drug = ipVal('rxli-drug-' + caseKey + '-' + id); it.form = ipVal('rxli-form-' + caseKey + '-' + id); it.qty = parseInt(ipVal('rxli-qty-' + caseKey + '-' + id)) || it.qty; it.days = parseInt(ipVal('rxli-days-' + caseKey + '-' + id)) || it.days; it.refills = parseInt(ipVal('rxli-refills-' + caseKey + '-' + id)) || 0; it.prescriber = ipVal('rxli-presc-' + caseKey + '-' + id); it.editing = false; it.isNew = false; renderLineItems(caseKey); }
+function rxLiToggleSame(caseKey, id, checked) { var it = rxLiFind(caseKey, id); if (it) { it.sameAsReq = checked; renderLineItems(caseKey); } }
+function rxLiSave(caseKey, id) { var it = rxLiFind(caseKey, id); if (!it) return; it.drug = ipVal('rxli-drug-' + caseKey + '-' + id); it.form = ipVal('rxli-form-' + caseKey + '-' + id); it.qty = parseInt(ipVal('rxli-qty-' + caseKey + '-' + id)) || it.qty; it.days = parseInt(ipVal('rxli-days-' + caseKey + '-' + id)) || it.days; it.refills = parseInt(ipVal('rxli-refills-' + caseKey + '-' + id)) || 0; it.reqDate = ipVal('rxli-reqdate-' + caseKey + '-' + id); it.sameAsReq = !!(document.getElementById('rxli-sameas-' + caseKey + '-' + id) || {}).checked; if (!it.sameAsReq) it.prescriber = ipVal('rxli-presc-' + caseKey + '-' + id); it.pharmacy = ipVal('rxli-pharm-' + caseKey + '-' + id); it.editing = false; it.isNew = false; renderLineItems(caseKey); }
 function rxLiCancel(caseKey, id) { var arr = rxLineItems[caseKey]; var i = arr.findIndex(function (x) { return x.id === id; }); if (i < 0) return; if (arr[i].isNew) arr.splice(i, 1); else arr[i].editing = false; renderLineItems(caseKey); }
 function rxLiRemove(caseKey, id) { rxLineItems[caseKey] = rxLineItems[caseKey].filter(function (x) { return x.id !== id; }); renderLineItems(caseKey); }
 function rxLiToggleElig(caseKey, id) { var it = rxLiFind(caseKey, id); if (it) { it._elig = !it._elig; renderLineItems(caseKey); } }
@@ -5139,8 +5278,27 @@ function liOpts(list, sel) { return list.map(function (o) { return '<option ' + 
 function liPosOpts(it) { var list = LI_POS.slice(); if (it.pos && list.indexOf(it.pos) < 0) list.unshift(it.pos); return liOpts(list, it.pos); }
 function liSvcOpts(caseKey, it) { var list = (LI_AUTH_TYPE[caseKey] === 'Inpatient') ? ['— Not specified —'].concat(LI_SVC_TYPES) : LI_SVC_TYPES.slice(); if (it.svcType && list.indexOf(it.svcType) < 0) list.unshift(it.svcType); return liOpts(list, it.svcType); }
 function liSummary(it) { return (it.svcType || '—') + ' · ' + (it.code || 'no code') + ' · ' + (it.desc || '—') + ' · ' + (it.qty || 1) + ' ' + (it.unit || 'Units').toLowerCase(); }
+// Inline read-only columns shown on the COLLAPSED line row (matches the real app: Units Req/Req
+// Date/Accum/Start/End visible without expanding) — cols is [{label, value}], wraps at narrow widths.
+function liColsHtml(cols) {
+  return '<div style="display:flex;gap:18px;flex-wrap:wrap;align-items:flex-start;">' + cols.map(function (c) {
+    return '<div style="min-width:64px;"><div style="font-size:9.5px;font-weight:700;letter-spacing:.03em;color:var(--gray-400);text-transform:uppercase;">' + c.label + '</div><div style="font-size:12px;color:var(--gray-700);white-space:nowrap;">' + (c.value || '—') + '</div></div>';
+  }).join('') + '</div>';
+}
 function q(k, c, id, key) { return "onchange=\"setLine('" + c + "'," + id + ",'" + key + "',this.value)\""; }
 function lineCard(caseKey, it, idx, only) {
+  // Once independently determined (see finishDetermination), the line shows its own frozen outcome
+  // instead of the selection checkbox/edit/review controls — separate from any other line's outcome.
+  if (it.determId) {
+    var recs = opLineDeterminations[caseKey] || [];
+    var rec = recs.find(function (x) { return x.id === it.determId; });
+    var tagCls = rec && rec.kind === 'deny' ? 't-deny' : (rec && rec.kind === 'partial' ? 't-pend' : 't-cert');
+    return '<div class="li-card"><div class="li-head"><span class="lc-title">Line ' + (idx + 1) + '</span><span class="li-sum">' + liSummary(it) + '</span>'
+      + '<span class="cr-tag ' + tagCls + '">' + (rec ? rec.label : 'Determined') + '</span>'
+      + '<button class="btn btn-outline btn-sm" onclick="opToggleLineDetermDetail(\'' + caseKey + '\',' + it.id + ')">&#128203; Details</button></div>'
+      + '<div id="linedet-' + caseKey + '-' + it.id + '" style="display:none;margin:8px 14px 12px;font-size:11.5px;color:var(--gray-600);background:var(--gray-50);border:1px solid var(--gray-200);border-radius:8px;padding:8px 10px;">' + (rec ? ('Reviewed &amp; decided by ' + rec.by + ' &middot; ' + rec.date + (rec.note ? ' — ' + rec.note : '')) : '') + '</div>'
+      + '</div>';
+  }
   var editing = !!it.editing, expanded = editing || !!it.expanded;
   var dis = editing ? '' : 'disabled';
   var isOP = LI_AUTH_TYPE[caseKey] === 'Outpatient';
@@ -5148,17 +5306,39 @@ function lineCard(caseKey, it, idx, only) {
   // Pill reflects the case's actual current stage (Initial Review / MD Review / etc.), not a fixed label —
   // all lines on this auth share one review, so the same next-action applies to every row.
   var nbaLabel = (typeof currentStatusInfo === 'function') ? currentStatusInfo().nba : 'Initial Review';
+  // Collapsed row shows inline read-only columns (Units Req/Req Date/Start/End) instead of just a
+  // one-line text summary — matches the real app's Line Items list, where these are visible without
+  // expanding. Servicing Provider moves to its own subline under the title, also matching the reference.
+  if (!expanded) {
+    var providerLabel = it.sameAsReq ? LI_REQ_PROVIDER[caseKey] : it.provider;
+    var cols = liColsHtml([
+      { label: 'Units Req', value: (it.qty || 1) + ' ' + (it.unit || 'Units') },
+      { label: 'Req Date', value: crFmt(it.reqDate) },
+      { label: 'Start', value: crFmt(it.start) },
+      { label: 'End', value: crFmt(it.end) }
+    ]);
+    return '<div class="li-card"><div class="li-head" style="align-items:flex-start;">'
+      + '<input type="checkbox" class="li-sel" ' + (it.selected ? 'checked' : '') + ' onchange="selLine(\'' + caseKey + '\',' + it.id + ',this.checked)">'
+      + '<span class="li-caret" onclick="toggleLineExpand(\'' + caseKey + '\',' + it.id + ')">&#9656;</span>'
+      + '<div style="flex:1;min-width:170px;cursor:pointer;" onclick="toggleLineExpand(\'' + caseKey + '\',' + it.id + ')">'
+      +   '<div class="lc-title">Line ' + (idx + 1) + ': ' + (it.desc || it.svcType || 'Line') + ' <span class="sb" style="background:var(--gray-100);color:var(--gray-600);font-size:9.5px;">' + (it.code || '—') + '</span></div>'
+      +   '<div style="font-size:11px;color:var(--gray-500);margin-top:2px;">Servicing Provider: ' + (providerLabel || '—') + '</div>'
+      + '</div>'
+      + '<span class="sb sb-blue" style="font-size:10px;">' + nbaLabel + '</span>'
+      + cols
+      + '<button class="btn btn-outline btn-sm" onclick="event.stopPropagation();selectOnly(\'' + caseKey + '\',' + it.id + ');reviewSelected(\'' + caseKey + '\')">&#128269; Review Medical Necessity</button>'
+      + '<button class="btn btn-outline btn-sm" onclick="editLine(\'' + caseKey + '\',' + it.id + ')">&#9998; Edit</button>'
+      + '<button class="li-trash" ' + (only ? 'disabled title="At least one line is required"' : '') + ' onclick="removeLine(\'' + caseKey + '\',' + it.id + ')">&#128465;</button>'
+      + '</div></div>';
+  }
   var head = '<div class="li-head">'
     + '<input type="checkbox" class="li-sel" ' + (it.selected ? 'checked' : '') + ' onchange="selLine(\'' + caseKey + '\',' + it.id + ',this.checked)">'
-    + '<span class="li-caret" onclick="toggleLineExpand(\'' + caseKey + '\',' + it.id + ')">' + (expanded ? '&#9662;' : '&#9656;') + '</span>'
+    + '<span class="li-caret" onclick="toggleLineExpand(\'' + caseKey + '\',' + it.id + ')">&#9662;</span>'
     + '<span class="lc-title" style="cursor:pointer;" onclick="toggleLineExpand(\'' + caseKey + '\',' + it.id + ')">Line ' + (idx + 1) + '</span>'
     + '<span class="li-sum" onclick="toggleLineExpand(\'' + caseKey + '\',' + it.id + ')">' + liSummary(it) + '</span>'
     + '<span class="sb sb-blue" style="font-size:10px;">' + nbaLabel + '</span>'
-    + (editing ? '' : '<button class="btn btn-outline btn-sm" onclick="event.stopPropagation();selectOnly(\'' + caseKey + '\',' + it.id + ');reviewSelected(\'' + caseKey + '\')">&#128269; Review Medical Necessity</button>')
-    + (editing ? '' : '<button class="btn btn-outline btn-sm" onclick="editLine(\'' + caseKey + '\',' + it.id + ')">&#9998; Edit</button>')
     + '<button class="li-trash" ' + (only ? 'disabled title="At least one line is required"' : '') + ' onclick="removeLine(\'' + caseKey + '\',' + it.id + ')">&#128465;</button>'
     + '</div>';
-  if (!expanded) return '<div class="li-card">' + head + '</div>';
   var grid = '<div class="li-grid" style="margin-top:11px;">'
     +   '<div class="g2"><label>Service Type' + svcReq + '</label><select class="form-ctrl" ' + dis + ' ' + q('', caseKey, it.id, 'svcType') + '>' + liSvcOpts(caseKey, it) + '</select></div>'
     +   '<div><label>Procedure Code' + (isOP ? ' <span style="color:var(--red)">*</span>' : '') + '</label><input class="form-ctrl" ' + dis + ' value="' + it.code + '" ' + q('', caseKey, it.id, 'code') + '></div>'
@@ -5186,20 +5366,23 @@ function renderLineItems(caseKey) {
   var body = document.getElementById(caseKey === 'robert' ? 'li-body-rc' : 'li-body');
   if (!body) return;
   var arr = lineItems[caseKey];
-  var nSel = arr.filter(function (x) { return x.selected; }).length;
-  var allSel = arr.length > 0 && nSel === arr.length;
+  // Determined lines drop out of "select to review" entirely — they already have their own outcome.
+  var undetermined = arr.filter(function (x) { return !x.determId; });
+  var nSel = undetermined.filter(function (x) { return x.selected; }).length;
+  var allSel = undetermined.length > 0 && nSel === undetermined.length;
   var mednecId = caseKey === 'robert' ? 'btn-mednec-rc' : 'btn-mednec';
-  var toolbar = '<div class="li-toolbar">'
+  var toolbar = undetermined.length ? ('<div class="li-toolbar">'
     + '<label class="li-selall"><input type="checkbox" ' + (allSel ? 'checked' : '') + ' onchange="selAll(\'' + caseKey + '\',this.checked)"> Select all</label>'
-    + '<span style="font-size:11px;color:var(--gray-500);">' + nSel + ' of ' + arr.length + ' selected</span>'
-    + '<button class="btn btn-primary btn-sm" id="' + mednecId + '" ' + (nSel ? '' : 'disabled') + ' onclick="event.stopPropagation();reviewSelected(\'' + caseKey + '\')">&#128269; Review Selected (' + nSel + ')</button></div>';
+    + '<span style="font-size:11px;color:var(--gray-500);">' + nSel + ' of ' + undetermined.length + ' selected</span>'
+    + '<button class="btn btn-primary btn-sm" id="' + mednecId + '" ' + (nSel ? '' : 'disabled') + ' onclick="event.stopPropagation();reviewSelected(\'' + caseKey + '\')">&#128269; Review Selected (' + nSel + ')</button></div>') : '';
   // RX Lines are a separate group — OP has no inpatient-line concept, so besides Procedure Code
   // Lines (above) the only other thing addable here is an RX line, added directly to this auth.
+  // Only shown once at least one RX line has actually been added — no empty placeholder section.
   var rxArr = rxLineItems[caseKey] || [];
-  var rxGroup = '<div class="li-group" style="margin-top:14px;"><div class="li-group-hd"><span>&#128138; RX Lines</span><span class="li-group-meta">' + rxArr.length + ' line' + (rxArr.length == 1 ? '' : 's') + '</span>'
-    + '<button class="btn btn-outline btn-xs" onclick="rxLiAdd(\'' + caseKey + '\')">+ Add RX Line</button></div>'
-    + (rxArr.length ? rxArr.map(function (it) { return rxLiCard(caseKey, it); }).join('') : '<div style="padding:12px 14px;color:var(--gray-400);font-size:12px;">No RX lines yet.</div>') + '</div>';
-  body.innerHTML = toolbar + arr.map(function (it, i) { return lineCard(caseKey, it, i, arr.length === 1); }).join('') + rxGroup;
+  var rxGroup = rxArr.length ? ('<div class="li-group" style="margin-top:14px;"><div class="li-group-hd"><span>&#128138; RX Lines</span><span class="li-group-meta">' + rxArr.length + ' line' + (rxArr.length == 1 ? '' : 's') + '</span></div>'
+    + rxArr.map(function (it) { return rxLiCard(caseKey, it); }).join('') + rxToolbarHtml(caseKey) + '</div>') : '';
+  // Toolbar sits BELOW the line rows (matches the reference app: rows first, "Review Selected" after).
+  body.innerHTML = arr.map(function (it, i) { return lineCard(caseKey, it, i, arr.length === 1); }).join('') + toolbar + rxGroup;
   var cnt = document.getElementById(caseKey === 'robert' ? 'li-count-rc' : 'li-count'); if (cnt) cnt.textContent = arr.length + rxArr.length;
   renderReviewLines(caseKey); // keep the review's Line Details in sync
 }
@@ -5211,18 +5394,23 @@ function reviewLineCrit(caseKey, idx) {
 function renderReviewLines(caseKey) {
   var el = document.getElementById(caseKey === 'robert' ? 'review-lines-rc' : 'review-lines'); if (!el) return;
   var arr = lineItems[caseKey];
-  var n = arr.filter(function (x) { return x.selected; }).length;
+  var rxArr = rxLineItems[caseKey] || [];
+  var n = arr.filter(function (x) { return x.selected; }).length + rxArr.filter(function (x) { return x.selected; }).length;
   var chips = arr.map(function (it, i) {
     var c = reviewLineCrit(caseKey, i);
     var nm = (it.desc || it.code || 'Line').slice(0, 34);
     return '<label class="rl-chip' + (it.selected ? ' on' : '') + '"><input type="checkbox" ' + (it.selected ? 'checked' : '') + ' onchange="selLine(\'' + caseKey + '\',' + it.id + ',this.checked)"> #' + (i + 1) + ' · ' + (it.code || '—') + ' · ' + nm + ' <span class="rl-crit ' + c.cls + '">' + c.txt + '</span></label>';
   }).join('');
+  var rxChips = rxArr.map(function (it) {
+    var nm = (it.drug || 'RX line').slice(0, 34);
+    return '<label class="rl-chip' + (it.selected ? ' on' : '') + '"><input type="checkbox" ' + (it.selected ? 'checked' : '') + ' onchange="selRxLine(\'' + caseKey + '\',' + it.id + ',this.checked)"> &#128138; ' + nm + ' <span class="rl-crit unmet">Manual Review</span></label>';
+  }).join('');
   el.innerHTML = '<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px;">'
-    + '<strong style="font-size:12.5px;color:var(--gray-800);">Line Details (' + arr.length + ')</strong>'
-    + '<span style="font-size:11px;color:var(--gray-500);">reviewing ' + n + ' of ' + arr.length + ' together</span>'
-    + '<button class="btn btn-outline btn-sm" style="margin-left:auto;" onclick="selAll(\'' + caseKey + '\',true)">Select all</button>'
-    + '<button class="btn btn-outline btn-sm" onclick="selAll(\'' + caseKey + '\',false)">Deselect</button></div>'
-    + '<div style="display:flex;gap:8px;flex-wrap:wrap;">' + (chips || '<span style="font-size:12px;color:var(--gray-400);">No lines selected.</span>') + '</div>'
+    + '<strong style="font-size:12.5px;color:var(--gray-800);">Line Details (' + (arr.length + rxArr.length) + ')</strong>'
+    + '<span style="font-size:11px;color:var(--gray-500);">reviewing ' + n + ' of ' + (arr.length + rxArr.length) + ' together</span>'
+    + '<button class="btn btn-outline btn-sm" style="margin-left:auto;" onclick="selAll(\'' + caseKey + '\',true);selAllRx(\'' + caseKey + '\',true)">Select all</button>'
+    + '<button class="btn btn-outline btn-sm" onclick="selAll(\'' + caseKey + '\',false);selAllRx(\'' + caseKey + '\',false)">Deselect</button></div>'
+    + '<div style="display:flex;gap:8px;flex-wrap:wrap;">' + (chips + rxChips || '<span style="font-size:12px;color:var(--gray-400);">No lines selected.</span>') + '</div>'
     + '<div style="font-size:10.5px;color:var(--gray-500);margin-top:7px;">&#9432; Guidelines for all selected lines are surfaced below; one progress note covers all reviewed lines.</div>';
   renderReviewCriteria(caseKey);
 }
@@ -5237,11 +5425,18 @@ function renderReviewCriteria(caseKey) {
   if (wrap) wrap.style.display = li1.selected ? '' : 'none';
   if (hdr) { hdr.style.display = 'flex'; hdr.style.alignItems = 'center'; hdr.style.gap = '8px'; hdr.innerHTML = '<span style="flex:1;">Line 1 · ' + li1.code + ' · ' + (isRc ? 'AAOS ACL Reconstruction — 5 of 5 met' : 'ABCD BH — PHP Criteria — 2 of 7 not met') + '</span><button class="btn btn-outline btn-sm" style="white-space:nowrap;" onclick="openMedRec()">&#128196; Medical Records</button>'; }
   if (extra) {
-    extra.innerHTML = arr.map(function (it, i) {
+    var rxArr = rxLineItems[caseKey] || [];
+    var procExtra = arr.map(function (it, i) {
       if (i === 0 || !it.selected) return '';
       return '<div class="li-gl-block"><div class="li-gl-hdr">Line ' + (i + 1) + ' · ' + (it.code || '—') + ' · ' + (it.desc || it.svcType || '') + '</div>'
         + '<div class="manual-review">&#9888; Manual Review Mode — no matching AI policy or guideline for this procedure code. Proceed with manual medical-necessity review for this line.</div></div>';
     }).join('');
+    var rxExtra = rxArr.map(function (it) {
+      if (!it.selected) return '';
+      return '<div class="li-gl-block"><div class="li-gl-hdr">&#128138; RX · ' + (it.drug || 'RX line') + '</div>'
+        + '<div class="manual-review">&#9888; Manual Review Mode — no matching AI policy or guideline for this drug. Proceed with manual medical-necessity review for this line.</div></div>';
+    }).join('');
+    extra.innerHTML = procExtra + rxExtra;
   }
 }
 function setLine(caseKey, id, key, v) {
@@ -5263,15 +5458,38 @@ function cancelLine(caseKey, id) {
   it.editing = false; it._err = ''; delete it._backup; renderLineItems(caseKey);
 }
 function selLine(caseKey, id, c) { var it = liFind(caseKey, id); if (it) it.selected = c; renderLineItems(caseKey); }
-function selAll(caseKey, c) { lineItems[caseKey].forEach(function (x) { x.selected = c; }); renderLineItems(caseKey); }
-function selectOnly(caseKey, id) { lineItems[caseKey].forEach(function (x) { x.selected = (x.id === id); }); }
+function selAll(caseKey, c) { lineItems[caseKey].forEach(function (x) { if (!x.determId) x.selected = c; }); renderLineItems(caseKey); }
+function selectOnly(caseKey, id) { lineItems[caseKey].forEach(function (x) { if (!x.determId) x.selected = (x.id === id); }); }
+// RX Lines get their own selection helpers — a separate array from the procedure/service lines above,
+// but reviewed/determined through the same shared review screen and finishDetermination() flow.
+function selRxLine(caseKey, id, c) { var it = rxLiFind(caseKey, id); if (it) it.selected = c; renderLineItems(caseKey); }
+function selAllRx(caseKey, c) { (rxLineItems[caseKey] || []).forEach(function (x) { if (!x.determId) x.selected = c; }); renderLineItems(caseKey); }
+function selectOnlyRx(caseKey, id) {
+  lineItems[caseKey].forEach(function (x) { if (!x.determId) x.selected = false; });
+  (rxLineItems[caseKey] || []).forEach(function (x) { if (!x.determId) x.selected = (x.id === id); });
+}
+function rxToolbarHtml(caseKey) {
+  var undetermined = (rxLineItems[caseKey] || []).filter(function (x) { return !x.determId; });
+  if (!undetermined.length) return '';
+  var nSel = undetermined.filter(function (x) { return x.selected; }).length;
+  var allSel = nSel === undetermined.length;
+  return '<div class="li-toolbar">'
+    + '<label class="li-selall"><input type="checkbox" ' + (allSel ? 'checked' : '') + ' onchange="selAllRx(\'' + caseKey + '\',this.checked)"> Select all</label>'
+    + '<span style="font-size:11px;color:var(--gray-500);">' + nSel + ' of ' + undetermined.length + ' selected</span>'
+    + '<button class="btn btn-primary btn-sm" ' + (nSel ? '' : 'disabled') + ' onclick="event.stopPropagation();reviewSelected(\'' + caseKey + '\')">&#128269; Review Selected (' + nSel + ')</button></div>';
+}
 function reviewSelected(caseKey) {
-  if (!lineItems[caseKey].some(function (x) { return x.selected; })) return;
+  var hasProc = lineItems[caseKey].some(function (x) { return x.selected && !x.determId; });
+  var hasRx = (rxLineItems[caseKey] || []).some(function (x) { return x.selected && !x.determId; });
+  if (!hasProc && !hasRx) return;
+  // Selection can change (selectOnly/selectOnlyRx) without the review screen's own DOM having been
+  // rebuilt yet — refresh its Line Details chips right before switching so they reflect the current pick.
+  renderReviewLines(caseKey);
   showScreen(caseKey === 'robert' ? 's-um-review-rc' : 's-um-review');
 }
 function addLine(caseKey) {
   var svc = LI_AUTH_TYPE[caseKey] === 'Inpatient' ? '' : LI_SVC_TYPES[0];
-  lineItems[caseKey].push({ id: ++liSeq[caseKey], selected: true, editing: true, expanded: true, isNew: true, svcType: svc, code: '', desc: '', qty: 1, unit: 'Units', pos: (LI_POS_BY_SVC[svc] || ['— Not specified —'])[0], provider: '', sameAsReq: true, reqDate: LI_TODAY, start: LI_TODAY, end: '' });
+  lineItems[caseKey].push({ id: ++liSeq[caseKey], selected: true, determId: null, editing: true, expanded: true, isNew: true, svcType: svc, code: '', desc: '', qty: 1, unit: 'Units', pos: (LI_POS_BY_SVC[svc] || ['— Not specified —'])[0], provider: '', sameAsReq: true, reqDate: LI_TODAY, start: LI_TODAY, end: '' });
   // A new line on a determined auth reopens it for review — reset status/next to the appropriate state.
   if (caseKey === currentCase && (flowStage === 'complete' || flowStage === 'closed')) {
     flowStage = 'review'; mdRouted = false; rfiPending = false; pendActive = false; currentPend = null; p2pRequested = false; p2pActive = false; p2pUsed = false; lastDetermination = null;
@@ -5795,6 +6013,8 @@ function renderIpAuthBody() {
 }
 // Accordion 5 — Line Items: bed-day segments (review-driven) + service/procedure lines (add/edit)
 var IP_POS_LIST = ['21 – Inpatient Hospital', '51 – Inpatient Psychiatric Facility', '61 – Comprehensive Inpatient Rehab', '31 – Skilled Nursing Facility', '11 – Office', '22 – On-Campus Outpatient Hospital', '— Not specified —'];
+// Matches the New Auth wizard's own Inpatient Line "Service Type" options (optional, informational).
+var IP_LINE_SVC_TYPES = ['Medical/Surgical', 'Behavioral Health', 'Rehabilitation', 'Skilled Nursing', 'Maternity', 'Hospice', 'Long-Term Acute Care'];
 function ipVal(id) { var e = document.getElementById(id); return e ? e.value : ''; }
 function ipFld(l, inp) { return '<div><label class="form-label">' + l + '</label>' + inp + '</div>'; }
 // A service line performed during the inpatient stay must not end beyond the last certified bed day.
@@ -5820,7 +6040,10 @@ function ipProcCard(it) {
       + ipFld('Qty', '<input type="number" min="1" class="form-ctrl" id="ipp-qty-' + it.id + '" value="' + (it.qty || 1) + '">')
       + ipFld('Unit', '<select class="form-ctrl" id="ipp-unit-' + it.id + '">' + units + '</select>')
       + ipFld('Place of Service', '<select class="form-ctrl" id="ipp-pos-' + it.id + '">' + pos + '</select>')
-      + ipFld('Servicing Provider', '<input class="form-ctrl" id="ipp-prov-' + it.id + '" value="' + (it.provider || '') + '">')
+      + ipFld('Request Date', '<input type="date" class="form-ctrl" id="ipp-reqdate-' + it.id + '" value="' + (it.reqDate || cr.admit) + '">')
+      + '<div><div style="display:flex;align-items:center;justify-content:space-between;gap:8px;"><label class="form-label" style="margin-bottom:3px;">Servicing Provider</label>'
+      +   '<label style="display:flex;align-items:center;gap:5px;font-size:11.5px;font-weight:400;color:var(--gray-600);cursor:pointer;"><input type="checkbox" id="ipp-sameas-' + it.id + '" ' + (it.sameAsReq ? 'checked' : '') + ' onchange="ipToggleProcSame(' + it.id + ',this.checked)"> same as requesting provider</label></div>'
+      +   '<input class="form-ctrl" id="ipp-prov-' + it.id + '" ' + (it.sameAsReq ? 'disabled' : '') + ' value="' + (it.sameAsReq ? (cr.attending || '') : (it.provider || '')) + '"></div>'
       + ipFld('Start Date', '<input type="date" class="form-ctrl" id="ipp-start-' + it.id + '" value="' + (it.start || '') + '">')
       + ipFld('End Date', '<input type="date" class="form-ctrl" id="ipp-end-' + it.id + '" value="' + (it.end || '') + '" max="' + lastDay + '" oninput="ipProcDateCheck(' + it.id + ')">')
       + '</div>'
@@ -5829,9 +6052,33 @@ function ipProcCard(it) {
       + (it._elig ? eligBenefitsHtml(currentCase) : '')
       + '<div class="li-edit-actions"><button class="btn btn-outline btn-xs" onclick="ipCancelProc(' + it.id + ')">Cancel</button><button class="btn btn-primary btn-xs" onclick="ipSaveProc(' + it.id + ')">Save Line</button></div></div>';
   }
-  return '<div class="li-card"><div class="li-card-top"><div><span class="li-code">' + (it.code || '—') + '</span> <span class="li-desc">' + (it.desc || it.svcType || 'Service line') + '</span></div>'
-    + '<div style="display:flex;gap:6px;"><button class="btn btn-outline btn-xs" onclick="ipEditProc(' + it.id + ')">✎ Edit</button><button class="btn btn-ghost btn-xs" style="color:var(--red);" onclick="ipRemoveProc(' + it.id + ')">🗑</button></div></div>'
-    + '<div class="li-meta">' + (it.svcType ? it.svcType + ' · ' : '') + (it.qty || 1) + ' ' + (it.unit || 'Units') + ' · POS ' + ((it.pos || '—').split(' – ')[0]) + ' · ' + (it.provider || '—') + ' · ' + crFmt(it.start) + '–' + crFmt(it.end) + '</div>'
+  // Once independently determined (see ipProcDetermConfirm), the line shows its own outcome instead
+  // of the selection checkbox/Review button — that determination is final and separate from the
+  // bed-day stay's own concurrent-review determination.
+  if (it.determId) {
+    var rec = (cr.procDeterminations || []).find(function (x) { return x.id === it.determId; });
+    var lineOutcome = rec ? (rec.outcomes.find(function (o) { return o.id === it.id; }) || {}).outcome : null;
+    var tagCls = lineOutcome === 'deny' ? 't-deny' : 't-cert', tagTxt = lineOutcome === 'deny' ? 'Denied' : 'Approved';
+    return '<div class="li-card"><div class="li-card-top"><div><span class="li-code">' + (it.code || '—') + '</span> <span class="li-desc">' + (it.desc || it.svcType || 'Service line') + '</span></div>'
+      + '<div style="display:flex;gap:6px;align-items:center;"><span class="cr-tag ' + tagCls + '">' + tagTxt + '</span><button class="btn btn-outline btn-xs" onclick="ipToggleProcDetermDetail(' + it.id + ')">&#128203; Details</button></div></div>'
+      + '<div class="li-meta">' + (it.svcType ? it.svcType + ' · ' : '') + (it.qty || 1) + ' ' + (it.unit || 'Units') + ' · ' + crFmt(it.start) + '–' + crFmt(it.end) + '</div>'
+      + '<div id="procdet-' + it.id + '" style="display:none;margin-top:8px;font-size:11.5px;color:var(--gray-600);background:var(--gray-50);border:1px solid var(--gray-200);border-radius:8px;padding:8px 10px;">' + (rec ? ('Reviewed &amp; decided by ' + rec.reviewedBy + ' &middot; ' + crFmt(rec.reviewDate) + (rec.note ? ' — ' + rec.note : '') + (rec.denialCode ? ' (' + rec.denialCode.split(' · ')[0] + ')' : '')) : '') + '</div>'
+      + '</div>';
+  }
+  var provLabel = it.sameAsReq ? (cr.attending || '—') : (it.provider || '—');
+  var procCols = liColsHtml([
+    { label: 'Units Req', value: (it.qty || 1) + ' ' + (it.unit || 'Units') },
+    { label: 'Req Date', value: crFmt(it.reqDate) },
+    { label: 'Start', value: crFmt(it.start) },
+    { label: 'End', value: crFmt(it.end) }
+  ]);
+  var procNba = cr.status === 'pending-admission' ? '<span class="sb sb-blue" style="font-size:10px;">Initial Review</span>' : '';
+  return '<div class="li-card"><div class="li-card-top" style="align-items:flex-start;"><div style="display:flex;align-items:flex-start;gap:8px;flex:1;min-width:170px;">'
+    + '<input type="checkbox" class="li-sel" style="margin-top:2px;" ' + (it.selected ? 'checked' : '') + ' onchange="ipProcSel(' + it.id + ',this.checked)">'
+    + '<div><div><span class="li-code">' + (it.code || '—') + '</span> <span class="li-desc">' + (it.desc || it.svcType || 'Service line') + '</span></div>'
+    +   '<div style="font-size:11px;color:var(--gray-500);margin-top:2px;">Servicing Provider: ' + provLabel + (it.pos ? ' &middot; POS ' + it.pos.split(' – ')[0] : '') + '</div></div></div>'
+    + procCols
+    + '<div style="display:flex;gap:6px;align-items:center;">' + procNba + '<button class="btn btn-outline btn-xs" onclick="ipReviewProc(' + it.id + ')">&#128269; Review Medical Necessity</button><button class="btn btn-outline btn-xs" onclick="ipEditProc(' + it.id + ')">✎ Edit</button><button class="btn btn-ghost btn-xs" style="color:var(--red);" onclick="ipRemoveProc(' + it.id + ')">🗑</button></div></div>'
     + (over ? '<div class="li-date-warn" style="margin-top:8px;">&#9888; End date (' + crFmt(it.end) + ') is beyond the certified stay (through ' + crFmt(lastDay) + '). A service line can\'t run past discharge. <button class="btn btn-outline btn-xs" onclick="ipCapProc(' + it.id + ')">Cap to ' + crFmt(lastDay) + '</button> <span style="color:var(--gray-500);">— care needed after discharge belongs on a separate post-acute / outpatient authorization.</span></div>' : '')
     + '</div>';
 }
@@ -5874,15 +6121,17 @@ function renderIpLines() {
     var editing = !!cr._admitEditing;
     var kvRow = function (l, v, wide) { return '<div' + (wide ? ' class="g2"' : '') + '><label>' + l + '</label><div style="font-size:12.5px;color:var(--gray-800);font-weight:500;padding:8px 0;">' + (v || '—') + '</div></div>'; };
     var head = '<div class="li-head">'
-      + '<input type="checkbox" class="li-sel" checked disabled title="Only line — always included">'
+      + '<input type="checkbox" class="li-sel" ' + (cr._admitSelected !== false ? 'checked' : '') + ' onchange="event.stopPropagation();ipLineSel(\'ip\',0,this.checked)">'
       + '<span class="li-caret" onclick="ipToggleAdmitRow()">' + (open ? '&#9662;' : '&#9656;') + '</span>'
       + '<span class="lc-title" style="cursor:pointer;" onclick="ipToggleAdmitRow()">Line 1</span>'
       + '<span class="li-sum" onclick="ipToggleAdmitRow()">' + cr.loc + ' &mdash; ' + (cr.requestedLos || cr.los) + ' day(s) requested &middot; ' + cr.dx + '</span>'
       + '<span class="sb sb-blue" style="font-size:10px;">Initial Review</span>'
-      + (editing ? '' : '<button class="btn btn-outline btn-sm" onclick="event.stopPropagation();ipToggleAdmitEdit()">&#9998; Edit</button>')
+      // Button order matches every other line card (badge → Review Medical Necessity → Edit) — Line 1
+      // previously had Edit before Review, the one inconsistent row.
       + (cr.draftReview
         ? '<button class="btn btn-outline btn-sm" onclick="event.stopPropagation();ipResumeDraft()">&#9655; Continue Review</button>'
-        : '<button class="btn btn-outline btn-sm" onclick="event.stopPropagation();openAdmissionReview(currentCase)">&#128269; Review Medical Necessity</button>')
+        : '<button class="btn btn-outline btn-sm" onclick="event.stopPropagation();ipReviewLine(\'ip\',0)">&#128269; Review Medical Necessity</button>')
+      + (editing ? '' : '<button class="btn btn-outline btn-sm" onclick="event.stopPropagation();ipToggleAdmitEdit()">&#9998; Edit</button>')
       + '</div>';
     var grid;
     if (editing) {
@@ -5903,16 +6152,17 @@ function renderIpLines() {
     // Adding a line here appends directly to THIS auth (Inpatient / Service / RX) — never a separate
     // "New Authorization" via the wizard, which is reserved for genuinely new/unrelated authorizations.
     var extraIp = (cr.extraIpLines || []).map(ipExtraLineCard).join('');
-    var procs = (cr.procLines || []).length ? cr.procLines.map(ipProcCard).join('') : '<div style="padding:12px 14px;color:var(--gray-400);font-size:12px;">No service / procedure lines yet.</div>';
-    var rxs = (cr.rxLines || []).length ? cr.rxLines.map(ipRxCard).join('') : '<div style="padding:12px 14px;color:var(--gray-400);font-size:12px;">No RX lines yet.</div>';
+    // Service/Procedure and RX groups only appear once at least one such line has been added —
+    // no empty placeholder sections cluttering the accordion. Every added line of every type gets a
+    // review option (individual Review button or multi-select "Review Selected") — Line 1 (the
+    // admission request itself) always has its own dedicated Review Medical Necessity button already.
+    var procGroup = (cr.procLines || []).length ? ('<div class="li-group"><div class="li-group-hd"><span>🩺 Service / Procedure Lines</span><span class="li-group-meta">' + cr.procLines.length + ' line' + (cr.procLines.length == 1 ? '' : 's') + '</span></div>' + cr.procLines.map(ipProcCard).join('') + ipProcToolbarHtml(cr) + '</div>') : '';
+    var rxGroup = (cr.rxLines || []).length ? ('<div class="li-group"><div class="li-group-hd"><span>&#128138; RX Lines</span><span class="li-group-meta">' + cr.rxLines.length + ' line' + (cr.rxLines.length == 1 ? '' : 's') + '</span></div>' + cr.rxLines.map(ipRxCard).join('') + ipLineToolbarHtml('rx', cr.rxLines) + '</div>') : '';
+    // Toolbar sits BELOW the line rows (matches the reference app: rows first, "Review Selected" after).
     el.innerHTML =
-      '<div class="li-group"><div class="li-group-hd"><span>🛏 Inpatient Lines</span><span class="li-group-meta">' + (1 + (cr.extraIpLines || []).length) + ' line' + ((cr.extraIpLines || []).length ? 's' : '') + '</span>'
-      + '<button class="btn btn-outline btn-xs" onclick="ipAddIpLine()">+ Add Inpatient Line</button></div>'
-      + '<div class="li-card' + (editing ? ' editing' : '') + '">' + head + grid + '</div>' + extraIp + '</div>'
-      + '<div class="li-group"><div class="li-group-hd"><span>🩺 Service / Procedure Lines</span><span class="li-group-meta">' + (cr.procLines || []).length + ' line' + ((cr.procLines || []).length == 1 ? '' : 's') + '</span>'
-      + '<button class="btn btn-outline btn-xs" onclick="ipAddProc()">+ Add Service Line</button></div>' + procs + '</div>'
-      + '<div class="li-group"><div class="li-group-hd"><span>&#128138; RX Lines</span><span class="li-group-meta">' + (cr.rxLines || []).length + ' line' + ((cr.rxLines || []).length == 1 ? '' : 's') + '</span>'
-      + '<button class="btn btn-outline btn-xs" onclick="ipAddRx()">+ Add RX Line</button></div>' + rxs + '</div>';
+      '<div class="li-group"><div class="li-group-hd"><span>🛏 Inpatient Lines</span><span class="li-group-meta">' + (1 + (cr.extraIpLines || []).length) + ' line' + ((cr.extraIpLines || []).length ? 's' : '') + '</span></div>'
+      + '<div class="li-card' + (editing ? ' editing' : '') + '">' + head + grid + '</div>' + extraIp + ipLineToolbarHtml('ip', ipLineArrFor('ip')) + '</div>'
+      + procGroup + rxGroup;
     var cnt0 = document.getElementById('ip-li-count'); if (cnt0) cnt0.textContent = 1 + (cr.extraIpLines || []).length + (cr.procLines || []).length + (cr.rxLines || []).length;
     return;
   }
@@ -5949,22 +6199,224 @@ function renderIpLines() {
       + '<div class="li-stay-actions">' + actions + '</div></div>';
   }
   var extraIp = (cr.extraIpLines || []).map(ipExtraLineCard).join('');
-  var procs = (cr.procLines || []).length ? cr.procLines.map(ipProcCard).join('') : '<div style="padding:12px 14px;color:var(--gray-400);font-size:12px;">No service / procedure lines yet.</div>';
-  var rxs = (cr.rxLines || []).length ? cr.rxLines.map(ipRxCard).join('') : '<div style="padding:12px 14px;color:var(--gray-400);font-size:12px;">No RX lines yet.</div>';
+  // Service/Procedure and RX groups only appear once at least one such line has been added — no empty
+  // placeholder sections. Every added line of every type gets a review option (individual Review button
+  // or multi-select "Review Selected") — certified bed-day segments already have their own review UI.
+  var extraIpToolbar = ipLineToolbarHtml('ip', cr.extraIpLines);
+  var procGroup = (cr.procLines || []).length ? ('<div class="li-group"><div class="li-group-hd"><span>🩺 Service / Procedure Lines</span><span class="li-group-meta">' + cr.procLines.length + ' line' + (cr.procLines.length == 1 ? '' : 's') + '</span></div>' + cr.procLines.map(ipProcCard).join('') + ipProcToolbarHtml(cr) + '</div>') : '';
+  var rxGroup = (cr.rxLines || []).length ? ('<div class="li-group"><div class="li-group-hd"><span>&#128138; RX Lines</span><span class="li-group-meta">' + cr.rxLines.length + ' line' + (cr.rxLines.length == 1 ? '' : 's') + '</span></div>' + cr.rxLines.map(ipRxCard).join('') + ipLineToolbarHtml('rx', cr.rxLines) + '</div>') : '';
+  // Toolbar sits BELOW the line rows (matches the reference app: rows first, "Review Selected" after).
   el.innerHTML =
-    '<div class="li-group"><div class="li-group-hd"><span>🛏 Bed-Day Lines</span><span class="li-group-meta">' + cr.segments.length + ' line' + (cr.segments.length == 1 ? '' : 's') + ' · ' + cr.los + ' days certified · click a line to expand its review</span>'
-    + '<button class="btn btn-outline btn-xs" onclick="ipAddIpLine()">+ Add Inpatient Line</button></div>'
-    + beds + extraIp + stay + '</div>'
-    + '<div class="li-group"><div class="li-group-hd"><span>🩺 Service / Procedure Lines</span><span class="li-group-meta">' + (cr.procLines || []).length + ' line' + ((cr.procLines || []).length == 1 ? '' : 's') + '</span>'
-    + '<button class="btn btn-outline btn-xs" onclick="ipAddProc()">+ Add Service Line</button></div>' + procs + '</div>'
-    + '<div class="li-group"><div class="li-group-hd"><span>&#128138; RX Lines</span><span class="li-group-meta">' + (cr.rxLines || []).length + ' line' + ((cr.rxLines || []).length == 1 ? '' : 's') + '</span>'
-    + '<button class="btn btn-outline btn-xs" onclick="ipAddRx()">+ Add RX Line</button></div>' + rxs + '</div>';
+    '<div class="li-group"><div class="li-group-hd"><span>🛏 Bed-Day Lines</span><span class="li-group-meta">' + cr.segments.length + ' line' + (cr.segments.length == 1 ? '' : 's') + ' · ' + cr.los + ' days certified · click a line to expand its review</span></div>'
+    + beds + extraIp + extraIpToolbar + stay + '</div>'
+    + procGroup + rxGroup;
   var cnt = document.getElementById('ip-li-count'); if (cnt) cnt.textContent = cr.segments.length + (cr.extraIpLines ? cr.extraIpLines.length : 0) + (cr.procLines ? cr.procLines.length : 0) + (cr.rxLines ? cr.rxLines.length : 0);
 }
 function renderIpCrBody() { /* retired — concurrent-review activity now lives under the bed-day lines */ }
-function ipAddProc() { var cr = crGet(); cr.procLines = cr.procLines || []; cr.procId = (cr.procId || 0) + 1; cr.procLines.push({ id: cr.procId, svcType: LI_SVC_TYPES[3], code: '', desc: '', qty: 1, unit: 'Units', pos: '21 – Inpatient Hospital', provider: cr.facility, start: cr.admit, end: cr.certifiedThrough, editing: true, isNew: true, _elig: false }); renderIpLines(); }
+function ipAddProc() { var cr = crGet(); cr.procLines = cr.procLines || []; cr.procId = (cr.procId || 0) + 1; cr.procLines.push({ id: cr.procId, svcType: LI_SVC_TYPES[3], code: '', desc: '', qty: 1, unit: 'Units', pos: '21 – Inpatient Hospital', provider: '', sameAsReq: true, reqDate: cr.admit, start: cr.admit, end: cr.certifiedThrough, editing: true, isNew: true, _elig: false, selected: true, determId: null }); renderIpLines(); }
+function ipToggleProcSame(id, checked) { var cr = crGet(); var it = (cr.procLines || []).find(function (x) { return x.id === id; }); if (it) { it.sameAsReq = checked; renderIpLines(); } }
+// Independent review/determination for one or several selected procedure lines — separate from the
+// bed-day stay's own concurrent-review determination. Mirrors OP's select-one-or-many-together pattern,
+// but (unlike OP today) actually records its own outcome + notice per line/group, not a shared auth-level one.
+// Generic "review one or several lines together" engine — covers ALL three IP line types (Service/
+// Procedure, Inpatient, RX), not just procedure lines. Every added line, of any type, can be reviewed
+// singly or as part of a multi-select group; the resulting determination is independent per group.
+var ipReviewLineType = 'proc';
+// The admission request itself ("Line 1" on a pending-admission case) behaves like any other selectable
+// Inpatient Line — same checkbox, same "Review Medical Necessity" button, same combine-or-review-alone
+// choice — instead of being a permanently-checked, disabled special case. Represented as a synthesized
+// id-0 entry prepended to the 'ip' array so it flows through the exact same select/toolbar/review
+// machinery as every other line; its OWN determination still goes through the full admission review
+// (LOC eval, discharge planning, admit-approve gate) since that's a materially bigger decision than a
+// simple line approve/deny — ipReviewLinesSelected() below detects id 0 and routes accordingly.
+function ipAdmitPseudoLine(cr) {
+  return { id: 0, isAdmission: true, loc: cr.loc, days: cr.requestedLos || cr.los, svcType: cr.dx, pos: '', start: cr.admit, end: cr.certifiedThrough, reqDate: cr.admit, selected: cr._admitSelected !== false, determId: cr.admitDetermId || null };
+}
+function ipLineArrFor(type) {
+  var cr = crGet();
+  if (type === 'ip') {
+    var arr = (cr.extraIpLines || []).slice();
+    if (cr.status === 'pending-admission') arr.unshift(ipAdmitPseudoLine(cr));
+    return arr;
+  }
+  return (type === 'rx' ? cr.rxLines : cr.procLines) || [];
+}
+function ipLineSel(type, id, checked) {
+  if (type === 'ip' && id === 0) { crGet()._admitSelected = checked; renderIpLines(); return; }
+  var it = ipLineArrFor(type).find(function (x) { return x.id === id; }); if (it) it.selected = checked; renderIpLines();
+}
+function ipLineSelAll(type, checked) {
+  if (type === 'ip') crGet()._admitSelected = checked;
+  ipLineArrFor(type).forEach(function (x) { if (!x.determId && !x.isAdmission) x.selected = checked; });
+  renderIpLines();
+}
+function ipReviewLine(type, id) {
+  var cr = crGet();
+  ipLineArrFor(type).forEach(function (x) {
+    var sel = (x.id === id);
+    if (x.isAdmission) cr._admitSelected = sel; else if (!x.determId) x.selected = sel;
+  });
+  ipReviewLinesSelected(type);
+}
+function ipReviewLinesSelected(type) {
+  ipReviewLineType = type;
+  ipReviewLineIds = ipLineArrFor(type).filter(function (x) { return x.selected && !x.determId; }).map(function (x) { return x.id; });
+  if (!ipReviewLineIds.length) return;
+  // The admission line is bundled in — its own dedicated review (LOC eval, discharge planning, the
+  // admit-approve gate) is the master action; any other selected Inpatient Lines ride along and get
+  // approved together with it (see ipTagCombinedAdmitExtras, called from crApproveConfirm's admission branch).
+  if (type === 'ip' && ipReviewLineIds.indexOf(0) > -1) { openAdmissionReview(currentCase); return; }
+  enterIpReview('procline');
+}
+// Backward-compat thin wrappers — existing rendered markup calls these proc-specific names directly.
+function ipProcSel(id, checked) { ipLineSel('proc', id, checked); }
+function ipProcSelAll(checked) { ipLineSelAll('proc', checked); }
+function ipReviewProc(id) { ipReviewLine('proc', id); }
+function ipReviewProcSelected() { ipReviewLinesSelected('proc'); }
+function ipReviewIpLine(id) { ipReviewLine('ip', id); }
+function ipReviewIpLinesSelected() { ipReviewLinesSelected('ip'); }
+function ipReviewRxLine(id) { ipReviewLine('rx', id); }
+function ipReviewRxLinesSelected() { ipReviewLinesSelected('rx'); }
+// One-line summary for whichever line type is currently under review — used both in the review panel
+// and could be reused elsewhere if this grows further.
+function ipLineReviewSummary(type, it) {
+  if (it.isAdmission) return { title: 'Line 1 — Admission Request', meta: it.days + ' day(s) requested · ' + it.svcType };
+  if (type === 'ip') return { title: it.loc, meta: it.days + ' day(s) requested · ' + crFmt(it.start) + '–' + crFmt(it.end) };
+  if (type === 'rx') return { title: it.drug || 'RX line', meta: (it.form ? it.form + ' &middot; ' : '') + 'Qty ' + it.qty + ' &middot; ' + it.days + ' day(s) supply' };
+  return { title: it.code || '—', meta: (it.qty || 1) + ' ' + (it.unit || 'Units') + ' &middot; ' + crFmt(it.start) + '–' + crFmt(it.end), desc: it.desc || it.svcType || 'Service line' };
+}
+function renderProclinePanel() {
+  var body = document.getElementById('procline-lines'); if (!body) return;
+  var arr = ipLineArrFor(ipReviewLineType);
+  body.innerHTML = ipReviewLineIds.map(function (id) {
+    var it = arr.find(function (x) { return x.id === id; }); if (!it) return '';
+    var s = ipLineReviewSummary(ipReviewLineType, it);
+    return '<div class="li-card"><div class="li-card-top"><div><span class="li-code">' + s.title + '</span>' + (s.desc ? ' <span class="li-desc">' + s.desc + '</span>' : '') + '</div></div>'
+      + '<div class="li-meta">' + s.meta + '</div>'
+      + '<div style="display:flex;gap:16px;margin-top:8px;font-size:12.5px;">'
+      + '<label style="display:flex;align-items:center;gap:5px;cursor:pointer;"><input type="radio" name="pld-' + id + '" value="approve" checked> <span style="color:var(--green);">&#10003; Approve</span></label>'
+      + '<label style="display:flex;align-items:center;gap:5px;cursor:pointer;"><input type="radio" name="pld-' + id + '" value="deny"> <span style="color:var(--red);">&#10007; Deny</span></label>'
+      + '</div></div>';
+  }).join('');
+  var dc = document.getElementById('procline-deny-code'); if (dc) { dc.innerHTML = crCodeOptions(DENIAL_CODES); dc.style.borderColor = ''; }
+  var note = document.getElementById('procline-note'); if (note) { note.value = ''; note.style.borderColor = ''; }
+}
+function ipToggleProcDetermDetail(id) { var el = document.getElementById('procdet-' + id); if (el) el.style.display = el.style.display === 'none' ? 'block' : 'none'; }
+function ipUpdateReviewPagename() {
+  if (ipReviewMode !== 'procline') return; // admission/concurrent/md/p2p keep their own fixed title
+  var pagename = document.getElementById('ipr-pagename'); if (!pagename) return;
+  pagename.textContent = 'Line Review — ' + ipReviewLineIds.length + ' line' + (ipReviewLineIds.length === 1 ? '' : 's');
+}
+// Selected-lines chip strip on the Line Review / Admission Review screens — mirrors OP's "Line Details"
+// chips: every undetermined line of the type under review is shown collapsed, checkbox reflects whether
+// it's currently part of THIS review, letting the nurse add/remove lines without leaving the screen.
+// The admission line itself (id 0) is a chip like any other — same checked/unchecked styling, fully
+// toggleable — since unchecking it here has no effect on the Approve button (that always finalizes the
+// admission; the chip only controls which OTHER lines are bundled into ipTagCombinedAdmitExtras).
+function renderIprLineChips() {
+  var el = document.getElementById('ipr-line-chips'); if (!el) return;
+  if (ipReviewMode !== 'procline' && ipReviewMode !== 'admission') { el.style.display = 'none'; return; }
+  el.style.display = 'block';
+  var lineType = ipReviewMode === 'admission' ? 'ip' : ipReviewLineType;
+  var arr = ipLineArrFor(lineType).filter(function (x) { return !x.determId; });
+  var n = ipReviewLineIds.length;
+  var chips = arr.map(function (it) {
+    var s = ipLineReviewSummary(lineType, it);
+    var checked = ipReviewLineIds.indexOf(it.id) > -1;
+    var nm = (s.desc ? s.desc + ' &middot; ' : '') + s.title;
+    return '<label class="rl-chip' + (checked ? ' on' : '') + '"><input type="checkbox" ' + (checked ? 'checked' : '') + ' onchange="ipLineChipToggle(' + it.id + ',this.checked)"> ' + nm + '</label>';
+  }).join('');
+  el.innerHTML = '<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px;">'
+    + '<strong style="font-size:12.5px;color:var(--gray-800);">Line Details (' + arr.length + ')</strong>'
+    + '<span style="font-size:11px;color:var(--gray-500);">reviewing ' + n + ' of ' + arr.length + ' together</span>'
+    + '<button class="btn btn-outline btn-sm" style="margin-left:auto;" onclick="ipLineChipSelectAll(true)">Select all</button>'
+    + '<button class="btn btn-outline btn-sm" onclick="ipLineChipSelectAll(false)">Deselect</button></div>'
+    + '<div style="display:flex;gap:8px;flex-wrap:wrap;">' + (chips || '<span style="font-size:12px;color:var(--gray-400);">No lines available.</span>') + '</div>';
+}
+function ipLineChipToggle(id, checked) {
+  var i = ipReviewLineIds.indexOf(id);
+  if (checked && i < 0) ipReviewLineIds.push(id);
+  else if (!checked && i > -1) ipReviewLineIds.splice(i, 1);
+  renderIprLineChips(); if (ipReviewMode === 'procline') renderProclinePanel(); ipUpdateReviewPagename();
+}
+function ipLineChipSelectAll(sel) {
+  var lineType = ipReviewMode === 'admission' ? 'ip' : ipReviewLineType;
+  var arr = ipLineArrFor(lineType).filter(function (x) { return !x.determId; });
+  ipReviewLineIds = sel ? arr.map(function (x) { return x.id; }) : [];
+  renderIprLineChips(); if (ipReviewMode === 'procline') renderProclinePanel(); ipUpdateReviewPagename();
+}
+// Toolbar above each line group (Inpatient / Service·Procedure / RX) — lets the nurse select one or
+// several not-yet-determined lines of THAT type to review together (mirrors OP's pattern).
+function ipLineToolbarHtml(type, arr) {
+  var undetermined = (arr || []).filter(function (x) { return !x.determId; });
+  if (!undetermined.length) return '';
+  var nSel = undetermined.filter(function (x) { return x.selected; }).length;
+  return '<div class="li-toolbar"><label class="li-selall"><input type="checkbox" ' + (nSel === undetermined.length ? 'checked' : '') + ' onchange="ipLineSelAll(\'' + type + '\',this.checked)"> Select all</label>'
+    + '<span style="font-size:11px;color:var(--gray-500);">' + nSel + ' of ' + undetermined.length + ' selected</span>'
+    + '<button class="btn btn-primary btn-sm" ' + (nSel ? '' : 'disabled') + ' onclick="event.stopPropagation();ipReviewLinesSelected(\'' + type + '\')">&#128269; Review Selected (' + nSel + ')</button></div>';
+}
+function ipProcToolbarHtml(cr) { return ipLineToolbarHtml('proc', cr.procLines); }
+function ipProcDetermConfirm() {
+  if (!ipReviewLineIds.length) return; // chips deselected down to none — nothing to record
+  var cr = crGet();
+  var arr = ipLineArrFor(ipReviewLineType);
+  var outcomes = ipReviewLineIds.map(function (id) {
+    var r = document.querySelector('input[name="pld-' + id + '"]:checked');
+    return { id: id, outcome: r ? r.value : 'approve' };
+  });
+  var anyDenied = outcomes.some(function (o) { return o.outcome === 'deny'; });
+  var allDenied = outcomes.length > 0 && outcomes.every(function (o) { return o.outcome === 'deny'; });
+  var note = ipVal('procline-note').trim();
+  var code = ipVal('procline-deny-code');
+  if (anyDenied && !note) { document.getElementById('procline-note').style.borderColor = 'var(--red)'; return; }
+  if (anyDenied && !code) { document.getElementById('procline-deny-code').style.borderColor = 'var(--red)'; return; }
+  var kind = !anyDenied ? 'approve' : (allDenied ? 'deny' : 'partial');
+  var src = ipVal('iprgl-source');
+  cr.procDeterminations = cr.procDeterminations || [];
+  cr.procDetermId = (cr.procDetermId || 0) + 1;
+  var rec = {
+    id: cr.procDetermId, lineType: ipReviewLineType, lineIds: ipReviewLineIds.slice(), outcomes: outcomes, kind: kind,
+    label: kind === 'approve' ? 'Approved' : (kind === 'deny' ? 'Denied' : 'Partially Approved'),
+    denialCode: anyDenied ? code : '', note: note || 'Meets medical necessity criteria.',
+    by: 'M Craft, UM Nurse', reviewedBy: 'M Craft, UM Nurse', reviewDate: CR_TODAY, date: CR_TODAY,
+    guideline: crCurGuideline(), source: src, sourceLabel: SOURCE_LABEL_MAP[src] || src,
+    critDetail: crCritDetail(), metCount: crMetCount(), total: crTotalCrit(),
+    notice: crNotice(kind === 'approve' ? 'certification' : (kind === 'deny' ? 'denial' : 'partial')),
+    amendments: []
+  };
+  cr.procDeterminations.push(rec);
+  outcomes.forEach(function (o) {
+    var it = arr.find(function (x) { return x.id === o.id; });
+    if (it) { it.determId = rec.id; it.selected = false; }
+  });
+  ipReviewLineIds = [];
+  showScreen('s-auth-detail-ip');
+  crToast(kind === 'approve' ? '✓ Line(s) approved · notice issued' : (kind === 'partial' ? '◑ Line(s) partially approved · notice issued' : '✕ Line(s) denied · notice issued'));
+}
+// When the admission line (id 0) is reviewed combined with one or more other Inpatient Lines, the
+// admission's own outcome is recorded by the cycle/segment crApproveConfirm() just created — this tags
+// the OTHER selected lines as approved alongside it, via the same shared procDeterminations store the
+// standalone procline engine uses, so they get the identical "Approved" badge/Details treatment.
+function ipTagCombinedAdmitExtras() {
+  var cr = crGet();
+  var extraIds = (ipReviewLineType === 'ip' ? ipReviewLineIds : []).filter(function (id) { return id !== 0; });
+  ipReviewLineIds = [];
+  if (!extraIds.length) return;
+  cr.procDeterminations = cr.procDeterminations || [];
+  cr.procDetermId = (cr.procDetermId || 0) + 1;
+  var rec = {
+    id: cr.procDetermId, lineType: 'ip', lineIds: extraIds.slice(),
+    outcomes: extraIds.map(function (id) { return { id: id, outcome: 'approve' }; }),
+    kind: 'approve', label: 'Approved', denialCode: '',
+    note: 'Reviewed together with the admission decision.',
+    by: 'M Craft, UM Nurse', reviewedBy: 'M Craft, UM Nurse', reviewDate: CR_TODAY, date: CR_TODAY,
+    amendments: []
+  };
+  cr.procDeterminations.push(rec);
+  (cr.extraIpLines || []).forEach(function (it) { if (extraIds.indexOf(it.id) > -1) { it.determId = rec.id; it.selected = false; } });
+}
 function ipEditProc(id) { var cr = crGet(); var it = cr.procLines.find(function (x) { return x.id === id; }); if (it) { it.editing = true; renderIpLines(); } }
-function ipSaveProc(id) { var cr = crGet(); var it = cr.procLines.find(function (x) { return x.id === id; }); if (!it) return; it.svcType = ipVal('ipp-svc-' + id); it.code = ipVal('ipp-code-' + id); it.desc = ipVal('ipp-desc-' + id); it.qty = ipVal('ipp-qty-' + id); it.unit = ipVal('ipp-unit-' + id); it.pos = ipVal('ipp-pos-' + id); it.provider = ipVal('ipp-prov-' + id); it.start = ipVal('ipp-start-' + id); it.end = ipVal('ipp-end-' + id); it.editing = false; it.isNew = false; renderIpLines(); }
+function ipSaveProc(id) { var cr = crGet(); var it = cr.procLines.find(function (x) { return x.id === id; }); if (!it) return; it.svcType = ipVal('ipp-svc-' + id); it.code = ipVal('ipp-code-' + id); it.desc = ipVal('ipp-desc-' + id); it.qty = ipVal('ipp-qty-' + id); it.unit = ipVal('ipp-unit-' + id); it.pos = ipVal('ipp-pos-' + id); it.reqDate = ipVal('ipp-reqdate-' + id); it.sameAsReq = !!(document.getElementById('ipp-sameas-' + id) || {}).checked; if (!it.sameAsReq) it.provider = ipVal('ipp-prov-' + id); it.start = ipVal('ipp-start-' + id); it.end = ipVal('ipp-end-' + id); it.editing = false; it.isNew = false; renderIpLines(); }
 function ipCancelProc(id) { var cr = crGet(); var i = cr.procLines.findIndex(function (x) { return x.id === id; }); if (i < 0) return; if (cr.procLines[i].isNew) cr.procLines.splice(i, 1); else cr.procLines[i].editing = false; renderIpLines(); }
 function ipRemoveProc(id) { var cr = crGet(); cr.procLines = cr.procLines.filter(function (x) { return x.id !== id; }); renderIpLines(); }
 function ipToggleElig(id) { var cr = crGet(); var it = (cr.procLines || []).find(function (x) { return x.id === id; }); if (it) { it._elig = !it._elig; renderIpLines(); } }
@@ -5986,9 +6438,14 @@ function ipRechainExtraLines() {
 }
 function ipExtraLineCard(it) {
   if (it.editing) {
+    var svcOpts = '<option value="" ' + (!it.svcType ? 'selected' : '') + '>— Not specified —</option>' + IP_LINE_SVC_TYPES.map(function (s) { return '<option ' + (s === it.svcType ? 'selected' : '') + '>' + s + '</option>'; }).join('');
+    var posOpts = IP_POS_LIST.map(function (p) { return '<option ' + (p === it.pos ? 'selected' : '') + '>' + p + '</option>'; }).join('');
     return '<div class="li-card editing"><div class="li-edit-grid">'
+      + ipFld('Service Type <span style="font-weight:400;color:var(--gray-500);text-transform:none;">(optional)</span>', '<select class="form-ctrl" id="ipl-svc-' + it.id + '">' + svcOpts + '</select>')
       + ipFld('Level of Care', '<select class="form-ctrl" id="ipl-loc-' + it.id + '">' + LOC_ALL.map(function (l) { return '<option ' + (l === it.loc ? 'selected' : '') + '>' + l + '</option>'; }).join('') + '</select>')
       + ipFld('Requested Days', '<input type="number" min="1" class="form-ctrl" id="ipl-days-' + it.id + '" value="' + (it.days || 1) + '">')
+      + ipFld('Place of Service <span style="font-weight:400;color:var(--gray-500);text-transform:none;">(optional)</span>', '<select class="form-ctrl" id="ipl-pos-' + it.id + '">' + posOpts + '</select>')
+      + ipFld('Request Date', '<input type="date" class="form-ctrl" id="ipl-reqdate-' + it.id + '" value="' + (it.reqDate || CR_TODAY) + '">')
       + ipFld('Start Date', '<input class="form-ctrl readonly" value="' + crFmt(it.start) + '" disabled title="Starts the day after the previous inpatient line\'s last day">')
       + ipFld('End Date', '<input class="form-ctrl readonly" value="' + crFmt(it.end) + '" disabled title="Calculated from Requested Days">')
       + '</div>'
@@ -5996,17 +6453,59 @@ function ipExtraLineCard(it) {
       + (it._elig ? eligBenefitsHtml(currentCase) : '')
       + '<div class="li-edit-actions"><button class="btn btn-outline btn-xs" onclick="ipCancelIpLine(' + it.id + ')">Cancel</button><button class="btn btn-primary btn-xs" onclick="ipSaveIpLine(' + it.id + ')">Save Line</button></div></div>';
   }
-  return '<div class="li-card"><div class="li-card-top"><div style="display:flex;align-items:center;gap:8px;"><span class="li-code">&#128719; ' + it.loc + '</span> <span class="li-desc">' + crFmt(it.start) + ' – ' + crFmt(it.end) + ' &middot; ' + it.days + ' day(s) requested</span></div>'
-    + '<div style="display:flex;gap:6px;align-items:center;"><span class="sb sb-blue" style="font-size:10px;">Requested</span><button class="btn btn-outline btn-xs" onclick="ipEditIpLine(' + it.id + ')">&#9998; Edit</button><button class="btn btn-ghost btn-xs" style="color:var(--red);" onclick="ipRemoveIpLine(' + it.id + ')">&#128465;</button></div></div></div>';
+  // Once independently determined, this line shows its own frozen outcome instead of the selection
+  // checkbox/Review/Edit controls — same pattern as Service/Procedure and RX lines.
+  if (it.determId) {
+    var cr = crGet();
+    var rec = (cr.procDeterminations || []).find(function (x) { return x.id === it.determId; });
+    var lineOutcome = rec ? (rec.outcomes.find(function (o) { return o.id === it.id; }) || {}).outcome : null;
+    var tagCls = lineOutcome === 'deny' ? 't-deny' : 't-cert', tagTxt = lineOutcome === 'deny' ? 'Denied' : 'Approved';
+    return '<div class="li-card"><div class="li-card-top"><div><span class="li-code">&#128719; ' + it.loc + '</span> <span class="li-desc">' + it.days + ' day(s) requested</span></div>'
+      + '<div style="display:flex;gap:6px;align-items:center;"><span class="cr-tag ' + tagCls + '">' + tagTxt + '</span><button class="btn btn-outline btn-xs" onclick="ipToggleProcDetermDetail(' + it.id + ')">&#128203; Details</button></div></div>'
+      + '<div class="li-meta">' + crFmt(it.start) + '–' + crFmt(it.end) + '</div>'
+      + '<div id="procdet-' + it.id + '" style="display:none;margin-top:8px;font-size:11.5px;color:var(--gray-600);background:var(--gray-50);border:1px solid var(--gray-200);border-radius:8px;padding:8px 10px;">' + (rec ? ('Reviewed &amp; decided by ' + rec.reviewedBy + ' &middot; ' + crFmt(rec.reviewDate) + (rec.note ? ' — ' + rec.note : '')) : '') + '</div>'
+      + '</div>';
+  }
+  var ipLineCols = liColsHtml([
+    { label: 'Days Req', value: it.days },
+    { label: 'Req Date', value: crFmt(it.reqDate) },
+    { label: 'Start', value: crFmt(it.start) },
+    { label: 'End', value: crFmt(it.end) }
+  ]);
+  var ipLineNba = crGet().status === 'pending-admission' ? '<span class="sb sb-blue" style="font-size:10px;">Initial Review</span>' : '';
+  return '<div class="li-card"><div class="li-card-top" style="align-items:flex-start;"><div style="display:flex;align-items:flex-start;gap:8px;flex:1;min-width:170px;">'
+    + '<input type="checkbox" class="li-sel" style="margin-top:2px;" ' + (it.selected ? 'checked' : '') + ' onchange="ipLineSel(\'ip\',' + it.id + ',this.checked)">'
+    + '<div><div><span class="li-code">&#128719; ' + it.loc + '</span> <span class="li-desc">' + (it.svcType ? it.svcType : 'Requested') + '</span></div>'
+    +   (it.pos ? '<div style="font-size:11px;color:var(--gray-500);margin-top:2px;">POS ' + it.pos.split(' – ')[0] + '</div>' : '') + '</div></div>'
+    + ipLineCols
+    + '<div style="display:flex;gap:6px;align-items:center;">' + ipLineNba + '<button class="btn btn-outline btn-xs" onclick="ipReviewLine(\'ip\',' + it.id + ')">&#128269; Review Medical Necessity</button><button class="btn btn-outline btn-xs" onclick="ipEditIpLine(' + it.id + ')">&#9998; Edit</button><button class="btn btn-ghost btn-xs" style="color:var(--red);" onclick="ipRemoveIpLine(' + it.id + ')">&#128465;</button></div></div></div></div>';
 }
-function ipAddIpLine() { var cr = crGet(); cr.extraIpLines = cr.extraIpLines || []; cr.ipLineSeq = (cr.ipLineSeq || 0) + 1; cr.extraIpLines.push({ id: cr.ipLineSeq, loc: cr.loc, days: 1, editing: true, isNew: true, _elig: false }); renderIpLines(); }
+// Single "Add Line" entry point — one button, then choose the type, instead of a separate button
+// per line-type group. IP offers Inpatient/Procedure/RX; OP (no bed-day concept) only Procedure/RX.
+function openAddLineChooser() {
+  var ipBtn = document.getElementById('altc-ip-btn'); if (ipBtn) ipBtn.style.display = isIpCase(currentCase) ? '' : 'none';
+  openModal('m-add-line-type');
+}
+function addLineTypeChosen(type) {
+  closeModal('m-add-line-type');
+  if (isIpCase(currentCase)) {
+    if (type === 'ip') ipAddIpLine();
+    else if (type === 'proc') ipAddProc();
+    else if (type === 'rx') ipAddRx();
+  } else {
+    if (type === 'proc') addLine(currentCase);
+    else if (type === 'rx') rxLiAdd(currentCase);
+  }
+}
+function ipAddIpLine() { var cr = crGet(); cr.extraIpLines = cr.extraIpLines || []; cr.ipLineSeq = (cr.ipLineSeq || 0) + 1; cr.extraIpLines.push({ id: cr.ipLineSeq, loc: cr.loc, days: 1, svcType: '', pos: '', reqDate: CR_TODAY, editing: true, isNew: true, _elig: false, selected: true, determId: null }); renderIpLines(); }
 function ipEditIpLine(id) { var cr = crGet(); var it = (cr.extraIpLines || []).find(function (x) { return x.id === id; }); if (it) { it.editing = true; renderIpLines(); } }
-function ipSaveIpLine(id) { var cr = crGet(); var it = (cr.extraIpLines || []).find(function (x) { return x.id === id; }); if (!it) return; it.loc = ipVal('ipl-loc-' + id) || it.loc; it.days = parseInt(ipVal('ipl-days-' + id)) || it.days; it.editing = false; it.isNew = false; renderIpLines(); }
+function ipSaveIpLine(id) { var cr = crGet(); var it = (cr.extraIpLines || []).find(function (x) { return x.id === id; }); if (!it) return; it.loc = ipVal('ipl-loc-' + id) || it.loc; it.days = parseInt(ipVal('ipl-days-' + id)) || it.days; it.svcType = ipVal('ipl-svc-' + id); it.pos = ipVal('ipl-pos-' + id); it.reqDate = ipVal('ipl-reqdate-' + id); it.editing = false; it.isNew = false; renderIpLines(); }
 function ipCancelIpLine(id) { var cr = crGet(); var i = (cr.extraIpLines || []).findIndex(function (x) { return x.id === id; }); if (i < 0) return; if (cr.extraIpLines[i].isNew) cr.extraIpLines.splice(i, 1); else cr.extraIpLines[i].editing = false; renderIpLines(); }
 function ipRemoveIpLine(id) { var cr = crGet(); cr.extraIpLines = (cr.extraIpLines || []).filter(function (x) { return x.id !== id; }); renderIpLines(); }
 function ipToggleIpLineElig(id) { var cr = crGet(); var it = (cr.extraIpLines || []).find(function (x) { return x.id === id; }); if (it) { it._elig = !it._elig; renderIpLines(); } }
 
 function ipRxCard(it) {
+  var cr = crGet();
   if (it.editing) {
     return '<div class="li-card editing"><div class="li-edit-grid">'
       + ipFld('Drug (Name / NDC)', '<input class="form-ctrl" id="ipr-drug-' + it.id + '" value="' + (it.drug || '') + '" placeholder="Drug name or NDC">')
@@ -6014,19 +6513,45 @@ function ipRxCard(it) {
       + ipFld('Quantity', '<input type="number" min="1" class="form-ctrl" id="ipr-qty-' + it.id + '" value="' + (it.qty || 30) + '">')
       + ipFld('Days Supply', '<input type="number" min="1" class="form-ctrl" id="ipr-days-' + it.id + '" value="' + (it.days || 30) + '">')
       + ipFld('Refills', '<input type="number" min="0" class="form-ctrl" id="ipr-refills-' + it.id + '" value="' + (it.refills || 0) + '">')
-      + ipFld('Prescribing Provider', '<input class="form-ctrl" id="ipr-presc-' + it.id + '" value="' + (it.prescriber || '') + '">')
+      + ipFld('Request Date', '<input type="date" class="form-ctrl" id="ipr-reqdate-' + it.id + '" value="' + (it.reqDate || CR_TODAY) + '">')
+      + '<div><div style="display:flex;align-items:center;justify-content:space-between;gap:8px;"><label class="form-label" style="margin-bottom:3px;">Prescribing Provider</label>'
+      +   '<label style="display:flex;align-items:center;gap:5px;font-size:11.5px;font-weight:400;color:var(--gray-600);cursor:pointer;"><input type="checkbox" id="ipr-sameas-' + it.id + '" ' + (it.sameAsReq ? 'checked' : '') + ' onchange="ipToggleRxSame(' + it.id + ',this.checked)"> same as requesting provider</label></div>'
+      +   '<input class="form-ctrl" id="ipr-presc-' + it.id + '" ' + (it.sameAsReq ? 'disabled' : '') + ' value="' + (it.sameAsReq ? (cr.attending || '') : (it.prescriber || '')) + '"></div>'
+      + ipFld('Dispensing Pharmacy <span style="font-weight:400;color:var(--gray-500);text-transform:none;">(optional)</span>', '<input class="form-ctrl" id="ipr-pharm-' + it.id + '" value="' + (it.pharmacy || '') + '" placeholder="Specialty pharmacy, if required...">')
       + '</div>'
       + '<div style="margin-top:8px;"><button type="button" class="btn btn-outline btn-xs" onclick="ipToggleRxElig(' + it.id + ')">' + (it._elig ? '&#10003; Eligibility Checked' : '&#10003; Check Eligibility') + '</button></div>'
       + (it._elig ? eligBenefitsHtml(currentCase) : '')
       + '<div class="li-edit-actions"><button class="btn btn-outline btn-xs" onclick="ipCancelRx(' + it.id + ')">Cancel</button><button class="btn btn-primary btn-xs" onclick="ipSaveRx(' + it.id + ')">Save Line</button></div></div>';
   }
-  return '<div class="li-card"><div class="li-card-top"><div><span class="li-code">&#128138; ' + (it.drug || 'RX line') + '</span> <span class="li-desc">' + (it.form ? it.form + ' &middot; ' : '') + 'Qty ' + it.qty + ' &middot; ' + it.days + ' day(s) &middot; ' + it.refills + ' refill' + (it.refills == 1 ? '' : 's') + '</span></div>'
-    + '<div style="display:flex;gap:6px;"><button class="btn btn-outline btn-xs" onclick="ipEditRx(' + it.id + ')">&#9998; Edit</button><button class="btn btn-ghost btn-xs" style="color:var(--red);" onclick="ipRemoveRx(' + it.id + ')">&#128465;</button></div></div>'
-    + '<div class="li-meta">Prescriber: ' + (it.prescriber || '—') + '</div></div>';
+  // Once independently determined, this line shows its own frozen outcome instead of the selection
+  // checkbox/Review/Edit controls — same pattern as the other IP line types.
+  if (it.determId) {
+    var rxRec = (cr.procDeterminations || []).find(function (x) { return x.id === it.determId; });
+    var rxOutcome = rxRec ? (rxRec.outcomes.find(function (o) { return o.id === it.id; }) || {}).outcome : null;
+    var rxTagCls = rxOutcome === 'deny' ? 't-deny' : 't-cert', rxTagTxt = rxOutcome === 'deny' ? 'Denied' : 'Approved';
+    return '<div class="li-card"><div class="li-card-top"><div><span class="li-code">&#128138; ' + (it.drug || 'RX line') + '</span> <span class="li-desc">Qty ' + it.qty + ' &middot; ' + it.days + ' day(s)</span></div>'
+      + '<div style="display:flex;gap:6px;align-items:center;"><span class="cr-tag ' + rxTagCls + '">' + rxTagTxt + '</span><button class="btn btn-outline btn-xs" onclick="ipToggleProcDetermDetail(' + it.id + ')">&#128203; Details</button></div></div>'
+      + '<div id="procdet-' + it.id + '" style="display:none;margin-top:8px;font-size:11.5px;color:var(--gray-600);background:var(--gray-50);border:1px solid var(--gray-200);border-radius:8px;padding:8px 10px;">' + (rxRec ? ('Reviewed &amp; decided by ' + rxRec.reviewedBy + ' &middot; ' + crFmt(rxRec.reviewDate) + (rxRec.note ? ' — ' + rxRec.note : '')) : '') + '</div>'
+      + '</div>';
+  }
+  var rxCols = liColsHtml([
+    { label: 'Qty', value: it.qty },
+    { label: 'Days Supply', value: it.days },
+    { label: 'Refills', value: it.refills },
+    { label: 'Req Date', value: crFmt(it.reqDate) }
+  ]);
+  var rxNba = cr.status === 'pending-admission' ? '<span class="sb sb-blue" style="font-size:10px;">Initial Review</span>' : '';
+  return '<div class="li-card"><div class="li-card-top" style="align-items:flex-start;"><div style="display:flex;align-items:flex-start;gap:8px;flex:1;min-width:170px;">'
+    + '<input type="checkbox" class="li-sel" style="margin-top:2px;" ' + (it.selected ? 'checked' : '') + ' onchange="ipLineSel(\'rx\',' + it.id + ',this.checked)">'
+    + '<div><div><span class="li-code">&#128138; ' + (it.drug || 'RX line') + '</span> <span class="li-desc">' + (it.form || '') + '</span></div>'
+    +   '<div style="font-size:11px;color:var(--gray-500);margin-top:2px;">Prescriber: ' + (it.sameAsReq ? (cr.attending || '—') : (it.prescriber || '—')) + (it.pharmacy ? ' &middot; Pharmacy: ' + it.pharmacy : '') + '</div></div></div>'
+    + rxCols
+    + '<div style="display:flex;gap:6px;align-items:center;">' + rxNba + '<button class="btn btn-outline btn-xs" onclick="ipReviewLine(\'rx\',' + it.id + ')">&#128269; Review Medical Necessity</button><button class="btn btn-outline btn-xs" onclick="ipEditRx(' + it.id + ')">&#9998; Edit</button><button class="btn btn-ghost btn-xs" style="color:var(--red);" onclick="ipRemoveRx(' + it.id + ')">&#128465;</button></div></div></div>';
 }
-function ipAddRx() { var cr = crGet(); cr.rxLines = cr.rxLines || []; cr.rxSeq = (cr.rxSeq || 0) + 1; cr.rxLines.push({ id: cr.rxSeq, drug: '', form: '', qty: 30, days: 30, refills: 0, prescriber: cr.attending || '', editing: true, isNew: true, _elig: false }); renderIpLines(); }
+function ipAddRx() { var cr = crGet(); cr.rxLines = cr.rxLines || []; cr.rxSeq = (cr.rxSeq || 0) + 1; cr.rxLines.push({ id: cr.rxSeq, drug: '', form: '', qty: 30, days: 30, refills: 0, prescriber: '', sameAsReq: true, pharmacy: '', reqDate: CR_TODAY, editing: true, isNew: true, _elig: false, selected: true, determId: null }); renderIpLines(); }
 function ipEditRx(id) { var cr = crGet(); var it = (cr.rxLines || []).find(function (x) { return x.id === id; }); if (it) { it.editing = true; renderIpLines(); } }
-function ipSaveRx(id) { var cr = crGet(); var it = (cr.rxLines || []).find(function (x) { return x.id === id; }); if (!it) return; it.drug = ipVal('ipr-drug-' + id); it.form = ipVal('ipr-form-' + id); it.qty = parseInt(ipVal('ipr-qty-' + id)) || it.qty; it.days = parseInt(ipVal('ipr-days-' + id)) || it.days; it.refills = parseInt(ipVal('ipr-refills-' + id)) || 0; it.prescriber = ipVal('ipr-presc-' + id); it.editing = false; it.isNew = false; renderIpLines(); }
+function ipToggleRxSame(id, checked) { var cr = crGet(); var it = (cr.rxLines || []).find(function (x) { return x.id === id; }); if (it) { it.sameAsReq = checked; renderIpLines(); } }
+function ipSaveRx(id) { var cr = crGet(); var it = (cr.rxLines || []).find(function (x) { return x.id === id; }); if (!it) return; it.drug = ipVal('ipr-drug-' + id); it.form = ipVal('ipr-form-' + id); it.qty = parseInt(ipVal('ipr-qty-' + id)) || it.qty; it.days = parseInt(ipVal('ipr-days-' + id)) || it.days; it.refills = parseInt(ipVal('ipr-refills-' + id)) || 0; it.reqDate = ipVal('ipr-reqdate-' + id); it.sameAsReq = !!(document.getElementById('ipr-sameas-' + id) || {}).checked; if (!it.sameAsReq) it.prescriber = ipVal('ipr-presc-' + id); it.pharmacy = ipVal('ipr-pharm-' + id); it.editing = false; it.isNew = false; renderIpLines(); }
 function ipCancelRx(id) { var cr = crGet(); var i = (cr.rxLines || []).findIndex(function (x) { return x.id === id; }); if (i < 0) return; if (cr.rxLines[i].isNew) cr.rxLines.splice(i, 1); else cr.rxLines[i].editing = false; renderIpLines(); }
 function ipRemoveRx(id) { var cr = crGet(); cr.rxLines = (cr.rxLines || []).filter(function (x) { return x.id !== id; }); renderIpLines(); }
 function ipToggleRxElig(id) { var cr = crGet(); var it = (cr.rxLines || []).find(function (x) { return x.id === id; }); if (it) { it._elig = !it._elig; renderIpLines(); } }
@@ -6091,8 +6616,12 @@ var IPR_MODE_META = {
   admission: { badge: 'ADMISSION REVIEW', title: 'Initial Review — Admission' },
   concurrent: { badge: 'CONCURRENT REVIEW', title: null }, // title set dynamically (includes review #)
   md: { badge: 'MD REVIEW', title: 'MD Review — Continued Stay' },
-  p2p: { badge: 'PEER-TO-PEER', title: 'Peer-to-Peer Review — Continued Stay' }
+  p2p: { badge: 'PEER-TO-PEER', title: 'Peer-to-Peer Review — Continued Stay' },
+  procline: { badge: 'PROCEDURE LINE REVIEW', title: null } // title set dynamically (line count)
 };
+// The service/procedure line(s) currently under independent review — populated by ipReviewProc()/
+// ipReviewProcSelected() before entering 'procline' mode.
+var ipReviewLineIds = [];
 // Line Item bar — lists bed-day segments + service lines as selectable "items" with a details readout.
 // Purely informational for IP (the determination is per-stay, not per-line), mirroring the OP-style
 // "Line Item: N ▾" bar the real app uses.
@@ -6128,19 +6657,27 @@ function enterIpReview(mode) {
   var cr = crGet();
   iprRenderItemBar();
   var isMd = (mode === 'md' || mode === 'p2p');
-  document.getElementById('ipr-nurse-panel').style.display = isMd ? 'none' : 'block';
+  var isProcline = mode === 'procline';
+  document.getElementById('ipr-nurse-panel').style.display = (isMd || isProcline) ? 'none' : 'block';
   document.getElementById('ipr-md-panel').style.display = isMd ? 'block' : 'none';
-  // The guideline bar stays visible in every mode (MD/P2P still need Launch Criteria to view/verify) —
-  // only the Guideline dropdown itself locks, since MD/P2P review the nurse's already-selected guideline
-  // rather than choosing a new one.
-  var glSel = document.getElementById('cr-guideline'); if (glSel) glSel.disabled = isMd;
+  document.getElementById('ipr-procline-panel').style.display = isProcline ? 'block' : 'none';
+  // Procedure-line review is a completely independent determination (its own outcome/notice per line
+  // or selected group) — the shared criteria block above still applies, but the stay-level LOC/Days
+  // fields and MD's stay-recap don't, so procline hides both exactly like MD/P2P already does.
+  if (isProcline) renderProclinePanel();
+  renderIprLineChips();
+  // MD/P2P now run their own independent criteria review through the same shared block the nurse uses
+  // (ipr-crit-block, never hidden) — Source/Guideline start prefilled from the nurse's cycle (set in
+  // openCrMd() before this runs) but stay fully editable, not locked to the nurse's prior choice.
   // LOC evaluation is a nurse-side recommendation input only — MD/P2P review certified days/denial code,
   // not a live LOC picker, so the whole bar hides for them (parity with how ipr-nurse-panel hides).
-  var locBar = document.getElementById('ipr-loc-bar'); if (locBar) locBar.style.display = isMd ? 'none' : 'block';
+  var locBar = document.getElementById('ipr-loc-bar'); if (locBar) locBar.style.display = (isMd || isProcline) ? 'none' : 'block';
   var meta = IPR_MODE_META[mode] || IPR_MODE_META.concurrent;
   var badge = document.getElementById('ipr-badge'); if (badge) badge.textContent = meta.badge;
   var pagename = document.getElementById('ipr-pagename');
-  if (pagename) pagename.textContent = mode === 'concurrent' ? ('Continued Stay Review — Concurrent Review #' + crReviewNum()) : meta.title;
+  if (pagename) pagename.textContent = mode === 'concurrent' ? ('Continued Stay Review — Concurrent Review #' + crReviewNum())
+    : isProcline ? ('Line Review — ' + ipReviewLineIds.length + ' line' + (ipReviewLineIds.length === 1 ? '' : 's'))
+    : meta.title;
   var nrChip = document.getElementById('ipr-next-review-chip');
   if (nrChip) nrChip.textContent = cr.nextReview ? ('Next Review: ' + crFmt(cr.nextReview)) : '';
   var bcm = document.getElementById('ipr-bc-member'); if (bcm) bcm.textContent = cr.member + ' (' + (cr.mbr || '') + ')';
@@ -6348,7 +6885,14 @@ function ipResumeDraft() {
 function iprRenderFooter(mode) {
   var sec = document.getElementById('ipr-footer-secondary'), pri = document.getElementById('ipr-footer-primary');
   if (!sec || !pri) return;
-  sec.innerHTML = '<button class="btn btn-outline btn-sm" onclick="iprSaveForLater()">&#128190; Save for Later</button>';
+  // A "Back to Auth" affordance always sits in the pinned footer (visible regardless of how far the
+  // criteria/chips/AI-note content above has been scrolled) — the breadcrumb one further up the page
+  // was easy to lose track of, and procline mode previously had no footer content at all to hold one.
+  var backBtn = '<button class="btn btn-outline btn-sm" onclick="showScreen(\'s-auth-detail-ip\')">&#8592; Back to Auth</button>';
+  // Procedure-line review records its determination via its own inline button in ipr-procline-panel —
+  // the stay-level Pend/MD/Determination footer buttons don't apply to it.
+  if (mode === 'procline') { sec.innerHTML = backBtn; pri.innerHTML = ''; return; }
+  sec.innerHTML = backBtn + '<button class="btn btn-outline btn-sm" onclick="iprSaveForLater()">&#128190; Save for Later</button>';
   if (mode === 'md' || mode === 'p2p') {
     pri.innerHTML = '<button class="btn btn-sm" style="background:var(--green-bg);color:var(--green);border:1px solid var(--green-border);" onclick="crMdOverturn()">&#10003; Overturn &mdash; Certify All</button>'
       + '<button class="btn btn-primary btn-sm" onclick="crMdFinalize()">&#128104;&#8205;&#9877; Record MD Determination</button>';
@@ -6904,6 +7448,12 @@ function openCrReview() {
 function openAdmissionReview(key) {
   currentCase = key;
   var cr = crGet();
+  // Recompute fresh from current checkbox state regardless of how this was reached (sidebar/top-bar
+  // buttons call this directly, without going through ipReviewLinesSelected first) — the admission
+  // itself (id 0) is always included; any other Inpatient Lines currently checked ride along with it.
+  ipReviewLineType = 'ip';
+  ipReviewLineIds = ipLineArrFor('ip').filter(function (x) { return x.selected && !x.determId; }).map(function (x) { return x.id; });
+  if (ipReviewLineIds.indexOf(0) < 0) ipReviewLineIds.unshift(0);
   document.getElementById('cr-dc-wrap').style.display = 'none';
   document.getElementById('cr-ctx').innerHTML = 'Initial admission review — no prior certification on this stay. Requested level of care: <b>' + cr.loc + '</b>, <b>' + cr.requestedLos + ' day(s)</b> requested.';
   iprSourceChange();
@@ -7102,6 +7652,7 @@ function crApproveConfirm() {
     var astart = cr.admit, aend = crAddDays(astart, r.req);
     cr.segId++; cr.segments.push({ id: cr.segId, loc: r.loc, start: astart, end: aend, days: r.req, decision: 'Certified', src: 'Initial Review' });
     cr.cycleId++; cr.cycles.push({ id: cr.cycleId, type: 'Initial Review', date: cr.admit, requested: r.req, certified: r.req, denied: 0, criteria: r.metCount + '/' + r.total + ' Met', by: 'M Craft, UM Nurse', reviewedBy: 'M Craft, UM Nurse', reviewDate: cr.admit, nextReview: '', guideline: r.guideline, loc: r.loc, critDetail: r.critDetail, approvalCode: code, notice: crNotice('certification'), note: ipVal('cra-note') || 'Admission certified.', amendments: [] });
+    ipTagCombinedAdmitExtras(); // any other Inpatient Lines reviewed together with the admission get approved alongside it
     cr.los = r.req; cr.certifiedThrough = aend; cr.nextReview = ''; cr.lastDenied = 0; cr.status = 'admitted'; cr.loc = r.loc;
     closeModal('m-crapprove');
     openIpAdmitApprove(currentCase);
@@ -7194,7 +7745,12 @@ function openCrMd() {
     if (d.mdNote) document.getElementById('crmd-note').value = d.mdNote;
     crToast('📂 Resumed from your saved draft');
   }
+  // MD/P2P get their own independent pass through the shared live criteria block — start it prefilled
+  // from the nurse's cycle (same Source, same Guideline) as a sensible starting point, fully editable.
+  var srcSel = document.getElementById('iprgl-source'); if (srcSel && c.source) srcSel.value = c.source;
+  var glKey = Object.keys(GUIDELINES).find(function (k) { return GUIDELINES[k].label === c.guideline; });
   enterIpReview(isP2P ? 'p2p' : 'md');
+  if (glKey) { document.getElementById('cr-guideline').value = glKey; crLoadCriteria(); }
 }
 function crMdOverturn() { var cr = crGet(); var c = null; cr.cycles.forEach(function (x) { if (x.mdStatus === 'pending') c = x; }); if (!c) return; document.getElementById('crmd-cert').value = c.requested; crMdFinalize(); }
 function crMdFinalize() {
