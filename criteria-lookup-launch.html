@@ -43,12 +43,6 @@
   }
   button.action:hover { opacity: 0.92; }
   button.action:disabled { opacity: 0.5; cursor: default; }
-  button.reset {
-    font-size: 12px; padding: 5px 12px; color: var(--text-secondary);
-    background: none; border: 1px solid var(--border); border-radius: 8px;
-    cursor: pointer; font-family: inherit;
-  }
-  button.reset:hover { background: var(--surface-1); }
   .section { margin-bottom: 20px; }
   .radios { display: flex; gap: 20px; align-items: center; margin-bottom: 16px; }
   .radios label { display: flex; align-items: center; gap: 6px; font-size: 14px; cursor: pointer; }
@@ -84,20 +78,14 @@
 
   <div id="linkedBanner" class="linked-banner hidden">Linked to the utilization review in the originating tab &mdash; use <b>Complete &amp; Return to Review</b> below to transfer your result back automatically.</div>
 
-  <div style="display:flex; justify-content:flex-end; margin-bottom: 8px;">
-    <button class="reset" id="resetDemo">&#8635; Reset (demo)</button>
-  </div>
-
   <div class="section">
     <label class="field-label">Criteria source <span style="color: var(--danger);">*</span></label>
     <div style="display:flex; gap: 10px; align-items:center; flex-wrap: wrap;">
-      <select id="criteriaSource" style="width: 260px;">
+      <select id="criteriaSource" style="width: 260px;" disabled>
         <option>InterQual&reg;</option>
         <option>CWQI</option>
         <option>Custom</option>
       </select>
-      <button class="action" id="launchCriteria">Launch criteria</button>
-      <button class="action" id="bookView">InterQual&reg; book view</button>
       <button class="action" id="saveBtn" style="background:#b45309;border-color:#b45309;display:none;">&#128190; Save Progress &amp; Return</button>
       <button class="action" id="completeBtn" style="background:var(--green);border-color:var(--green);display:none;">&#10003; Complete &amp; Return to Review</button>
     </div>
@@ -278,15 +266,6 @@ Episode Discharge To: (No Entry)</p>
     });
   }
 
-  function updateSourceButtons() {
-    var val = $('criteriaSource').value;
-    var launch = $('launchCriteria'), bookView = $('bookView');
-    if (val === 'Custom') { launch.style.display = 'none'; bookView.style.display = 'none'; }
-    else if (val === 'CWQI') { launch.style.display = 'inline-block'; bookView.style.display = 'none'; }
-    else { launch.style.display = 'inline-block'; bookView.style.display = 'inline-block'; }
-  }
-  $('criteriaSource').addEventListener('change', updateSourceButtons);
-
   function lockForm() {
     $('lookupValue').readOnly = true;
     $('criteriaSource').disabled = true;
@@ -308,7 +287,10 @@ Episode Discharge To: (No Entry)</p>
     }
   });
 
-  $('launchCriteria').addEventListener('click', function () {
+  // Reveals the criteria content for the source already chosen back on the main review screen —
+  // launching this page IS the "launch" action, so there's no separate in-page Launch/Book View step
+  // to click through first.
+  function revealCriteria() {
     var val = $('criteriaSource').value;
     hide('reviewEmpty'); hide('decisionEmpty');
     if (val === 'InterQual®') {
@@ -324,7 +306,7 @@ Episode Discharge To: (No Entry)</p>
     }
     renderRealCriteria();
     if (linked) { $('completeBtn').style.display = 'inline-block'; $('saveBtn').style.display = 'inline-block'; }
-  });
+  }
 
   // Captures the reference-style summary content currently on screen (Criteria Details grid for
   // InterQual, Guideline Summary table + aggregate note for CWQI) so um-nav can render the SAME
@@ -361,7 +343,7 @@ Episode Discharge To: (No Entry)</p>
   function captureFullScreenHtml() {
     var clone = document.documentElement.cloneNode(true);
     clone.querySelectorAll('script').forEach(function (s) { s.remove(); });
-    ['launchCriteria', 'bookView', 'saveBtn', 'completeBtn', 'resetDemo'].forEach(function (id) {
+    ['saveBtn', 'completeBtn'].forEach(function (id) {
       var el = clone.querySelector('#' + id); if (el) el.style.display = 'none';
     });
     clone.querySelectorAll('input,select,textarea').forEach(function (el) { el.setAttribute('disabled', 'disabled'); });
@@ -406,33 +388,6 @@ Episode Discharge To: (No Entry)</p>
     }
   });
 
-  $('resetDemo').addEventListener('click', function () {
-    $('criteriaSource').value = DEFAULTS.criteriaSource;
-    $('criteriaSource').disabled = false;
-    $('lookupValue').value = DEFAULTS.lookupValue;
-    $('lookupValue').readOnly = true;
-    $('lookupValue').disabled = false;
-    document.querySelector('input[name="lookupType"][value="diagnosis"]').checked = true;
-    setLookupTypeDisabled(false);
-
-    hide('criteriaDetails'); hide('guidelineSummary');
-    show('reviewEmpty'); hide('reviewTree'); hide('reviewDisclaimer'); hide('reviewCwqi'); hide('realCritWrap');
-    show('decisionEmpty'); hide('decisionText');
-    $('completeBtn').style.display = 'none'; $('completeBtn').disabled = false;
-    $('completeBtn').textContent = '✓ Complete & Return to Review';
-    $('saveBtn').style.display = 'none'; $('saveBtn').disabled = false;
-    $('saveBtn').textContent = '💾 Save Progress & Return';
-
-    $('reviewToggle').setAttribute('aria-expanded', 'true');
-    $('reviewContent').style.display = 'block';
-    $('reviewChevron').style.transform = 'rotate(0deg)';
-    $('decisionToggle').setAttribute('aria-expanded', 'true');
-    $('decisionContent').style.display = 'block';
-    $('decisionChevron').style.transform = 'rotate(0deg)';
-
-    updateSourceButtons();
-  });
-
   // Seed real-case data (falls back to the reference demo defaults when opened standalone).
   $('lookupValue').value = DEFAULTS.lookupValue;
   $('criteriaSource').value = DEFAULTS.criteriaSource;
@@ -446,11 +401,10 @@ Episode Discharge To: (No Entry)</p>
     $('glTableBody').innerHTML = '<tr><td>' + (payload.guideline || '') + '</td><td>&mdash;</td><td>In Review</td><td>&mdash;</td></tr>';
   }
 
-  updateSourceButtons();
-  // A real linked payload means the nurse already clicked "Launch Criteria" once, back on the review
-  // screen, to open this tab — auto-advance past this page's own Launch step instead of making her
-  // click it again here.
-  if (linked) { $('launchCriteria').click(); }
+  // Reaching this page IS the "launch" — the main review screen's own Launch Criteria button already
+  // fired before this tab opened, so reveal the criteria content immediately rather than gating it
+  // behind a second, redundant launch step on this page.
+  revealCriteria();
 </script>
 </body>
 </html>
