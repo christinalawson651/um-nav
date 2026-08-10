@@ -1023,7 +1023,7 @@ mark.ev-flash{animation:evFlash 1.4s ease;}
               <td><div class="mem-link">Carol Jennings</div><div class="mem-id">MBR#000455</div></td>
               <td style="text-align:center">0</td>
               <td><span style="color:var(--primary);font-weight:500;">IP700245</span></td>
-              <td><div style="font-weight:600;">0</div><div style="font-size:10px;color:var(--gray-500);">Not yet certified</div></td>
+              <td data-li-case="newadmit1"><div style="font-weight:600;">1</div><div style="font-size:10px;color:var(--gray-500);">Not yet certified</div></td>
               <td><span class="sb sb-amber">Ready for Review</span></td>
               <td>07/14/2026</td><td style="color:var(--gray-400)">&mdash;</td><td style="color:var(--gray-400)">&#9998;</td>
             </tr>
@@ -1034,7 +1034,7 @@ mark.ev-flash{animation:evFlash 1.4s ease;}
               <td><div class="mem-link">James Whitfield</div><div class="mem-id">FLA0000087</div></td>
               <td style="text-align:center"><span class="sb sb-primary" style="font-weight:700;">1</span></td>
               <td><span style="color:var(--primary);font-weight:500;">IP558003</span></td>
-              <td><div style="font-weight:600;">1</div><div style="font-size:10px;color:var(--primary);">Certified thru 07/13</div></td>
+              <td data-li-case="james"><div style="font-weight:600;">2</div><div style="font-size:10px;color:var(--primary);">Certified thru 07/13</div></td>
               <td><span class="sb sb-teal">Concurrent Review</span></td>
               <td>07/10/2026</td><td style="color:var(--gray-400)">Ongoing</td><td style="color:var(--gray-400)">&#9998;</td>
             </tr>
@@ -1045,7 +1045,7 @@ mark.ev-flash{animation:evFlash 1.4s ease;}
               <td><div class="mem-link">Robert Chen</div><div class="mem-id">NYM0678901</div></td>
               <td style="text-align:center">0</td>
               <td><span style="color:var(--primary);font-weight:500;">OS234567</span></td>
-              <td><div style="font-weight:600;">1</div><div style="font-size:10px;color:#16A34A;">Criteria met</div></td>
+              <td data-li-case="robert"><div style="font-weight:600;">1</div><div style="font-size:10px;color:#16A34A;">Criteria met</div></td>
               <td><span class="sb sb-blue">Ready for Review</span></td>
               <td>07/07/2026</td><td>07/21/2026</td><td style="color:var(--gray-400)">&#9998;</td>
             </tr>
@@ -1056,7 +1056,7 @@ mark.ev-flash{animation:evFlash 1.4s ease;}
               <td><div class="mem-link">Maria Benitez</div><div class="mem-id">NYM0294831</div></td>
               <td style="text-align:center"><span class="sb sb-primary" style="font-weight:700;">1</span></td>
               <td><span style="color:var(--primary);font-weight:500;">BH784201</span></td>
-              <td><div style="font-weight:600;">1</div><div style="font-size:10px;color:var(--amber);">All pending</div></td>
+              <td data-li-case="maria"><div style="font-weight:600;">1</div><div style="font-size:10px;color:var(--amber);">All pending</div></td>
               <td><span class="sb sb-blue">Ready for Review</span></td>
               <td>05/13/2026</td><td>06/14/2026</td><td style="color:var(--gray-400)">&#9998;</td>
             </tr>
@@ -2308,11 +2308,7 @@ mark.ev-flash{animation:evFlash 1.4s ease;}
             <span class="acc-chev">&#9660;</span>
           </div>
           <div class="acc-body">
-            <div style="display:flex;flex-direction:column;gap:7px;">
-              <div id="ip-dx-primary" style="display:flex;align-items:center;gap:10px;padding:8px;background:var(--gray-50);border-radius:6px;"><span class="sb sb-teal btn-xs">Primary</span><strong style="font-size:12px;">I50.23</strong><span style="font-size:12px;">Acute on chronic systolic heart failure</span></div>
-              <div style="display:flex;align-items:center;gap:10px;padding:8px;background:var(--gray-50);border-radius:6px;"><span class="sb sb-blue btn-xs">Secondary</span><strong style="font-size:12px;">N17.9</strong><span style="font-size:12px;">Acute kidney injury</span></div>
-              <div style="display:flex;align-items:center;gap:10px;padding:8px;background:var(--gray-50);border-radius:6px;"><span class="sb sb-blue btn-xs">Additional</span><strong style="font-size:12px;">E11.9</strong><span style="font-size:12px;">Type 2 diabetes mellitus</span></div>
-            </div>
+            <div id="ip-dx-list" style="display:flex;flex-direction:column;gap:7px;"></div>
           </div>
         </div>
 
@@ -5384,6 +5380,7 @@ function renderLineItems(caseKey) {
   // Toolbar sits BELOW the line rows (matches the reference app: rows first, "Review Selected" after).
   body.innerHTML = arr.map(function (it, i) { return lineCard(caseKey, it, i, arr.length === 1); }).join('') + toolbar + rxGroup;
   var cnt = document.getElementById(caseKey === 'robert' ? 'li-count-rc' : 'li-count'); if (cnt) cnt.textContent = arr.length + rxArr.length;
+  refreshLineItemsCell(caseKey);
   renderReviewLines(caseKey); // keep the review's Line Details in sync
 }
 // The review screen's "Line Details" — the selected lines reviewed together (combined guidelines + one note).
@@ -5680,6 +5677,7 @@ function crCodeOptions(groups) { return '<option value="">— Select —</option
 var crState = {
   james: {
     member: 'James Whitfield', mbr: 'MBR#000087', authNo: 'IP558003', initials: 'JW', memberSub: '68M · FL Medicare', dxPrimary: { code: 'I50.23', name: 'Acute on chronic systolic heart failure' },
+    diagnoses: [{ code: 'N17.9', name: 'Acute kidney injury' }, { code: 'E11.9', name: 'Type 2 diabetes mellitus' }],
     admit: '2026-07-10', loc: 'Acute Inpatient', dx: 'I50.23 — Acute on chronic systolic heart failure',
     facility: 'Mercy General Hospital', attending: 'Dr. Samuel Obi, Cardiology',
     los: 3, certifiedThrough: '2026-07-13', nextReview: '2026-07-13',
@@ -5707,6 +5705,29 @@ var crState = {
 };
 function crGet() { return crState[currentCase] || crState.james; }
 function isIpCase(k) { return !!(crState && crState[k]); }
+// Dashboard "Line Items" count = every line item on the case, certified/determined or not — NOT just
+// certified bed-day segments. A pending-admission case still has 1 line (the admission itself); an
+// admitted case's admission lives on as its certified segment(s) instead of a separate array entry.
+function ipLineItemCount(cr) {
+  var n = (cr.extraIpLines || []).length + (cr.procLines || []).length + (cr.rxLines || []).length;
+  n += cr.status === 'pending-admission' ? 1 : (cr.segments || []).length;
+  return n;
+}
+function opLineItemCount(caseKey) { return (lineItems[caseKey] || []).length + (rxLineItems[caseKey] || []).length; }
+function refreshLineItemsCell(key) {
+  var td = document.querySelector('[data-li-case="' + key + '"]'); if (!td) return;
+  var divs = td.querySelectorAll('div'); if (!divs.length) return;
+  if (crState && crState[key]) {
+    var cr = crState[key];
+    divs[0].textContent = ipLineItemCount(cr);
+    if (divs[1]) {
+      if (cr.status === 'pending-admission') { divs[1].textContent = 'Not yet certified'; divs[1].style.color = 'var(--gray-500)'; }
+      else { divs[1].textContent = 'Certified thru ' + crFmt(cr.certifiedThrough); divs[1].style.color = 'var(--primary)'; }
+    }
+  } else {
+    divs[0].textContent = opLineItemCount(key);
+  }
+}
 function openIpCase(k) { currentCase = k; showScreen('s-auth-detail-ip'); }
 function crParse(iso) { var p = iso.split('-'); return new Date(Date.UTC(+p[0], +p[1] - 1, +p[2])); }
 function crAddDays(iso, n) { var d = crParse(iso); d.setUTCDate(d.getUTCDate() + (+n || 0)); var z = function (x) { return String(x).padStart(2, '0'); }; return d.getUTCFullYear() + '-' + z(d.getUTCMonth() + 1) + '-' + z(d.getUTCDate()); }
@@ -5923,6 +5944,19 @@ function renderIpStatus() {
   if (pn) pn.textContent = cr.status === 'pending-admission' ? 'Initial Review' : (cr.status === 'discharged' ? 'Discharge' : 'Concurrent Review');
 }
 
+// Diagnoses accordion is shared markup across every IP case — must be rebuilt per case, not just the
+// primary chip, or a case with no secondary diagnoses would still show whatever the previously-open
+// case's secondary/additional rows were.
+function renderIpDx() {
+  var cr = crGet();
+  var dp = cr.dxPrimary || {};
+  var chip = document.getElementById('ip-dx-chip'); if (chip) chip.innerHTML = '&#10003; Primary: ' + (dp.code || '') + ' &mdash; ' + (dp.name || '');
+  var rows = '<div style="display:flex;align-items:center;gap:10px;padding:8px;background:var(--gray-50);border-radius:6px;"><span class="sb sb-teal btn-xs">Primary</span><strong style="font-size:12px;">' + (dp.code || '') + '</strong><span style="font-size:12px;">' + (dp.name || '') + '</span></div>';
+  (cr.diagnoses || []).forEach(function (d) {
+    rows += '<div style="display:flex;align-items:center;gap:10px;padding:8px;background:var(--gray-50);border-radius:6px;"><span class="sb sb-blue btn-xs">Secondary</span><strong style="font-size:12px;">' + (d.code || '') + '</strong><span style="font-size:12px;">' + (d.name || '') + '</span></div>';
+  });
+  var list = document.getElementById('ip-dx-list'); if (list) list.innerHTML = rows;
+}
 // Fills the (static-markup) header/breadcrumb/diagnosis/provider from the current case.
 function renderIpHeader() {
   var cr = crGet();
@@ -5931,9 +5965,7 @@ function renderIpHeader() {
   set('ip-mh-init', cr.initials || (cr.member || 'IP').split(' ').map(function (w) { return w[0]; }).join('').slice(0, 2).toUpperCase());
   set('ip-mh-name', cr.member); set('ip-mh-mbr', cr.mbr);
   set('ip-prov-att', (cr.attending || '').split(',')[0]); set('ip-prov-fac', cr.facility);
-  var dp = cr.dxPrimary || {};
-  var chip = document.getElementById('ip-dx-chip'); if (chip) chip.innerHTML = '&#10003; Primary: ' + (dp.code || '') + ' &mdash; ' + (dp.name || '');
-  var dxr = document.getElementById('ip-dx-primary'); if (dxr) dxr.innerHTML = '<span class="sb sb-teal btn-xs">Primary</span><strong style="font-size:12px;">' + (dp.code || '') + '</strong><span style="font-size:12px;">' + (dp.name || '') + '</span>';
+  renderIpDx();
   var rb = document.getElementById('ip-readmit-banner');
   if (rb) {
     var ai = cr.readmissionAi;
@@ -6005,6 +6037,8 @@ function renderIpAuthBody() {
   el.innerHTML = '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:11px 18px;font-size:12.5px;">'
     + kv('Member', cr.member + (cr.memberSub ? ' · ' + cr.memberSub : '')) + kv('Admission Date', crFmt(cr.admit)) + kv('Current Level of Care', cr.loc)
     + kv('Primary Diagnosis', cr.dx) + kv('Facility', cr.facility) + kv('Attending', cr.attending)
+    + kv('Admission Type', cr.admType || '—') + kv('Admission Source', cr.admSource || '—')
+    + kv('Primary Payer', cr.eligLabel || cr.eligPayer || '—')
     + kv('Certified Through', crFmt(cr.certifiedThrough) + ' (' + cr.los + ' days)')
     + kv('Next Review', cr.status === 'discharged' ? '—' : crFmt(cr.nextReview) + (crDue(cr) ? ' · due' : ''))
     + kv('Stay Status', cr.status === 'discharged' ? 'Discharged ' + crFmt(cr.dischargeDate) : 'Admitted')
@@ -6108,6 +6142,7 @@ function ipSaveAdmitEdit() {
 }
 function renderIpLines() {
   var cr = crGet(); var el = document.getElementById('ip-lines'); if (!el) return;
+  refreshLineItemsCell(currentCase);
   var acTitle = document.getElementById('ip-li-acc-title');
   ipRechainExtraLines();
   // Pre-admission: there are no bed-day/service lines yet — accordion #5 becomes "Initial Review" and
@@ -9029,56 +9064,114 @@ function openAuthWizard() {
   ov.classList.add('open');
   document.body.style.overflow = 'hidden';
 }
+// Reopens the wizard pre-filled from a previously-saved draft (see authDrafts below). Always forces a
+// fresh iframe load (even if one is already cached) so the wizard's JS state starts clean before we
+// post the resume payload — reusing a stale, already-loaded iframe would carry over whatever the nurse
+// left in it from a different draft.
+function openAuthWizardResume(draftId) {
+  var ov = document.getElementById('aw-overlay');
+  var fr = document.getElementById('aw-frame');
+  fr.onload = function () { fr.contentWindow.postMessage({ type: 'authwizard-resume', payload: authDrafts[draftId] }, '*'); fr.onload = null; };
+  fr.setAttribute('src', AUTH_WIZARD_SRC);
+  ov.classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
 function closeAuthWizard() {
   document.getElementById('aw-overlay').classList.remove('open');
   document.body.style.overflow = '';
+  var fr = document.getElementById('aw-frame'); if (fr) fr.removeAttribute('src'); // always reload fresh next open (Cancel/X must not leave stale state behind for "+ New Authorization")
 }
-// The wizard (auth_wizard_full_15.html) posts these when its × or "Create Authorization" is clicked.
+// The wizard (auth_wizard_full_15.html) posts these when its ×/Cancel/Save/"Create Authorization" is
+// clicked. Wizard's Auth Type now folds Medical/Behavioral into the value itself (e.g. "Behavioral
+// Inpatient") instead of a separate category field — match on the suffix rather than an exact string.
+function isInpatientAuthType(t) { return /Inpatient$/.test(t || ''); }
+var authDrafts = {};
+var draftSeq = 0;
 window.addEventListener('message', function (e) {
   var d = e.data || {};
   if (d.type === 'authwizard-close') { closeAuthWizard(); }
+  else if (d.type === 'authwizard-draft-saved') {
+    closeAuthWizard();
+    var id = (d.payload && d.payload.draftId) || ('draft' + (++draftSeq));
+    authDrafts[id] = d.payload || {};
+    authDrafts[id].draftId = id; // stamp the (possibly just-generated) id back onto the stored payload so a later resume→re-save/submit round-trips the same row instead of orphaning it
+    upsertDraftRow(id, authDrafts[id]);
+    showAuthCreatedToast(null, false, true);
+  }
   else if (d.type === 'authwizard-created') {
     closeAuthWizard();
-    var fr = document.getElementById('aw-frame'); if (fr) fr.removeAttribute('src'); // reset wizard for next time
-    // Any inpatient auth is automatically provisioned with a concurrent (continued-stay) review track.
-    if (d.authType === 'Inpatient') {
-      var key = buildNewIpCase(d.payload || {});
+    // Submitting from a resumed draft finishes that draft — the real case replaces the placeholder row.
+    if (d.payload && d.payload.draftId) removeDraftRow(d.payload.draftId);
+    // Every wizard-created auth starts exactly like a real intake — Initial Review, nothing pre-certified.
+    // (Previously inpatient auths were auto-admitted/certified at creation, skipping the whole admission
+    // review flow entirely — a real bug, not an intentional shortcut.)
+    if (isInpatientAuthType(d.authType)) {
+      buildNewIpCase(d.payload || {});
       showAuthCreatedToast('Inpatient', true);
-      // Resolve the readmission prompt first (if any) — only one modal on screen at a time.
-      if (crState[key].readmissionAi) openReadmitReview(key, function () { openIpAdmitApprove(key); });
-      else openIpAdmitApprove(key);
     } else {
       showAuthCreatedToast(d.authType);
     }
   }
 });
-// Build a real new inpatient case from the wizard's captured fields + add it to the worklist.
+// Draft rows are a lightweight placeholder on the worklist — not a real crState case, just enough to
+// show the nurse something was saved and let them click back into the wizard exactly where they left off.
+function draftMemberCell(p) {
+  return p.member ? '<div class="mem-link">' + p.member + '</div><div class="mem-id">' + (p.mbr || '') + '</div>' : '<span style="color:var(--gray-400)">No member selected</span>';
+}
+function upsertDraftRow(id, p) {
+  var tb = document.querySelector('#s-dashboard .wl-table tbody'); if (!tb) return;
+  var tr = document.querySelector('[data-draft-row="' + id + '"]');
+  if (!tr) { tr = document.createElement('tr'); tr.className = 'clickable'; tr.setAttribute('data-draft-row', id); tb.insertBefore(tr, tb.firstChild); }
+  tr.setAttribute('onclick', "openAuthWizardResume('" + id + "')");
+  tr.innerHTML = '<td><input type="checkbox" onclick="event.stopPropagation()"></td>'
+    + '<td><span class="nba nba-blue nba-act" onclick="event.stopPropagation();openAuthWizardResume(\'' + id + '\')" title="Next best action — click to start">&#9655; Continue Draft</span></td>'
+    + '<td>—</td><td>' + (p.urgency || 'Standard') + '</td>'
+    + '<td>' + draftMemberCell(p) + '</td>'
+    + '<td style="text-align:center">0</td>'
+    + '<td><span style="color:var(--gray-400)">—</span></td>'
+    + '<td><span style="color:var(--gray-400)">—</span></td>'
+    + '<td><span class="sb sb-gray">Draft</span></td>'
+    + '<td style="color:var(--gray-400)">—</td><td style="color:var(--gray-400)">—</td><td style="color:var(--gray-400)">&#9998;</td>';
+}
+function removeDraftRow(id) {
+  delete authDrafts[id];
+  var tr = document.querySelector('[data-draft-row="' + id + '"]'); if (tr) tr.remove();
+}
+// Build a real new inpatient case from the wizard's captured fields + add it to the worklist — lands in
+// 'pending-admission' (Initial Review), matching every other IP case's real intake flow (see newadmit1).
 var newIpSeq = 0;
 function buildNewIpCase(p) {
   newIpSeq++;
   var key = 'ipnew' + newIpSeq;
   var admit = p.admit || CR_TODAY;
-  var los = parseInt(p.los) || 3;
+  var requestedLos = parseInt(p.los) || 3;
   var loc = p.loc || 'Acute Inpatient';
-  var end = crAddDays(admit, los);
   var initials = (p.member || 'IP').split(' ').map(function (w) { return w[0]; }).join('').slice(0, 2).toUpperCase();
   crState[key] = {
     member: p.member || 'New Member', mbr: p.mbr || 'MBR#—', authNo: 'IP' + (900100 + newIpSeq), initials: initials, memberSub: p.memberSub || '',
     dxPrimary: { code: p.dxCode || '', name: p.dxName || '' },
+    // Non-primary diagnoses the wizard captured — the primary one is already on dxPrimary above.
+    diagnoses: (p.diagnoses || []).filter(function (d) { return !d.primary; }).map(function (d) { return { code: d.code || '', name: d.name || '' }; }),
     admit: admit, loc: loc, dx: (p.dxCode || '') + (p.dxName ? ' — ' + p.dxName : ''), facility: p.servFac || '—', attending: p.reqProv || '—',
-    los: los, certifiedThrough: end, nextReview: '', status: 'admitted', pendReason: null, lastDenied: 0, dischargeDate: null,
-    segId: 1, cycleId: 1, procId: (p.procLines || []).length, _openSeg: null,
-    procLines: (p.procLines || []).map(function (it, i) { return { id: i + 1, svcType: it.svcType || '', code: it.code || '', desc: it.desc || '', qty: it.qty || 1, unit: it.unit || 'Units', pos: it.pos || '21 – Inpatient Hospital', provider: it.provider || p.servFac || '', start: it.start || admit, end: it.end || end, editing: false, isNew: false }; }),
-    segments: [{ id: 1, loc: loc, start: admit, end: end, days: los, decision: 'Certified', src: 'Initial Review' }],
-    cycles: [{ id: 1, type: 'Initial Review', date: admit, requested: los, certified: los, denied: 0, criteria: 'Met', by: 'M Craft, UM Nurse', reviewedBy: 'M Craft, UM Nurse', reviewDate: admit, nextReview: '', guideline: 'MCG — Inpatient Admission', loc: loc, approvalCode: 'AP-AD-01 · Admission medically necessary', notice: crNotice('certification'), note: 'Admission certified for ' + los + ' day(s). No concurrent review scheduled yet — start one when continued stay needs review.', critDetail: [], amendments: [] }]
+    admType: p.admType || '', admSource: p.admSource || '',
+    eligPayer: p.eligPayer || '', eligLabel: p.eligLabel || '', eligCob: p.eligCob || '',
+    los: 0, certifiedThrough: admit, nextReview: '', requestedLos: requestedLos,
+    status: 'pending-admission', pendReason: null, lastDenied: 0, dischargeDate: null,
+    segId: 0, cycleId: 0, procId: (p.procLines || []).length,
+    procLines: (p.procLines || []).map(function (it, i) { return { id: i + 1, svcType: it.svcType || '', code: it.code || '', desc: it.desc || '', qty: it.qty || 1, unit: it.unit || 'Units', pos: it.pos || '21 – Inpatient Hospital', provider: it.provider || p.servFac || '', start: it.start || admit, end: it.end || admit, editing: false, isNew: false, selected: true, determId: null }; }),
+    // The wizard's ipLines[0] is the admission itself (already captured in admit/loc/requestedLos above)
+    // — any additional lines beyond that are the equivalent of um-nav's own "+ Add Line → Inpatient Line".
+    extraIpLines: (p.ipLines || []).slice(1).map(function (it, i) { return { id: i + 1, loc: it.loc || loc, days: it.days || 1, svcType: it.svcType || '', code: it.code || '', pos: it.pos || '', reqDate: it.start || admit, start: it.start || admit, end: it.end || admit, editing: false, isNew: false, selected: true, determId: null, _elig: false }; }),
+    rxLines: [], segments: [], cycles: []
   };
-  caseMeta[key] = { ip: true, endDate: 'discharge', startISO: admit, endISO: end };
+  crState[key].ipLineSeq = crState[key].extraIpLines.length;
+  caseMeta[key] = { ip: true, endDate: 'discharge', startISO: admit, endISO: admit };
   CR_GUIDELINE_BY_CASE[key] = 'mcg-chf';
   // Wizard's Urgency select drives the same Timeliness & Compliance clock as every other case — without
   // this the new case had no regData entry at all and silently inherited James's LOB/urgency by fallback.
   regData[key] = { lob: 'Medicare Advantage', lobLabel: 'FL Medicare Advantage', category: (p.category === 'Behavioral' ? 'Behavioral' : 'Medical'), received: admit + 'T08:00:00', cls: (p.urgency === 'Expedited' ? 'Expedited' : 'Standard'), expReason: '', extension: null, criteria: { source: 'MCG Inpatient & Surgical Care', version: '28th Edition (2024)', module: 'Acute Inpatient' } };
   var readmit = findRecentDischarge(crState[key].mbr, admit);
-  if (readmit) stageReadmissionAi(key, readmit.key, readmit.days); // linked only once the nurse confirms — see openReadmitReview
+  if (readmit) stageReadmissionAi(key, readmit.key, readmit.days); // surfaces once the nurse opens the case — see openReadmitReview
   addIpWorklistRow(key);
   return key;
 }
@@ -9086,24 +9179,34 @@ function addIpWorklistRow(key) {
   var cr = crState[key];
   var tb = document.querySelector('#s-dashboard .wl-table tbody'); if (!tb) return;
   var tr = document.createElement('tr'); tr.className = 'clickable'; tr.setAttribute('onclick', "openIpCase('" + key + "')");
+  var isPending = cr.status === 'pending-admission';
+  var nbaCell = isPending
+    ? '<td><span class="nba nba-blue nba-act" onclick="event.stopPropagation();openIpCase(\'' + key + '\')" title="Next best action — click to start">&#9655; Initial Review</span></td>'
+    : '<td><span class="nba nba-teal">&#8635; Concurrent Review</span></td>';
+  var certCell = isPending
+    ? '<td data-li-case="' + key + '"><div style="font-weight:600;">' + ipLineItemCount(cr) + '</div><div style="font-size:10px;color:var(--gray-500);">Not yet certified</div></td>'
+    : '<td data-li-case="' + key + '"><div style="font-weight:600;">' + ipLineItemCount(cr) + '</div><div style="font-size:10px;color:var(--primary);">Certified thru ' + crFmt(cr.certifiedThrough) + '</div></td>';
+  var statusCell = isPending ? '<td><span class="sb sb-amber">Ready for Review</span></td>' : '<td><span class="sb sb-teal">Concurrent Review</span></td>';
   tr.innerHTML = '<td><input type="checkbox" onclick="event.stopPropagation()"></td>'
-    + '<td><span class="nba nba-teal">&#8635; Concurrent Review</span></td>'
+    + nbaCell
     + '<td>New</td><td data-urgency-case="' + key + '">Standard</td>'
     + '<td><div class="mem-link">' + cr.member + '</div><div class="mem-id">' + cr.mbr + '</div></td>'
     + '<td style="text-align:center">0</td>'
     + '<td><span style="color:var(--primary);font-weight:500;">' + cr.authNo + '</span></td>'
-    + '<td><div style="font-weight:600;">' + cr.segments.length + '</div><div style="font-size:10px;color:var(--primary);">Certified thru ' + crFmt(cr.certifiedThrough) + '</div></td>'
-    + '<td><span class="sb sb-teal">Concurrent Review</span></td>'
-    + '<td>' + crFmt(cr.admit) + '</td><td style="color:var(--gray-400)">Ongoing</td><td style="color:var(--gray-400)">&#9998;</td>';
+    + certCell
+    + statusCell
+    + '<td>' + crFmt(cr.admit) + '</td><td style="color:var(--gray-400)">' + (isPending ? '&mdash;' : 'Ongoing') + '</td><td style="color:var(--gray-400)">&#9998;</td>';
   tb.insertBefore(tr, tb.firstChild);
   renderDashUrgency(key);
 }
 // Close on backdrop click / Esc.
 document.addEventListener('keydown', function (e) { if (e.key === 'Escape') { var ov = document.getElementById('aw-overlay'); if (ov && ov.classList.contains('open')) closeAuthWizard(); } });
-function showAuthCreatedToast(authType, ip) {
+function showAuthCreatedToast(authType, ip, isDraft) {
   var t = document.getElementById('aw-toast');
-  t.innerHTML = ip
-    ? '<span style="font-size:15px;">&#10003;</span> New Inpatient authorization created &mdash; automatically set up for <b>Concurrent Review</b>.'
+  t.innerHTML = isDraft
+    ? '<span style="font-size:15px;">&#10003;</span> Draft saved &mdash; click <b>Continue Draft</b> on the worklist to pick up where you left off.'
+    : ip
+    ? '<span style="font-size:15px;">&#10003;</span> New Inpatient authorization created &mdash; added to the worklist, ready for <b>Initial Review</b>.'
     : '<span style="font-size:15px;">&#10003;</span> New ' + (authType ? authType + ' ' : '') + 'authorization created &mdash; added to the worklist.';
   t.classList.add('show');
   setTimeout(function () { t.classList.remove('show'); }, 3600);

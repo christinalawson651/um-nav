@@ -11,7 +11,7 @@
   }
   *{box-sizing:border-box}
   body{margin:0;font-family:Inter,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink);padding:30px 16px;-webkit-font-smoothing:antialiased}
-  .modal{max-width:760px;margin:0 auto;background:#fff;border-radius:16px;box-shadow:0 24px 70px rgba(15,23,42,.22);overflow:hidden}
+  .modal{max-width:980px;margin:0 auto;background:#fff;border-radius:16px;box-shadow:0 24px 70px rgba(15,23,42,.22);overflow:hidden}
   .modal-head{display:flex;align-items:center;justify-content:space-between;padding:18px 24px;border-bottom:1px solid var(--line-soft)}
   .modal-head .title{display:flex;align-items:center;gap:10px;font-weight:600;font-size:17px}
   .modal-head .title .plus{width:20px;height:20px;border-radius:50%;border:1.6px solid var(--teal);color:var(--teal);display:grid;place-items:center;font-size:14px;line-height:1}
@@ -38,6 +38,7 @@
   .in::placeholder{color:var(--faint)}.in:disabled,.readonly{background:#f6f8fa;color:#374151}
   .in:disabled{cursor:not-allowed}
   .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+  .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:14px}
   .grid4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px;margin-bottom:14px}
   .grp{margin-bottom:14px}
   .with-icon{position:relative}.with-icon .ic{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--faint);font-size:13px}.with-icon .in{padding-left:30px}
@@ -74,6 +75,7 @@
   .card .row{display:grid;gap:12px;margin-bottom:11px}.card .row:last-child{margin-bottom:0}
   .r-ip{grid-template-columns:1.5fr .8fr 1.7fr}
   .r-ip-dates{grid-template-columns:1fr 1fr 1.3fr}
+  .r-ip-dates label.fl{min-height:32px}
   .r-proc-1{grid-template-columns:1.2fr 1.5fr .7fr .9fr}
   .r-proc-2{grid-template-columns:1.7fr 1fr}
   .section-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin:8px 0 12px}
@@ -138,27 +140,31 @@
     <!-- STEP 1 MEMBER -->
     <div class="pane" id="pane1">
       <div class="grid2" style="margin-bottom:2px">
-        <div><label class="fl">Auth Type <span class="req">*</span></label><select class="in" id="authType" onchange="onServiceType()"><option>Inpatient</option><option>Outpatient</option><option>Pharmacy (RX)</option></select><div class="tmpl-note">Determines the request structure. Outpatient service types (and their fields) are set per line, from BHP templates.</div></div>
+        <div><label class="fl">Auth Type <span class="req">*</span></label><select class="in" id="authType" onchange="onServiceType()"><option>Medical Inpatient</option><option>Behavioral Inpatient</option><option>Medical Outpatient</option><option>Behavioral Outpatient</option><option>Pharmacy (RX)</option></select><div class="tmpl-note">Determines the request structure and category (Medical/Behavioral). Outpatient service types (and their fields) are set per line, from BHP templates.</div></div>
         <div><label class="fl">Urgency</label><select class="in" id="urgency"><option>Standard</option><option>Expedited</option></select></div>
       </div>
       <div class="sec-label">Member <span class="req">*</span></div>
       <div class="with-icon" style="max-width:440px;margin:0 0 4px" id="memberSearchWrap"><span class="ic">🔍</span><input class="in" id="memberSearchInput" placeholder="Search by name or member ID..." autocomplete="off" oninput="searchMembers(this.value)" onfocus="searchMembers(this.value)"><div class="member-results" id="memberResults"></div></div>
       <div class="member-err" id="memberErr" style="display:none">Select a member before continuing.</div>
       <div id="memberSelectedWrap"></div>
+      <div id="elig1Wrap" style="display:none;margin:10px 0 4px;">
+        <div class="fl-line" style="margin-bottom:6px;"><label class="fl" style="margin:0;">Eligibility &amp; Coverage <span class="opt-tag">defaults by auth type &amp; coordination of benefits — toggle to check another payer</span></label></div>
+        <div id="eligToggle1" style="display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap;"></div>
+        <div id="eligConflict1" style="display:none;margin-bottom:10px;"></div>
+        <div id="elig1Summary"></div>
+      </div>
       <div class="sec-label">Authorization Details</div>
       <div id="typeFields"></div>
-      <div class="grid4">
-        <div><label class="fl">Auth Category</label><select class="in" id="dxType"><option>Medical</option><option>Behavioral</option></select></div>
-        <div><label class="fl">Diagnosis Code <span class="req">*</span></label><input class="in" id="dxCode" value="I50.9"></div>
-        <div><label class="fl">Diagnosis Name <span class="req">*</span></label><input class="in" id="dxName" value="Heart failure, unspecified"></div>
-        <div><label class="fl">Code Set</label><input class="in" value="ICD-10"></div>
-      </div>
-      <div class="grp"><label class="fl">Clinical Justification</label><textarea class="in" rows="3" placeholder="Clinical rationale, supporting documentation references, medical necessity notes..."></textarea></div>
+      <div class="sec-label" style="margin-top:2px;">Diagnoses <span class="req">*</span></div>
+      <div id="dxLines"></div>
+      <div style="margin:2px 0 14px"><button class="btn btn-add" onclick="addDx()">+ Add Diagnosis</button></div>
+      <div class="grp"><label class="fl">Clinical Justification</label><textarea class="in" id="clinicalNote" rows="3" placeholder="Clinical rationale, supporting documentation references, medical necessity notes..."></textarea></div>
     </div>
 
     <!-- STEP 2 PROCEDURES & DOCS -->
     <div class="pane" id="pane2">
       <div class="svc-indicator" id="svcInd"></div>
+      <div id="eligConflict2" style="display:none;margin-bottom:14px;"></div>
       <div id="ipSection">
         <div class="section-head">
           <div><h3>Inpatient Lines</h3>
@@ -199,22 +205,14 @@
     <div class="pane" id="pane3">
       <h3>✔ Eligibility &amp; Benefits Verification</h3>
       <div class="elig-mem" id="eligMemBadge" style="margin-top:12px"></div>
+      <div id="eligToggle" style="display:none;gap:8px;margin-bottom:12px;"></div>
+      <div id="eligConflict" style="display:none;margin-bottom:14px;"></div>
       <div class="active-bar"><span>●</span> ACTIVE</div>
-      <div class="elig-grid">
-        <div><span class="k">Plan:</span> FL_MEDICARE_ADVANTAGE</div>
-        <div><span class="k">Member #:</span> FLA1000015</div>
-        <div><span class="k">Group #:</span> —</div>
-        <div><span class="k">Effective:</span> 01/01/2026 – 12/31/2026</div>
+      <div class="elig-grid" id="eligGrid"></div>
+      <div class="benefits"><h5 id="eligBenTitle">Benefits</h5>
+        <div class="ben-grid" id="eligBenGrid"></div>
       </div>
-      <div class="benefits"><h5>Inpatient Benefits</h5>
-        <div class="ben-grid">
-          <div>Prior Auth Required: <b>Yes</b></div><div>Copay: <b>$100/admission</b></div>
-          <div>Coinsurance: <b>20% after deductible</b></div><div>Deductible Met: <b>Yes</b></div>
-          <div>OOP Max Met: <b>Yes</b></div><div>Annual Max Days: <b>70</b></div>
-          <div>Days Used: <b>9</b></div><div></div>
-        </div>
-      </div>
-      <button class="recheck">↻ Re-check</button>
+      <button class="recheck" type="button" onclick="renderEligibility()">↻ Re-check</button>
     </div>
 
     <!-- STEP 4 REVIEW -->
@@ -225,9 +223,9 @@
   </div>
 
   <div class="footer">
-    <button class="btn btn-ghost">Cancel</button>
+    <button class="btn btn-ghost" onclick="wizCancel()">Cancel</button>
     <button class="btn btn-ghost" id="btnBack" onclick="go(step-1)">Back</button>
-    <button class="btn btn-ghost">▢ Save</button>
+    <button class="btn btn-ghost" onclick="wizSave()">▢ Save</button>
     <button class="btn btn-primary" id="btnNext" onclick="next()">Next →</button>
   </div>
 </div>
@@ -253,7 +251,7 @@ const POS_BY_SVC={
 const IP_POS=['21 – Inpatient Hospital','51 – Inpatient Psychiatric Facility','61 – Comprehensive Inpatient Rehab'];
 function posListFor(it){
   const base=POS_BY_SVC[it.svcType]||[];
-  if(currentType()==='Inpatient') return ['— Not specified —'].concat(IP_POS, base);
+  if(isInpatientType()) return ['— Not specified —'].concat(IP_POS, base);
   return ['— Not specified —'].concat(base);
 }
 function posOptsFor(it){
@@ -265,21 +263,58 @@ const REQUESTING_PROVIDER='Dr. Samuel Obi';
 const TODAY=(()=>{ const d=new Date(); const p=x=>String(x).padStart(2,'0'); return d.getUTCFullYear()+'-'+p(d.getUTCMonth()+1)+'-'+p(d.getUTCDate()); })();
 const STEPS=["Request Details","Procedures & Docs","Eligibility","Review"];
 let step=1, ipId=0, prId=0, ipSeeded=false;
-const auth={loc:'Acute Inpatient', member:null};
+const auth={loc:'Acute Inpatient', member:null, activeElig:0};
 const ipState=[], prState=[];
+let dxSeq=1;
+const dxState=[{id:1, code:'I50.9', name:'Heart failure, unspecified', codeSet:'ICD-10', primary:true}];
+const ADMISSION_TYPES=['Elective','Emergency','Urgent','Newborn','Trauma'];
+const ADMISSION_SOURCES=['Physician Referral','Clinic Referral','Transfer from Hospital','Transfer from SNF / Other Facility','Emergency Room','Court / Law Enforcement Referral','Information Not Available'];
+const RETRO_MAX_DAYS=20; // configured retro policy — admissions can't be backdated further than this
 
 /* ---------- member search (wizard opens with no member pre-selected) ---------- */
+// Some members carry more than one eligibility record — e.g. a Behavioral Health carve-out on top of
+// the base Medical plan — to exercise the multi-eligibility toggle. Effective window/annual-max-days
+// numbers are deliberately varied (Harold Jennings and Priya Nair's BH plan are both near their max) so
+// the "ongoing eligibility conflict" check has real cases to catch.
 const DEMO_MEMBERS=[
-  {name:'Angela Martinez', mbr:'MBR#000512', dob:'1975-03-22', sub:'50F · Commercial PPO'},
-  {name:'Brian Chow', mbr:'MBR#000488', dob:'1988-11-05', sub:'37M · FL Medicare'},
-  {name:'Diana Okafor', mbr:'MBR#000601', dob:'1962-07-14', sub:'63F · NY Medicaid'},
-  {name:'Felix Novak', mbr:'MBR#000345', dob:'1995-01-30', sub:'30M · Commercial HMO'},
-  {name:'Grace Kim', mbr:'MBR#000229', dob:'1980-09-09', sub:'45F · CO PPO-2025'},
-  {name:'Harold Jennings', mbr:'MBR#000177', dob:'1958-05-17', sub:'68M · FL Medicare'},
-  {name:'Isabella Ruiz', mbr:'MBR#000366', dob:'2002-12-01', sub:'23F · TX Medicaid'},
-  {name:'Marcus Webb', mbr:'MBR#000410', dob:'1970-06-25', sub:'55M · Commercial PPO'},
-  {name:'Priya Nair', mbr:'MBR#000552', dob:'1990-04-18', sub:'35F · NY Medicaid'},
-  {name:'Samuel Torres', mbr:'MBR#000299', dob:'1948-02-08', sub:'78M · FL Medicare'}
+  {name:'Angela Martinez', mbr:'MBR#000512', dob:'1975-03-22', sub:'50F · Commercial PPO', elig:[
+    {planType:'Medical', payer:'Commercial', cob:'Primary', label:'Commercial — Medical', plan:'COMM_PPO_GOLD', memberNum:'CPG500512', group:'GRP4471', effFrom:'2026-01-01', effTo:'2026-12-31', priorAuth:'Yes', copay:'$250/admission', coinsurance:'10% after deductible', deductibleMet:'Yes', oopMet:'No', annualMaxDays:60, daysUsed:3},
+    {planType:'Behavioral', payer:'Commercial', cob:'Primary', label:'Commercial — Behavioral', plan:'BH_CARVEOUT_NETWORK', memberNum:'BHN500512', group:'BHGRP01', effFrom:'2026-01-01', effTo:'2026-12-31', priorAuth:'Yes', copay:'$50/visit', coinsurance:'0% in-network', deductibleMet:'Yes', oopMet:'No', annualMaxDays:30, daysUsed:0}
+  ]},
+  {name:'Brian Chow', mbr:'MBR#000488', dob:'1988-11-05', sub:'37M · FL Medicare', elig:[
+    {planType:'Medical', payer:'Medicare', cob:'Primary', label:'Medicare', plan:'FL_MEDICARE_ADVANTAGE', memberNum:'FLA1000488', group:'—', effFrom:'2026-01-01', effTo:'2026-12-31', priorAuth:'Yes', copay:'$100/admission', coinsurance:'20% after deductible', deductibleMet:'Yes', oopMet:'Yes', annualMaxDays:70, daysUsed:9}
+  ]},
+  {name:'Diana Okafor', mbr:'MBR#000601', dob:'1962-07-14', sub:'63F · NY Medicaid', elig:[
+    {planType:'Medical', payer:'Medicaid', cob:'Primary', label:'Medicaid — Medical', plan:'NY_MEDICAID_MANAGED', memberNum:'NYM0000601', group:'—', effFrom:'2026-01-01', effTo:'2026-12-31', priorAuth:'Yes', copay:'$0', coinsurance:'0%', deductibleMet:'Yes', oopMet:'Yes', annualMaxDays:45, daysUsed:12},
+    {planType:'Behavioral', payer:'Medicaid', cob:'Primary', label:'Medicaid — Behavioral', plan:'NY_BH_CARVEOUT', memberNum:'NYBH000601', group:'—', effFrom:'2026-01-01', effTo:'2026-12-31', priorAuth:'Yes', copay:'$0', coinsurance:'0%', deductibleMet:'Yes', oopMet:'Yes', annualMaxDays:30, daysUsed:5}
+  ]},
+  {name:'Felix Novak', mbr:'MBR#000345', dob:'1995-01-30', sub:'30M · Commercial HMO', elig:[
+    {planType:'Medical', payer:'Commercial', cob:'Primary', label:'Commercial', plan:'COMM_HMO_SILVER', memberNum:'CHS500345', group:'GRP2210', effFrom:'2026-01-01', effTo:'2026-12-31', priorAuth:'Yes', copay:'$300/admission', coinsurance:'30% after deductible', deductibleMet:'No', oopMet:'No', annualMaxDays:60, daysUsed:0}
+  ]},
+  {name:'Grace Kim', mbr:'MBR#000229', dob:'1980-09-09', sub:'45F · CO PPO-2025', elig:[
+    {planType:'Medical', payer:'Commercial', cob:'Primary', label:'Commercial', plan:'CO_PPO_2025', memberNum:'COP500229', group:'GRP7734', effFrom:'2026-01-01', effTo:'2026-12-31', priorAuth:'Yes', copay:'$200/admission', coinsurance:'15% after deductible', deductibleMet:'Yes', oopMet:'No', annualMaxDays:70, daysUsed:2}
+  ]},
+  {name:'Harold Jennings', mbr:'MBR#000177', dob:'1958-05-17', sub:'68M · FL Medicare', elig:[
+    {planType:'Medical', payer:'Medicare', cob:'Primary', label:'Medicare', plan:'FL_MEDICARE_ADVANTAGE', memberNum:'FLA1000177', group:'—', effFrom:'2026-01-01', effTo:'2026-12-31', priorAuth:'Yes', copay:'$100/admission', coinsurance:'20% after deductible', deductibleMet:'Yes', oopMet:'Yes', annualMaxDays:70, daysUsed:65}
+  ]},
+  {name:'Isabella Ruiz', mbr:'MBR#000366', dob:'2002-12-01', sub:'23F · TX Medicaid', elig:[
+    {planType:'Medical', payer:'Medicaid', cob:'Primary', label:'Medicaid — Medical', plan:'TX_MEDICAID_STAR', memberNum:'TXM0000366', group:'—', effFrom:'2026-01-01', effTo:'2026-12-31', priorAuth:'Yes', copay:'$0', coinsurance:'0%', deductibleMet:'Yes', oopMet:'Yes', annualMaxDays:45, daysUsed:0},
+    {planType:'Behavioral', payer:'Medicaid', cob:'Primary', label:'Medicaid — Behavioral', plan:'TX_BH_CARVEOUT', memberNum:'TXBH000366', group:'—', effFrom:'2026-01-01', effTo:'2026-12-31', priorAuth:'Yes', copay:'$0', coinsurance:'0%', deductibleMet:'Yes', oopMet:'Yes', annualMaxDays:30, daysUsed:0}
+  ]},
+  {name:'Marcus Webb', mbr:'MBR#000410', dob:'1970-06-25', sub:'55M · Commercial PPO', elig:[
+    {planType:'Medical', payer:'Commercial', cob:'Primary', label:'Commercial', plan:'COMM_PPO_GOLD', memberNum:'CPG500410', group:'GRP4471', effFrom:'2026-01-01', effTo:'2026-12-31', priorAuth:'Yes', copay:'$250/admission', coinsurance:'10% after deductible', deductibleMet:'Yes', oopMet:'Yes', annualMaxDays:60, daysUsed:18}
+  ]},
+  {name:'Nathan Ortiz', mbr:'MBR#000723', dob:'1974-09-02', sub:'52M · Dual Commercial/Medicaid', elig:[
+    {planType:'Medical', payer:'Commercial', cob:'Primary', label:'Commercial — Primary', plan:'COMM_PPO_SILVER', memberNum:'CPS500723', group:'GRP5590', effFrom:'2026-01-01', effTo:'2026-12-31', priorAuth:'Yes', copay:'$150/admission', coinsurance:'20% after deductible', deductibleMet:'Yes', oopMet:'No', annualMaxDays:60, daysUsed:6},
+    {planType:'Medical', payer:'Medicaid', cob:'Secondary', label:'Medicaid — Secondary', plan:'STATE_MEDICAID_WRAP', memberNum:'SMW0000723', group:'—', effFrom:'2026-01-01', effTo:'2026-12-31', priorAuth:'Yes', copay:'$0', coinsurance:'0%', deductibleMet:'Yes', oopMet:'Yes', annualMaxDays:60, daysUsed:6}
+  ]},
+  {name:'Priya Nair', mbr:'MBR#000552', dob:'1990-04-18', sub:'35F · NY Medicaid', elig:[
+    {planType:'Medical', payer:'Medicaid', cob:'Primary', label:'Medicaid — Medical', plan:'NY_MEDICAID_MANAGED', memberNum:'NYM0000552', group:'—', effFrom:'2026-01-01', effTo:'2026-12-31', priorAuth:'Yes', copay:'$0', coinsurance:'0%', deductibleMet:'Yes', oopMet:'Yes', annualMaxDays:45, daysUsed:0},
+    {planType:'Behavioral', payer:'Medicaid', cob:'Primary', label:'Medicaid — Behavioral', plan:'NY_BH_CARVEOUT', memberNum:'NYBH000552', group:'—', effFrom:'2026-01-01', effTo:'2026-12-31', priorAuth:'Yes', copay:'$0', coinsurance:'0%', deductibleMet:'Yes', oopMet:'Yes', annualMaxDays:30, daysUsed:28}
+  ]},
+  {name:'Samuel Torres', mbr:'MBR#000299', dob:'1948-02-08', sub:'78M · FL Medicare', elig:[
+    {planType:'Medical', payer:'Medicare', cob:'Primary', label:'Medicare', plan:'FL_MEDICARE_ADVANTAGE', memberNum:'FLA1000299', group:'—', effFrom:'2026-01-01', effTo:'2026-12-31', priorAuth:'Yes', copay:'$100/admission', coinsurance:'20% after deductible', deductibleMet:'Yes', oopMet:'Yes', annualMaxDays:70, daysUsed:9}
+  ]}
 ];
 function memberInitials(name){ const p=name.trim().split(/\s+/); return ((p[0]||'')[0]||'')+((p[p.length-1]||'')[0]||''); }
 function searchMembers(q){
@@ -294,14 +329,18 @@ function searchMembers(q){
 }
 function selectMember(mbr){
   auth.member=DEMO_MEMBERS.find(m=>m.mbr===mbr)||null;
+  auth.activeElig=0; auth._eligTouched=false; // fresh member — let the category-match default pick the toggle again
   document.getElementById('memberResults').classList.remove('show');
   document.getElementById('memberSearchInput').value='';
   document.getElementById('memberErr').style.display='none';
   renderSelectedMember();
+  renderEligibility();
 }
 function clearMember(){
   auth.member=null;
+  auth.activeElig=0; auth._eligTouched=false;
   renderSelectedMember();
+  renderEligibility();
   const inp=document.getElementById('memberSearchInput'); if(inp) inp.focus();
 }
 function renderSelectedMember(){
@@ -309,7 +348,11 @@ function renderSelectedMember(){
   const searchWrap=document.getElementById('memberSearchWrap');
   const m=auth.member;
   if(searchWrap) searchWrap.style.display = m ? 'none' : '';
-  wrap.innerHTML = m ? `<div class="member-card sel"><span class="av">${memberInitials(m.name)}</span><div><div class="nm">${m.name}</div><div class="sub">ID: ${m.mbr} · DOB: ${m.dob} · ${m.sub}</div></div><span class="chk">✔</span><span class="mem-clear" onclick="clearMember()" title="Change member">✕</span></div>` : '';
+  // Plan/payer info dropped here on purpose — the Eligibility & Coverage block right below now shows the
+  // real payer detail, so repeating it on the member card was redundant. Search results (below) keep the
+  // full sub text since that's the only payer hint available before a member is selected.
+  const demo=(m&&m.sub)?m.sub.split(' · ')[0]:'';
+  wrap.innerHTML = m ? `<div class="member-card sel"><span class="av">${memberInitials(m.name)}</span><div><div class="nm">${m.name}</div><div class="sub">ID: ${m.mbr} · DOB: ${m.dob} · ${demo}</div></div><span class="chk">✔</span><span class="mem-clear" onclick="clearMember()" title="Change member">✕</span></div>` : '';
   const badge=document.getElementById('eligMemBadge');
   if(badge) badge.innerHTML = m ? `<span>🪪</span><b>${m.name}</b> <span style="color:var(--muted)">(ID: ${m.mbr})</span>` : '<span style="color:var(--faint)">No member selected</span>';
 }
@@ -317,6 +360,157 @@ document.addEventListener('click', e=>{
   const box=document.getElementById('memberResults');
   if(box && !e.target.closest('#memberSearchWrap')) box.classList.remove('show');
 });
+/* ---------- diagnoses (multi, one flagged primary) ---------- */
+function primaryDx(){ return dxState.find(d=>d.primary)||dxState[0]; }
+function renderDx(){
+  const el=document.getElementById('dxLines'); if(!el) return;
+  el.innerHTML=dxState.map(dxCard).join('');
+  renderPreviewMaybe();
+}
+function dxCard(d){
+  const canRemove=dxState.length>1;
+  return `<div class="card" style="padding:12px 14px 10px;margin-bottom:9px;">
+    <div class="row" style="grid-template-columns:1fr 1.7fr .9fr;">
+      <div><label class="fl">Diagnosis Code <span class="req">*</span></label><input class="in" value="${d.code}" onchange="setDx(${d.id},'code',this.value)"></div>
+      <div><label class="fl">Diagnosis Name <span class="req">*</span></label><input class="in" value="${d.name}" onchange="setDx(${d.id},'name',this.value)"></div>
+      <div><label class="fl">Code Set</label><input class="in" value="${d.codeSet}" onchange="setDx(${d.id},'codeSet',this.value)"></div>
+    </div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-top:8px;">
+      <label style="display:flex;align-items:center;gap:6px;font-size:12.5px;color:#374151;cursor:pointer;"><input type="radio" name="dxPrimary" ${d.primary?'checked':''} onchange="setPrimaryDx(${d.id})"> Set as primary diagnosis</label>
+      <button class="trash" ${canRemove?'':'disabled title="At least one diagnosis is required"'} onclick="removeDx(${d.id})">🗑</button>
+    </div>
+  </div>`;
+}
+function setDx(id,key,val){ const it=dxState.find(x=>x.id===id); if(it){ it[key]=val; renderPreviewMaybe(); } }
+function setPrimaryDx(id){ dxState.forEach(d=>{ d.primary=(d.id===id); }); renderDx(); }
+function addDx(){ dxSeq++; dxState.push({id:dxSeq, code:'', name:'', codeSet:'ICD-10', primary:false}); renderDx(); }
+function removeDx(id){
+  if(dxState.length<=1) return;
+  const idx=dxState.findIndex(x=>x.id===id); if(idx<0) return;
+  const wasPrimary=dxState[idx].primary;
+  dxState.splice(idx,1);
+  if(wasPrimary&&dxState.length) dxState[0].primary=true;
+  renderDx();
+}
+
+/* ---------- retro-admission policy ---------- */
+function daysBetween(fromIso,toIso){
+  const [ay,am,ad]=fromIso.split('-').map(Number), [by,bm,bd]=toIso.split('-').map(Number);
+  return Math.round((Date.UTC(by,bm-1,bd)-Date.UTC(ay,am-1,ad))/86400000);
+}
+// Flags admissions backdated relative to today; anything beyond the configured RETRO_MAX_DAYS gets
+// clamped to exactly that limit rather than silently accepted — mirrors a real retro-review policy gate.
+function checkRetro(){
+  const box=document.getElementById('retroFlag');
+  if(!isInpatientType()){ if(box) box.style.display='none'; return {isRetro:false}; }
+  const admit=getAdmit();
+  if(!admit){ if(box) box.style.display='none'; return {isRetro:false}; }
+  const daysAgo=daysBetween(admit,TODAY);
+  if(daysAgo>RETRO_MAX_DAYS){
+    const capped=addDays(TODAY,-RETRO_MAX_DAYS);
+    const admitEl=document.getElementById('admit'); if(admitEl) admitEl.value=capped;
+    if(box){ box.style.display='flex'; box.className='alloc-warn-bar'; box.innerHTML=`⚠ <div><b>Retroactive request capped</b> — admission dates can't be backdated more than ${RETRO_MAX_DAYS} days per policy. Requested Admission Date was adjusted to ${fmt(capped)}.</div>`; }
+    return {isRetro:true, daysAgo:RETRO_MAX_DAYS, capped:true};
+  }
+  if(daysAgo>0){
+    if(box){ box.style.display='flex'; box.className='alloc-warn-bar'; box.innerHTML=`⚠ <div><b>Retroactive request</b> — admission date is ${daysAgo} day${daysAgo==1?'':'s'} in the past (within the ${RETRO_MAX_DAYS}-day retro policy window). Retrospective review parameters apply.</div>`; }
+    return {isRetro:true, daysAgo, capped:false};
+  }
+  if(box) box.style.display='none';
+  return {isRetro:false, daysAgo:0, capped:false};
+}
+
+/* ---------- eligibility: a member can carry more than one coverage (e.g. Medical + a Behavioral
+   carve-out) — toggle switches which one is active; conflicts are checked continuously, not just when
+   the nurse happens to land on the Eligibility step. ---------- */
+// A member can carry coverage from more than one PAYER (e.g. a dual-eligible member has both a
+// Commercial plan and Medicaid, where Medicaid is the payer of last resort). "planType" (Medical/
+// Behavioral) is a separate axis — which benefit category a record covers — from "payer"/"cob" (which
+// payer it is, and its coordination-of-benefits order). eligLabel() always shows the real distinguishing
+// label so the toggle reads correctly whether a member's multiple records differ by payer, by category,
+// or both.
+function eligLabel(e){ return e.label || e.payer || e.planType || 'Coverage'; }
+function renderEligibility(){
+  const m=auth.member;
+  const list=m?(m.elig||[]):[];
+  if(auth.activeElig==null || auth.activeElig>=list.length) auth.activeElig=0;
+  // Default: among records matching the auth's own category (Medical/Behavioral), prefer the Primary
+  // payer over a Secondary/last-resort one (Medicaid) — until the nurse deliberately toggles.
+  if(!auth._eligTouched){
+    const catMatches=list.filter(e=>e.planType===authCategory());
+    const pool=catMatches.length?catMatches:list;
+    const primary=pool.find(e=>e.cob==='Primary')||pool[0];
+    if(primary) auth.activeElig=list.indexOf(primary);
+  }
+  const toggleHtml=list.length>1?list.map((e,i)=>`<button type="button" class="loc-btn ${i===auth.activeElig?'on':''}" style="padding:7px 14px;flex:none;" onclick="setActiveElig(${i})">${eligLabel(e)}</button>`).join(''):'';
+  ['eligToggle','eligToggle1'].forEach(id=>{
+    const toggleEl=document.getElementById(id); if(!toggleEl) return;
+    if(list.length>1){ toggleEl.style.display='flex'; toggleEl.innerHTML=toggleHtml; }
+    else { toggleEl.style.display='none'; toggleEl.innerHTML=''; }
+  });
+  const e=list[auth.activeElig];
+  const grid=document.getElementById('eligGrid');
+  const benTitle=document.getElementById('eligBenTitle');
+  const benGrid=document.getElementById('eligBenGrid');
+  if(e){
+    if(grid) grid.innerHTML=`<div><span class="k">Plan:</span> ${e.plan}</div><div><span class="k">Member #:</span> ${e.memberNum}</div>
+      <div><span class="k">Group #:</span> ${e.group||'—'}</div><div><span class="k">Effective:</span> ${fmt(e.effFrom)} – ${fmt(e.effTo)}</div>`;
+    if(benTitle) benTitle.textContent=eligLabel(e)+' Benefits';
+    if(benGrid) benGrid.innerHTML=`<div>Prior Auth Required: <b>${e.priorAuth}</b></div><div>Copay: <b>${e.copay}</b></div>
+      <div>Coinsurance: <b>${e.coinsurance}</b></div><div>Deductible Met: <b>${e.deductibleMet}</b></div>
+      <div>OOP Max Met: <b>${e.oopMet}</b></div><div>Annual Max Days: <b>${e.annualMaxDays}</b></div>
+      <div>Days Used: <b>${e.daysUsed}</b></div><div></div>`;
+  } else {
+    if(grid) grid.innerHTML='<div style="color:var(--faint)">No eligibility on file for this member.</div>';
+    if(benGrid) benGrid.innerHTML='';
+    if(benTitle) benTitle.textContent='Benefits';
+  }
+  const wrap1=document.getElementById('elig1Wrap');
+  const sum1=document.getElementById('elig1Summary');
+  if(wrap1) wrap1.style.display=m?'block':'none';
+  if(sum1){
+    if(e){
+      const cobTag=e.cob==='Secondary'?'<span class="chip" style="background:#FEF3C7;color:#92400E;">Secondary</span>':'<span class="chip" style="background:#DCFCE7;color:#166534;">Primary</span>';
+      sum1.innerHTML=`<div style="display:flex;flex-wrap:wrap;gap:12px;align-items:center;padding:9px 11px;background:#F9FAFB;border-radius:8px;">
+        <span style="color:#B45309;font-weight:600;font-size:11px;">&#9679; ACTIVE</span>
+        <b style="font-size:12.5px;">${e.plan}</b>${cobTag}
+        <span class="muted">Member #: ${e.memberNum}</span>
+        <span class="muted">${e.annualMaxDays-e.daysUsed} day(s) remaining of ${e.annualMaxDays}</span>
+      </div>`;
+    } else { sum1.innerHTML='<div style="color:var(--faint);font-size:12.5px;">No eligibility on file for this member.</div>'; }
+  }
+  checkEligibilityConflicts();
+}
+function setActiveElig(i){ auth.activeElig=i; auth._eligTouched=true; renderEligibility(); }
+function checkEligibilityConflicts(){
+  // Surfaced in three places — Request Details (Step 1), the Eligibility step itself, and a smaller copy
+  // on the Procedures step — so editing member/dates/days anywhere shows the conflict immediately.
+  const boxes=[document.getElementById('eligConflict1'), document.getElementById('eligConflict'), document.getElementById('eligConflict2')].filter(Boolean);
+  if(!boxes.length) return;
+  const list=auth.member?(auth.member.elig||[]):[];
+  const e=list[auth.activeElig||0];
+  const issues=[];
+  if(e && isInpatientType()){
+    const admit=getAdmit();
+    const days=totalDays()||getLos();
+    if(admit && e.effFrom && admit<e.effFrom) issues.push(`Requested admission date (${fmt(admit)}) is before this plan's effective date (${fmt(e.effFrom)}).`);
+    if(admit && e.effTo && admit>e.effTo) issues.push(`Requested admission date (${fmt(admit)}) is after this plan's coverage end date (${fmt(e.effTo)}).`);
+    const remaining=(e.annualMaxDays||0)-(e.daysUsed||0);
+    if(days>remaining) issues.push(`Requested ${days} day(s) exceeds the ${remaining} day(s) remaining under the Annual Max Days benefit (${e.annualMaxDays} total, ${e.daysUsed} used).`);
+  }
+  boxes.forEach(box=>{
+    if(issues.length){
+      const wasShown=box.style.display==='flex';
+      box.style.display='flex'; box.className='alloc-warn-bar';
+      box.innerHTML='⚠ <div><b>Eligibility conflict detected</b><ul style="margin:4px 0 0;padding-left:16px;">'+issues.map(x=>'<li>'+x+'</li>').join('')+'</ul></div>';
+      // Banner sits above the admit-date/LOS fields that usually trigger it — if the nurse has scrolled
+      // down to edit those, a newly-appearing conflict would otherwise go unnoticed off-screen above.
+      if(!wasShown) box.scrollIntoView({ behavior:'auto', block:'center' });
+    } else {
+      box.style.display='none';
+    }
+  });
+}
 
 /* ---------- date helpers ---------- */
 function fmt(d){ if(!d) return "—"; const [y,m,day]=d.split("-"); return `${m}/${day}/${y}`; }
@@ -342,8 +536,9 @@ function go(n){
   document.getElementById('btnBack').disabled = step===1;
   const next=document.getElementById('btnNext');
   next.innerHTML = step===4 ? '✓ Create Authorization' : 'Next →';
-  if(step===1){ renderTypeFields(currentType()); }
+  if(step===1){ renderTypeFields(currentType()); checkRetro(); }
   if(step===2){ renderSvcInd(); adaptStep3(); renderInpatient(); renderProc(); }
+  if(step===3){ renderEligibility(); }
   if(step===4){ renderReview(); }
   renderStepper();
 }
@@ -359,12 +554,87 @@ function next(){
 // When embedded in um-nav (iframe), talk to the parent; standalone keeps the original alert.
 var wizEmbedded = window.parent && window.parent !== window;
 function wizClose(){ if(wizEmbedded){ window.parent.postMessage({type:'authwizard-close'}, '*'); } }
+function wizCancel(){
+  if(auth.member && !confirm('Discard this new authorization request? Nothing entered will be saved.')) return;
+  wizClose();
+}
+// Set once a draft is resumed (see wizResume) so a later Save updates the SAME dashboard row instead of
+// creating a duplicate, and so submitting from a resumed draft tells um-nav which draft row to remove.
+var resumeDraftId=null;
+function wizBuildDraftPayload(){
+  var t=currentType();
+  return {
+    draftId:resumeDraftId, authType:t, urgency:val('urgency'),
+    mbr:(auth.member&&auth.member.mbr)||'', member:(auth.member&&auth.member.name)||'', memberSub:(auth.member&&auth.member.sub)||'',
+    activeElig:auth.activeElig||0, eligTouched:!!auth._eligTouched,
+    diagnoses:dxState.map(function(d){ return {code:d.code, name:d.name, codeSet:d.codeSet, primary:d.primary}; }),
+    reqProv:val('reqProv'), servFac:val('servFac'), clinicalNote:val('clinicalNote'),
+    loc:auth.loc, admit:getAdmit(), los:getLos(), admType:val('admType'), admSource:val('admSource'),
+    opFrom:val('opFrom'), opTo:val('opTo'), opPos:val('opPos'),
+    ipLines:ipState.map(function(it){ return {loc:it.loc, days:it.days, pos:it.pos, reqDate:it.reqDate, start:it.start, svcType:it.svcType||'', code:it.code||''}; }),
+    procLines:prState.map(function(it){ return {code:it.code, desc:it.desc, qty:it.qty, unit:it.unit, pos:it.pos, facility:it.facility, sameAsReq:it.sameAsReq, svcType:it.svcType, start:it.start, end:it.end, reqDate:it.reqDate}; }),
+    rxLines:rxState.map(function(it){ return {drug:it.drug, form:it.form, qty:it.qty, days:it.days, refills:it.refills, sameAsReq:it.sameAsReq, prescriber:it.prescriber, pharmacy:it.pharmacy, reqDate:it.reqDate}; })
+  };
+}
+function wizSave(){
+  var payload=wizBuildDraftPayload();
+  if(wizEmbedded){ window.parent.postMessage({type:'authwizard-draft-saved', payload:payload}, '*'); }
+  else { alert('Draft saved (prototype).'); }
+}
+// Reconstructs the entire wizard from a saved draft's payload — mirrors the field/state shapes built by
+// wizBuildDraftPayload() above. Runs after the wizard's own fresh-page init, so every piece of state it
+// doesn't explicitly touch must still end up correct (hence the full rebuild of ipState/prState/rxState
+// rather than a partial merge).
+function wizResume(p){
+  if(!p) return;
+  resumeDraftId=p.draftId||null;
+  var typeEl=document.getElementById('authType'); if(typeEl) typeEl.value=p.authType||'Medical Inpatient';
+  var urgEl=document.getElementById('urgency'); if(urgEl) urgEl.value=p.urgency||'Standard';
+  auth.member=p.mbr?(DEMO_MEMBERS.find(function(m){ return m.mbr===p.mbr; })||null):null;
+  auth.activeElig=p.activeElig||0; auth._eligTouched=!!p.eligTouched;
+  renderSelectedMember();
+  dxState.length=0;
+  (p.diagnoses&&p.diagnoses.length?p.diagnoses:[{code:'',name:'',codeSet:'ICD-10',primary:true}]).forEach(function(d){
+    dxSeq++; dxState.push({id:dxSeq, code:d.code||'', name:d.name||'', codeSet:d.codeSet||'ICD-10', primary:!!d.primary});
+  });
+  if(!dxState.some(function(d){ return d.primary; })) dxState[0].primary=true;
+  renderDx();
+  auth.loc=p.loc||'Acute Inpatient';
+  renderTypeFields(currentType());
+  var setVal=function(id,v){ var e=document.getElementById(id); if(e&&v!=null&&v!=='') e.value=v; };
+  setVal('admit',p.admit); setVal('los',p.los); setVal('admType',p.admType); setVal('admSource',p.admSource);
+  setVal('reqProv',p.reqProv); setVal('servFac',p.servFac);
+  setVal('opFrom',p.opFrom); setVal('opTo',p.opTo); setVal('opPos',p.opPos);
+  setVal('clinicalNote',p.clinicalNote);
+  ipState.length=0;
+  (p.ipLines||[]).forEach(function(it,i){ ipId++; ipState.push({id:ipId, loc:it.loc||auth.loc, days:it.days||1, pos:it.pos||'21 – Inpatient Hospital', reqDate:it.reqDate||TODAY, start:i===0?undefined:it.start, svcType:it.svcType||'', code:it.code||''}); });
+  if(!ipState.length){ ipId++; ipState.push({id:ipId, loc:auth.loc, days:1, pos:'21 – Inpatient Hospital', reqDate:TODAY, code:''}); }
+  prState.length=0;
+  (p.procLines||[]).forEach(function(it){ prId++; prState.push({id:prId, code:it.code||'', desc:it.desc||'', qty:it.qty||1, unit:it.unit||'Units', pos:it.pos||'— Not specified —', facility:it.facility||'', sameAsReq:!!it.sameAsReq, svcType:it.svcType||OP_SERVICE_TYPES[0], start:it.start||'', end:it.end||'', reqDate:it.reqDate||TODAY}); });
+  rxState.length=0;
+  (p.rxLines||[]).forEach(function(it){ rxId++; rxState.push({id:rxId, drug:it.drug||'', form:it.form||'', qty:it.qty||30, days:it.days||30, refills:it.refills||0, sameAsReq:it.sameAsReq!==false, prescriber:it.prescriber||REQUESTING_PROVIDER, pharmacy:it.pharmacy||'', reqDate:it.reqDate||TODAY}); });
+  renderSvcInd(); adaptStep3();
+  renderInpatient(); renderProc(); renderRx();
+  recalcDischarge();
+  renderEligibility();
+  go(1);
+}
+window.addEventListener('message', function(e){
+  var d=e.data||{};
+  if(d.type==='authwizard-resume') wizResume(d.payload);
+});
 function wizCreated(){
   var t=currentType();
-  var payload={ authType:t, urgency:val('urgency'), category:val('dxType'), member:(auth.member&&auth.member.name)||'', mbr:(auth.member&&auth.member.mbr)||'', memberSub:(auth.member&&auth.member.sub)||'', dxCode:val('dxCode'), dxName:val('dxName'), reqProv:val('reqProv'), servFac:val('servFac') };
-  if(t==='Inpatient'){
+  var pDx=primaryDx();
+  var eligList=(auth.member&&auth.member.elig)||[];
+  var activeE=eligList[auth.activeElig||0];
+  var payload={ draftId:resumeDraftId, authType:t, urgency:val('urgency'), category:authCategory(t), member:(auth.member&&auth.member.name)||'', mbr:(auth.member&&auth.member.mbr)||'', memberSub:(auth.member&&auth.member.sub)||'', dxCode:pDx.code, dxName:pDx.name, diagnoses:dxState.map(function(d){ return {code:d.code, name:d.name, codeSet:d.codeSet, primary:d.primary}; }), eligPayer:activeE?activeE.payer:'', eligLabel:activeE?eligLabel(activeE):'', eligCob:activeE?activeE.cob:'', reqProv:val('reqProv'), servFac:val('servFac') };
+  if(isInpatientType(t)){
     payload.admit=getAdmit(); payload.los=getLos(); payload.loc=auth.loc;
-    payload.ipLines=computeChain().map(function(it){ return {loc:it.loc, days:+it.days||0, start:it.dStart, end:it.dEnd, pos:it.pos}; });
+    payload.admType=val('admType'); payload.admSource=val('admSource');
+    var retro=checkRetro();
+    payload.isRetro=retro.isRetro; payload.retroDays=retro.daysAgo||0; payload.retroCapped=!!retro.capped;
+    payload.ipLines=computeChain().map(function(it){ return {loc:it.loc, days:+it.days||0, start:it.dStart, end:it.dEnd, pos:it.pos, svcType:it.svcType||'', code:it.code||''}; });
     payload.procLines=prState.map(function(it){ return {svcType:it.svcType, code:it.code, desc:it.desc, qty:it.qty, unit:it.unit, pos:it.pos, provider:it.sameAsReq?REQUESTING_PROVIDER:it.facility, start:it.start, end:it.end}; });
   }
   if(wizEmbedded){ window.parent.postMessage({type:'authwizard-created', authType:t, payload:payload}, '*'); } else { alert('Authorization created (prototype).'); }
@@ -377,29 +647,47 @@ function renderLocRow(){
     `<div class="loc-btn ${l===auth.loc?'on':''}" onclick="setAuthLoc('${l}')"><span>${icons[l]||''}</span> ${l}</div>`).join('');
 }
 function setAuthLoc(l){ auth.loc=l; if(ipState[0]) ipState[0].loc=l; renderLocRow(); }
-function renderSvcInd(){ const el=document.getElementById('svcInd'); if(!el) return; const t=currentType(); const note = t==='Outpatient' ? 'service lines + optional RX lines' : (t==='Inpatient' ? 'inpatient + service + RX lines' : 'prescription entered as RX lines'); el.innerHTML=`Auth Type: <span class="chip">${t}</span> <span class="muted">· ${note}</span>`; }
-function onServiceType(){ renderTypeFields(currentType()); renderSvcInd(); adaptStep3(); if(step===4) renderReview(); }
+function renderSvcInd(){ const el=document.getElementById('svcInd'); if(!el) return; const t=currentType(); const note = isOutpatientType(t) ? 'service lines + optional RX lines' : (isInpatientType(t) ? 'inpatient + service + RX lines' : 'prescription entered as RX lines'); el.innerHTML=`Auth Type: <span class="chip">${t}</span> <span class="muted">· ${note}</span>`; }
+function onServiceType(){ renderTypeFields(currentType()); renderSvcInd(); adaptStep3(); checkRetro(); renderEligibility(); if(step===4) renderReview(); }
 function currentType(){ return document.getElementById('authType').value; }
 const val=id=>{ const e=document.getElementById(id); return e?e.value:''; };
+// Auth Type now folds in the Medical/Behavioral category (e.g. "Behavioral Inpatient") instead of a
+// separate Auth Category field — these helpers replace the old exact-string comparisons everywhere.
+function isInpatientType(t){ return /Inpatient$/.test(t||currentType()); }
+function isOutpatientType(t){ return /Outpatient$/.test(t||currentType()); }
+function isPharmacyType(t){ return (t||currentType())==='Pharmacy (RX)'; }
+function authCategory(t){ t=t||currentType(); return t.indexOf('Behavioral')===0 ? 'Behavioral' : (t.indexOf('Medical')===0 ? 'Medical' : ''); }
 function renderTypeFields(t){
   const el=document.getElementById('typeFields'); if(!el) return;
   const posOut=['— Not specified —','11 – Office','19 – Off-Campus Outpatient Hospital','22 – On-Campus Outpatient Hospital','23 – Emergency Room – Hospital','24 – Ambulatory Surgical Center','02 – Telehealth'];
   const provRow=(p1,v1,p2,v2)=>`<div class="grid2">
     <div><label class="fl">${p1} <span class="req">*</span></label><div class="browse-wrap"><div class="with-icon"><span class="ic">🔍</span><input class="in" id="reqProv" value="${v1}"></div><button class="btn-violet">🔍 Browse</button></div></div>
     <div><label class="fl">${p2} <span class="req">*</span></label><div class="browse-wrap"><div class="with-icon"><span class="ic">🔍</span><input class="in" id="servFac" value="${v2}"></div><button class="btn-violet">🔍 Browse</button></div></div></div>`;
+  // Preserve Admission Type/Source/Date/LOS across a re-render (e.g. toggling Medical Inpatient ↔
+  // Behavioral Inpatient, or navigating Back to this step) — this rebuilds the whole panel from
+  // scratch, so anything not re-read from the outgoing DOM would silently snap back to its hardcoded
+  // default (and, worse, a reset admit date would then get re-evaluated by the retro-cap check as if
+  // the nurse had just typed a stale 2026-06-19).
+  const admTypeVal = val('admType') || ADMISSION_TYPES[0];
+  const admSourceVal = val('admSource') || ADMISSION_SOURCES[0];
+  const admitVal = val('admit') || '2026-06-19';
+  const losVal = val('los') || '5';
   let html='';
-  if(t==='Inpatient'){
+  if(isInpatientType(t)){
     html=provRow('Requesting Provider','Dr. Samuel Obi','Servicing Facility','Mercy General Hospital')
       +`<label class="fl">Level of Care <span class="req">*</span></label><div class="loc-row" id="locRow"></div>`
-      +`<div class="grid2"><div><label class="fl">Requested Admission Date <span class="req">*</span></label><input class="in" type="date" id="admit" value="2026-06-19" oninput="recalcDischarge()"></div>
-        <div><label class="fl">Requested Length of Stay (LOS) <span class="req">*</span></label><div class="los-wrap"><input class="in" type="number" min="1" id="los" value="5" oninput="setLos(this.value)"><span class="u">days</span></div></div></div>`
+      +`<div class="grid2"><div><label class="fl">Admission Type <span class="req">*</span></label><select class="in" id="admType">${ADMISSION_TYPES.map(o=>`<option ${o===admTypeVal?'selected':''}>${o}</option>`).join('')}</select></div>
+        <div><label class="fl">Admission Source <span class="req">*</span></label><select class="in" id="admSource">${ADMISSION_SOURCES.map(o=>`<option ${o===admSourceVal?'selected':''}>${o}</option>`).join('')}</select></div></div>`
+      +`<div class="grid2"><div><label class="fl">Requested Admission Date <span class="req">*</span></label><input class="in" type="date" id="admit" value="${admitVal}" oninput="recalcDischarge()"></div>
+        <div><label class="fl">Requested Length of Stay (LOS) <span class="req">*</span></label><div class="los-wrap"><input class="in" type="number" min="1" id="los" value="${losVal}" oninput="setLos(this.value)"><span class="u">days</span></div></div></div>`
+      +`<div id="retroFlag" style="display:none;margin-bottom:14px;"></div>`
       +`<div class="grp" style="max-width:48%"><label class="fl">Target Discharge Date <span class="opt-tag">calculated from stay lines</span></label><input class="in readonly" id="discharge" readonly></div>`;
-  } else if(t==='Outpatient'){
+  } else if(isOutpatientType(t)){
     html=provRow('Requesting Provider','Dr. Samuel Obi','Servicing Provider','Radiology Associates')
       +`<div class="grid2"><div><label class="fl">Requested Service Date (From) <span class="req">*</span></label><input class="in" type="date" id="opFrom" value="2026-06-22"></div>
         <div><label class="fl">Requested Service Date (To)</label><input class="in" type="date" id="opTo" value="2026-06-22"></div></div>`
       +`<div class="grp" style="max-width:48%"><label class="fl">Place of Service <span class="req">*</span></label><select class="in" id="opPos">${posOut.map(o=>`<option ${o.indexOf('22')===0?'selected':''}>${o}</option>`).join('')}</select></div>`;
-  } else if(t==='Pharmacy (RX)'){
+  } else if(isPharmacyType(t)){
     html=`<div class="grid2">
       <div><label class="fl">Prescribing Provider <span class="req">*</span></label><div class="browse-wrap"><div class="with-icon"><span class="ic">🔍</span><input class="in" id="reqProv" value="Dr. Samuel Obi"></div><button class="btn-violet">🔍 Browse</button></div></div>
       <div><label class="fl">Dispensing Pharmacy <span class="opt-tag">optional</span></label><div class="browse-wrap"><div class="with-icon"><span class="ic">🔍</span><input class="in" id="servFac" placeholder="Specialty pharmacy, if required..."></div><button class="btn-violet">🔍 Browse</button></div></div>
@@ -412,20 +700,20 @@ function renderTypeFields(t){
       +`<div class="tmpl-note" style="margin-top:2px">Additional ${t} fields are applied from the BHP template.</div>`;
   }
   el.innerHTML=html;
-  if(t==='Inpatient'){ renderLocRow(); recalcDischarge(); }
+  if(isInpatientType(t)){ renderLocRow(); recalcDischarge(); }
 }
 function adaptStep3(){
   const t=currentType();
   const ip=document.getElementById('ipSection'), pr=document.getElementById('procSection'), rxs=document.getElementById('rxSection'), rx=document.getElementById('rxNote');
   if(!ip) return;
   rx.style.display='none';
-  if(t==='Inpatient'){
+  if(isInpatientType(t)){
     ip.style.display=''; pr.style.display=''; rxs.style.display='';
     document.getElementById('procTitle').innerHTML='Service Lines <span class="opt">(Optional for Inpatient)</span>';
     document.getElementById('procDesc').textContent='Procedures/services during the stay. Each service line carries a service type.';
     document.getElementById('procAddBtn').textContent='+ Add Service Line';
     document.getElementById('rxDesc').textContent='Medications during the stay or at discharge. Prescribing provider defaults to the requesting provider.';
-  } else if(t==='Pharmacy (RX)'){
+  } else if(isPharmacyType(t)){
     ip.style.display='none'; pr.style.display='none'; rxs.style.display='';
     document.getElementById('rxDesc').textContent='Prescription lines for this pharmacy authorization. Prescribing provider defaults to the requesting provider.';
     if(!rxState.length) addRx();
@@ -442,23 +730,40 @@ function totalDays(){ return ipState.reduce((s,it)=>s+(+it.days||0),0); }
 function setLos(val){ if(ipState[0]) ipState[0].days=parseInt(val)||0; recalcDischarge(); }
 function recalcDischarge(){
   const d=document.getElementById('discharge'); if(!d) return;
+  checkRetro(); // may clamp #admit if backdated beyond the retro policy — must run before discharge is computed
   const t = ipState.length ? totalDays() : getLos();
   d.value = fmt(addDays(getAdmit(), t));
   const losEl=document.getElementById('los');
   if(ipState.length>1){ losEl.value=t; losEl.readOnly=true; losEl.classList.add('readonly'); losEl.title='Calculated from all stay lines — edit days on the Procedures step'; }
   else { losEl.readOnly=false; losEl.classList.remove('readonly'); losEl.title=''; }
+  checkEligibilityConflicts();
 }
 
 /* ---------- step 3 inpatient ---------- */
-function computeChain(){ let cur=getAdmit(); return ipState.map(it=>{ const dStart=cur; const dEnd=addDays(cur,+it.days||0); cur=dEnd; return Object.assign({},it,{dStart,dEnd}); }); }
-function inpatientCard(item,isSeed){
+// Line 0's start is always the admission date (edited here syncs straight back to Step 1's field —
+// see setIp()). Every later line's start defaults to the previous line's end but can be pushed forward
+// into the future (an explicit stored override), never backward past that end (would overlap).
+function computeChain(){
+  let prevEnd=getAdmit();
+  return ipState.map((it,i)=>{
+    const dStart = i===0 ? getAdmit() : (it.start || prevEnd);
+    const dEnd = addDays(dStart, +it.days||0);
+    prevEnd = dEnd;
+    return Object.assign({},it,{dStart,dEnd});
+  });
+}
+function inpatientCard(item,i,minStart){
+  const isSeed = i===0;
   const opts=LOC_OPTIONS.map(o=>`<option ${o===item.loc?'selected':''}>${o}</option>`).join('');
   const badge=isSeed?`<span class="badge badge-seed">⚡ Initial · from Requested LOS</span>`:`<span class="badge badge-step">↳ Additional</span>`;
+  const startNote = isSeed ? '<span class="opt-tag">= admission date</span>' : '<span class="opt-tag">defaults to prior line\'s end — editable</span>';
+  const startInput = `<input class="in" type="date" value="${item.dStart||''}" ${isSeed?'':`min="${minStart}"`} onchange="setIp(${item.id},'start',this.value)">`;
   return `<div class="card ip"><div class="card-top"><div style="display:flex;align-items:center;gap:8px"><span style="font-size:13px;font-weight:700;color:#374151">Inpatient line</span> ${badge}</div><button class="trash" ${isSeed?'disabled title="Initial line carries the Requested LOS"':''} onclick="removeInpatient(${item.id})">🗑</button></div>
-    <div class="row" style="grid-template-columns:1.3fr 2fr">
+    <div class="row" style="grid-template-columns:1fr 1fr">
       <div><label class="fl">Service Type <span class="opt-tag">optional</span></label><select class="in" onchange="setIp(${item.id},'svcType',this.value)"><option value="" ${!item.svcType?'selected':''}>— Not specified —</option>${IP_SERVICE_TYPES.map(s=>`<option ${s===item.svcType?'selected':''}>${s}</option>`).join('')}</select></div>
-      <div style="display:flex;align-items:flex-end"><div class="tmpl-note" style="margin:0 0 10px">Optional — fields applied from the BHP template.</div></div>
+      <div><label class="fl">Procedure Code <span class="opt-tag">optional</span></label><input class="in" placeholder="CPT/HCPCS/ICD-10-PCS..." value="${item.code||''}" onchange="setIp(${item.id},'code',this.value)"></div>
     </div>
+    <div class="tmpl-note" style="margin:-6px 0 11px">Optional — service type fields applied from the BHP template.</div>
     <div class="row r-ip">
       <div><label class="fl">Level of Care <span class="req">*</span></label><select class="in" onchange="setIp(${item.id},'loc',this.value)">${opts}</select></div>
       <div><label class="fl">Requested Days <span class="req">*</span></label><input class="in" type="number" min="0" value="${item.days}" onchange="setIp(${item.id},'days',this.value)"></div>
@@ -466,37 +771,57 @@ function inpatientCard(item,isSeed){
     </div>
     <div class="row r-ip-dates">
       <div><label class="fl">Request Date <span class="req">*</span></label><input class="in" type="date" value="${item.reqDate||''}" onchange="setIp(${item.id},'reqDate',this.value)"></div>
-      <div><label class="fl">Start <span class="opt-tag">calculated</span></label><input class="in readonly" value="${fmt(item.dStart)}" readonly></div>
+      <div><label class="fl">Start ${startNote}</label>${startInput}</div>
       <div><label class="fl">End <span class="opt-tag">calculated</span></label><input class="in readonly" value="${fmt(item.dEnd)}" readonly></div>
     </div></div>`;
 }
 function renderInpatient(){
   const chain=computeChain();
-  document.getElementById('ipLines').innerHTML=chain.map((it,i)=>inpatientCard(it,i===0)).join('');
+  document.getElementById('ipLines').innerHTML=chain.map((it,i)=>inpatientCard(it,i,i>0?chain[i-1].dEnd:getAdmit())).join('');
   const disc=addDays(getAdmit(),totalDays());
   document.getElementById('stayCtx').innerHTML=`<span>Requested stay: <b>${fmt(getAdmit())} – ${fmt(disc)}</b> · ${totalDays()} day${totalDays()==1?'':'s'} <span class="muted">(calculated from stay lines)</span></span>`;
   recalcDischarge();
   renderPreviewMaybe();
 }
 function setIp(id,key,val){
-  const it=ipState.find(x=>x.id===id); it[key]=val;
+  const idx=ipState.findIndex(x=>x.id===id); const it=ipState[idx];
+  if(key==='start'){
+    if(idx===0){
+      // Line 1's start IS the admission date — no separate stored value, write straight to Step 1's field.
+      const admitEl=document.getElementById('admit');
+      if(admitEl){ admitEl.value=val; recalcDischarge(); }
+    } else {
+      const chain=computeChain();
+      const prevEnd = chain[idx-1] ? chain[idx-1].dEnd : getAdmit();
+      it.start = (val && val<prevEnd) ? prevEnd : val; // can move into the future, never before the prior line's end
+    }
+    renderInpatient();
+    return;
+  }
+  it[key]=val;
   if(key==='svcType'){
     if(IP_SVC_TO_LOC[val]) it.loc=IP_SVC_TO_LOC[val];
     if(IP_LOS_BENCHMARK[val]!=null) it.days=IP_LOS_BENCHMARK[val];
     if(ipState[0]&&ipState[0].id===id) auth.loc=it.loc;
   }
+  if(key==='days'){
+    // If an earlier line's day-count grew, a later line's explicit start override could now sit before
+    // the (later) required minimum — fall back to default chaining rather than allow an overlap.
+    const chain=computeChain();
+    for(let j=idx+1;j<ipState.length;j++){ if(ipState[j].start && ipState[j].start<chain[j-1].dEnd) ipState[j].start=null; }
+  }
   renderInpatient();
 }
-function addInpatient(){ const last=ipState[ipState.length-1]; const idx=last?LOC_OPTIONS.indexOf(last.loc):0; const loc=LOC_OPTIONS[Math.min(idx+1,LOC_OPTIONS.length-1)]||LOC_OPTIONS[0]; ipState.push({id:++ipId,loc,days:0,pos:'— Not specified —',reqDate:TODAY}); renderInpatient(); }
+function addInpatient(){ const last=ipState[ipState.length-1]; const idx=last?LOC_OPTIONS.indexOf(last.loc):0; const loc=LOC_OPTIONS[Math.min(idx+1,LOC_OPTIONS.length-1)]||LOC_OPTIONS[0]; ipState.push({id:++ipId,loc,days:0,pos:'— Not specified —',reqDate:TODAY,code:''}); renderInpatient(); }
 function removeInpatient(id){ const i=ipState.findIndex(x=>x.id===id); if(i>0){ipState.splice(i,1); renderInpatient();} }
 
 /* ---------- step 3 procedure ---------- */
 function procCard(item){
   const units=UNIT_OPTIONS.map(u=>`<option ${u===item.unit?'selected':''}>${u}</option>`).join('');
-  const isOP = currentType()==='Outpatient';
+  const isOP = isOutpatientType();
   const svcMark = '<span class="req">*</span>';
   // Inpatient service lines can't run past the last inpatient day (target discharge).
-  const ipLastDay = currentType()==='Inpatient' ? addDays(getAdmit(), totalDays()||getLos()) : '';
+  const ipLastDay = isInpatientType() ? addDays(getAdmit(), totalDays()||getLos()) : '';
   const overEnd = ipLastDay && item.end && item.end > ipLastDay;
   const svcRow = `<div class="row" style="grid-template-columns:1.3fr 2fr">
       <div><label class="fl">Service Type ${svcMark}</label><select class="in" onchange="setPr(${item.id},'svcType',this.value)">${OP_SERVICE_TYPES.map(s=>`<option ${s===item.svcType?'selected':''}>${s}</option>`).join('')}</select></div>
@@ -535,8 +860,8 @@ function setPr(id,key,val){
 function toggleSameReq(id,c){ const it=prState.find(x=>x.id===id); it.sameAsReq=c; if(c) it.facility=REQUESTING_PROVIDER; renderProc(); }
 function addProcedure(){
   const t=currentType();
-  const s = t==='Inpatient' ? getAdmit() : (val('opFrom')||'');
-  const e = t==='Inpatient' ? addDays(getAdmit(), getLos()) : (val('opTo')||val('opFrom')||'');
+  const s = isInpatientType(t) ? getAdmit() : (val('opFrom')||'');
+  const e = isInpatientType(t) ? addDays(getAdmit(), getLos()) : (val('opTo')||val('opFrom')||'');
   prState.push({id:++prId,code:'',desc:'',qty:1,unit:'Units',pos:'— Not specified —',facility:'',sameAsReq:false,svcType:OP_SERVICE_TYPES[0],start:s,end:e,reqDate:TODAY});
   renderProc();
 }
@@ -580,21 +905,25 @@ function renderReview(){
   const t=currentType();
   const chain=computeChain();
   let authLines='', li='', liCount=0, showLines=true;
-  if(t==='Inpatient'){
+  if(isInpatientType(t)){
     const disc=addDays(getAdmit(),totalDays());
+    const retro=checkRetro();
     authLines=`<div class="ln"><b>Level of Care:</b> ${auth.loc}</div>
+      <div class="ln"><b>Admission Type:</b> ${val('admType')}</div>
+      <div class="ln"><b>Admission Source:</b> ${val('admSource')}</div>
       <div class="ln"><b>Requesting Provider:</b> ${val('reqProv')}</div>
       <div class="ln"><b>Servicing Facility:</b> ${val('servFac')}</div>
       <div class="ln"><b>Admission / Anticipated Discharge:</b> ${fmt(getAdmit())} – ${fmt(disc)}</div>
-      <div class="ln"><b>Requested LOS:</b> ${totalDays()} day${totalDays()==1?'':'s'}</div>`;
-    chain.forEach(it=>{ li+=`<div class="rev-li"><span class="rev-tag ip">INPATIENT</span><b>${it.loc}</b> · ${fmt(it.dStart)} – ${fmt(it.dEnd)} · ${it.days} day${it.days==1?'':'s'}${it.pos&&it.pos!=='— Not specified —'?' · POS '+it.pos.split(' – ')[0]:''}</div>`; });
+      <div class="ln"><b>Requested LOS:</b> ${totalDays()} day${totalDays()==1?'':'s'}</div>
+      ${retro.isRetro ? `<div class="ln" style="color:#b45309;"><b>⚠ Retroactive Request:</b> admission is ${retro.daysAgo} day(s) in the past${retro.capped?' (capped at the '+RETRO_MAX_DAYS+'-day policy limit)':''}.</div>` : ''}`;
+    chain.forEach(it=>{ li+=`<div class="rev-li"><span class="rev-tag ip">INPATIENT</span><b>${it.loc}</b> · ${fmt(it.dStart)} – ${fmt(it.dEnd)} · ${it.days} day${it.days==1?'':'s'}${it.pos&&it.pos!=='— Not specified —'?' · POS '+it.pos.split(' – ')[0]:''}${it.code?' · Code '+it.code:''}</div>`; });
     liCount+=ipState.length;
-  } else if(t==='Outpatient'){
+  } else if(isOutpatientType(t)){
     authLines=`<div class="ln"><b>Requesting Provider:</b> ${val('reqProv')}</div>
       <div class="ln"><b>Servicing Provider:</b> ${val('servFac')}</div>
       <div class="ln"><b>Service Dates:</b> ${fmt(val('opFrom'))} – ${fmt(val('opTo'))}</div>
       <div class="ln"><b>Place of Service:</b> ${val('opPos')}</div>`;
-  } else if(t==='Pharmacy (RX)'){
+  } else if(isPharmacyType(t)){
     authLines=`<div class="ln"><b>Prescribing Provider:</b> ${val('reqProv')}</div>
       <div class="ln"><b>Dispensing Pharmacy:</b> ${val('servFac')||'—'}</div>`;
   } else {
@@ -603,33 +932,42 @@ function renderReview(){
       <div class="ln"><b>Requested Dates:</b> ${fmt(val('gStart'))} – ${fmt(val('gEnd'))}</div>
       <div class="ln" style="color:var(--faint)">Additional ${t} fields per BHP template</div>`;
   }
-  if(t!=='Inpatient' && t!=='Pharmacy (RX)'){
+  if(!isInpatientType(t) && !isPharmacyType(t)){
     prState.forEach(it=>{ li+=`<div class="rev-li"><span class="rev-tag pr">SERVICE</span>${it.svcType?'<b>'+it.svcType+'</b> · ':''}${it.code||'No code'} · ${it.desc||'—'} · ${it.qty||1} ${(it.unit||'Units').toLowerCase()}${it.start?' · '+fmt(it.start)+'–'+fmt(it.end):''}${it.pos&&it.pos!=='— Not specified —'?' · POS '+it.pos.split(' – ')[0]:''}</div>`; });
-  } else if(t==='Inpatient'){
+  } else if(isInpatientType(t)){
     prState.forEach(it=>{ li+=`<div class="rev-li"><span class="rev-tag pr">PROCEDURE</span>${it.svcType?'<b>'+it.svcType+'</b> · ':''}${it.code||'No code'} · ${it.desc||'—'} · ${it.qty||1} ${(it.unit||'Units').toLowerCase()}${it.start?' · '+fmt(it.start)+'–'+fmt(it.end):''}${it.pos&&it.pos!=='— Not specified —'?' · POS '+it.pos.split(' – ')[0]:''}</div>`; });
   }
   if(showLines){ liCount+=prState.length; }
   rxState.forEach(it=>{ li+=`<div class="rev-li"><span class="rev-tag rx">RX</span><b>${it.drug||'Drug'}</b>${it.form?' '+it.form:''} · Qty ${it.qty} · ${it.days} days · ${it.refills} refill${it.refills==1?'':'s'} · Rx: ${it.sameAsReq?(val('reqProv')||REQUESTING_PROVIDER):(it.prescriber||'—')}${it.pharmacy?' · '+it.pharmacy:''}</div>`; });
   liCount+=rxState.length;
   if(!li) li='<div class="rev-li" style="color:var(--faint)">No line items</div>';
+  const eligList=auth.member?(auth.member.elig||[]):[];
+  const eligBlock=eligList.length
+    ? eligList.map((e,i)=>{
+        const active=i===(auth.activeElig||0);
+        return `<div class="ln">${active?'▸ ':''}<b>${eligLabel(e)}</b> · <span class="rev-active">ACTIVE</span> · ${e.plan} · ${fmt(e.effFrom)}–${fmt(e.effTo)} · ${e.annualMaxDays-e.daysUsed} day(s) remaining of ${e.annualMaxDays}${active?' <i style="color:var(--faint)">— selected for this authorization</i>':''}</div>`;
+      }).join('')
+    : '<div class="ln" style="color:var(--faint)">No eligibility on file for this member.</div>';
+  const dxLines=dxState.map(d=>`<div class="ln">${d.primary?'<b>Primary Diagnosis:</b>':'<span class="muted">Secondary:</span>'} ${d.code} – ${d.name}</div>`).join('');
   document.getElementById('reviewBody').innerHTML=`
     <div class="rev-block"><div class="lbl">Member</div><div class="ln">${auth.member ? auth.member.name+' (ID: '+auth.member.mbr+')' : '<span style="color:var(--faint)">No member selected</span>'}</div></div>
     <div class="rev-block"><div class="lbl">Authorization</div>
-      <div class="ln"><b>Service Type:</b> ${t}</div>
+      <div class="ln"><b>Auth Type:</b> ${t}</div>
       <div class="ln"><b>Urgency:</b> ${val('urgency')}</div>
-      <div class="ln"><b>Auth Category:</b> ${val('dxType')}</div>
+      <div class="ln"><b>Auth Category:</b> ${authCategory(t)}</div>
       ${authLines}
-      <div class="ln"><b>Diagnosis:</b> ${val('dxCode')} – ${val('dxName')}</div>
+      ${dxLines}
     </div>
     <div class="rev-block"><div class="lbl">Line Items (${liCount})</div>${li}</div>
     <div class="rev-block"><div class="lbl">Attached Documents (0)</div><div class="ln" style="color:var(--faint)">No documents attached</div></div>
-    <div class="rev-block"><div class="lbl">Eligibility</div><div class="ln"><b>Status:</b> <span class="rev-active">ACTIVE</span></div><div class="ln"><b>Plan:</b> FL_MEDICARE_ADVANTAGE</div></div>`;
+    <div class="rev-block"><div class="lbl">Eligibility</div>${eligBlock}</div>`;
 }
 
 /* init */
 renderSelectedMember();
 renderTypeFields(currentType());
-ipState.push({id:++ipId, loc:auth.loc, days:getLos(), pos:'21 – Inpatient Hospital', reqDate:TODAY});
+renderDx();
+ipState.push({id:++ipId, loc:auth.loc, days:getLos(), pos:'21 – Inpatient Hospital', reqDate:TODAY, code:''});
 recalcDischarge(); go(1);
 </script>
 </body></html>
