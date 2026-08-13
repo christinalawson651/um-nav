@@ -571,7 +571,7 @@ function wizBuildDraftPayload(){
     reqProv:val('reqProv'), servFac:val('servFac'), clinicalNote:val('clinicalNote'),
     loc:auth.loc, admit:getAdmit(), los:getLos(), admType:val('admType'), admSource:val('admSource'),
     opFrom:val('opFrom'), opTo:val('opTo'), opPos:val('opPos'),
-    ipLines:ipState.map(function(it){ return {loc:it.loc, days:it.days, pos:it.pos, reqDate:it.reqDate, start:it.start, svcType:it.svcType||'', code:it.code||''}; }),
+    ipLines:ipState.map(function(it){ return {loc:it.loc, days:it.days, pos:it.pos, reqDate:it.reqDate, start:it.start, svcType:it.svcType||'', code:it.code||'', units:it.units||''}; }),
     procLines:prState.map(function(it){ return {code:it.code, desc:it.desc, qty:it.qty, unit:it.unit, pos:it.pos, facility:it.facility, sameAsReq:it.sameAsReq, svcType:it.svcType, start:it.start, end:it.end, reqDate:it.reqDate}; }),
     rxLines:rxState.map(function(it){ return {drug:it.drug, form:it.form, qty:it.qty, days:it.days, refills:it.refills, sameAsReq:it.sameAsReq, prescriber:it.prescriber, pharmacy:it.pharmacy, reqDate:it.reqDate}; })
   };
@@ -607,8 +607,8 @@ function wizResume(p){
   setVal('opFrom',p.opFrom); setVal('opTo',p.opTo); setVal('opPos',p.opPos);
   setVal('clinicalNote',p.clinicalNote);
   ipState.length=0;
-  (p.ipLines||[]).forEach(function(it,i){ ipId++; ipState.push({id:ipId, loc:it.loc||auth.loc, days:it.days||1, pos:it.pos||'21 – Inpatient Hospital', reqDate:it.reqDate||TODAY, start:i===0?undefined:it.start, svcType:it.svcType||'', code:it.code||''}); });
-  if(!ipState.length){ ipId++; ipState.push({id:ipId, loc:auth.loc, days:1, pos:'21 – Inpatient Hospital', reqDate:TODAY, code:''}); }
+  (p.ipLines||[]).forEach(function(it,i){ ipId++; ipState.push({id:ipId, loc:it.loc||auth.loc, days:it.days||1, pos:it.pos||'21 – Inpatient Hospital', reqDate:it.reqDate||TODAY, start:i===0?undefined:it.start, svcType:it.svcType||'', code:it.code||'', units:it.units||''}); });
+  if(!ipState.length){ ipId++; ipState.push({id:ipId, loc:auth.loc, days:1, pos:'21 – Inpatient Hospital', reqDate:TODAY, code:'', units:''}); }
   prState.length=0;
   (p.procLines||[]).forEach(function(it){ prId++; prState.push({id:prId, code:it.code||'', desc:it.desc||'', qty:it.qty||1, unit:it.unit||'Units', pos:it.pos||'— Not specified —', facility:it.facility||'', sameAsReq:!!it.sameAsReq, svcType:it.svcType||OP_SERVICE_TYPES[0], start:it.start||'', end:it.end||'', reqDate:it.reqDate||TODAY}); });
   rxState.length=0;
@@ -634,7 +634,7 @@ function wizCreated(){
     payload.admType=val('admType'); payload.admSource=val('admSource');
     var retro=checkRetro();
     payload.isRetro=retro.isRetro; payload.retroDays=retro.daysAgo||0; payload.retroCapped=!!retro.capped;
-    payload.ipLines=computeChain().map(function(it){ return {loc:it.loc, days:+it.days||0, start:it.dStart, end:it.dEnd, pos:it.pos, svcType:it.svcType||'', code:it.code||''}; });
+    payload.ipLines=computeChain().map(function(it){ return {loc:it.loc, days:+it.days||0, start:it.dStart, end:it.dEnd, pos:it.pos, svcType:it.svcType||'', code:it.code||'', units:it.units||'', reqDate:it.reqDate||''}; });
     payload.procLines=prState.map(function(it){ return {svcType:it.svcType, code:it.code, desc:it.desc, qty:it.qty, unit:it.unit, pos:it.pos, provider:it.sameAsReq?REQUESTING_PROVIDER:it.facility, start:it.start, end:it.end}; });
   }
   if(wizEmbedded){ window.parent.postMessage({type:'authwizard-created', authType:t, payload:payload}, '*'); } else { alert('Authorization created (prototype).'); }
@@ -759,9 +759,10 @@ function inpatientCard(item,i,minStart){
   const startNote = isSeed ? '<span class="opt-tag">= admission date</span>' : '<span class="opt-tag">defaults to prior line\'s end — editable</span>';
   const startInput = `<input class="in" type="date" value="${item.dStart||''}" ${isSeed?'':`min="${minStart}"`} onchange="setIp(${item.id},'start',this.value)">`;
   return `<div class="card ip"><div class="card-top"><div style="display:flex;align-items:center;gap:8px"><span style="font-size:13px;font-weight:700;color:#374151">Inpatient line</span> ${badge}</div><button class="trash" ${isSeed?'disabled title="Initial line carries the Requested LOS"':''} onclick="removeInpatient(${item.id})">🗑</button></div>
-    <div class="row" style="grid-template-columns:1fr 1fr">
+    <div class="row" style="grid-template-columns:1fr 1fr .6fr">
       <div><label class="fl">Service Type <span class="opt-tag">optional</span></label><select class="in" onchange="setIp(${item.id},'svcType',this.value)"><option value="" ${!item.svcType?'selected':''}>— Not specified —</option>${IP_SERVICE_TYPES.map(s=>`<option ${s===item.svcType?'selected':''}>${s}</option>`).join('')}</select></div>
       <div><label class="fl">Procedure Code <span class="opt-tag">optional</span></label><input class="in" placeholder="CPT/HCPCS/ICD-10-PCS..." value="${item.code||''}" onchange="setIp(${item.id},'code',this.value)"></div>
+      <div><label class="fl">Units <span class="opt-tag">optional</span></label><input class="in" type="number" min="1" placeholder="1" value="${item.units||''}" onchange="setIp(${item.id},'units',this.value)"></div>
     </div>
     <div class="tmpl-note" style="margin:-6px 0 11px">Optional — service type fields applied from the BHP template.</div>
     <div class="row r-ip">
@@ -812,7 +813,7 @@ function setIp(id,key,val){
   }
   renderInpatient();
 }
-function addInpatient(){ const last=ipState[ipState.length-1]; const idx=last?LOC_OPTIONS.indexOf(last.loc):0; const loc=LOC_OPTIONS[Math.min(idx+1,LOC_OPTIONS.length-1)]||LOC_OPTIONS[0]; ipState.push({id:++ipId,loc,days:0,pos:'— Not specified —',reqDate:TODAY,code:''}); renderInpatient(); }
+function addInpatient(){ const last=ipState[ipState.length-1]; const idx=last?LOC_OPTIONS.indexOf(last.loc):0; const loc=LOC_OPTIONS[Math.min(idx+1,LOC_OPTIONS.length-1)]||LOC_OPTIONS[0]; ipState.push({id:++ipId,loc,days:0,pos:'— Not specified —',reqDate:TODAY,code:'',units:''}); renderInpatient(); }
 function removeInpatient(id){ const i=ipState.findIndex(x=>x.id===id); if(i>0){ipState.splice(i,1); renderInpatient();} }
 
 /* ---------- step 3 procedure ---------- */
@@ -916,7 +917,7 @@ function renderReview(){
       <div class="ln"><b>Admission / Anticipated Discharge:</b> ${fmt(getAdmit())} – ${fmt(disc)}</div>
       <div class="ln"><b>Requested LOS:</b> ${totalDays()} day${totalDays()==1?'':'s'}</div>
       ${retro.isRetro ? `<div class="ln" style="color:#b45309;"><b>⚠ Retroactive Request:</b> admission is ${retro.daysAgo} day(s) in the past${retro.capped?' (capped at the '+RETRO_MAX_DAYS+'-day policy limit)':''}.</div>` : ''}`;
-    chain.forEach(it=>{ li+=`<div class="rev-li"><span class="rev-tag ip">INPATIENT</span><b>${it.loc}</b> · ${fmt(it.dStart)} – ${fmt(it.dEnd)} · ${it.days} day${it.days==1?'':'s'}${it.pos&&it.pos!=='— Not specified —'?' · POS '+it.pos.split(' – ')[0]:''}${it.code?' · Code '+it.code:''}</div>`; });
+    chain.forEach(it=>{ li+=`<div class="rev-li"><span class="rev-tag ip">INPATIENT</span><b>${it.loc}</b> · ${fmt(it.dStart)} – ${fmt(it.dEnd)} · ${it.days} day${it.days==1?'':'s'}${it.pos&&it.pos!=='— Not specified —'?' · POS '+it.pos.split(' – ')[0]:''}${it.code?' · Code '+it.code:''}${it.units?' · '+it.units+' unit'+(it.units==1?'':'s'):''}</div>`; });
     liCount+=ipState.length;
   } else if(isOutpatientType(t)){
     authLines=`<div class="ln"><b>Requesting Provider:</b> ${val('reqProv')}</div>
@@ -967,7 +968,7 @@ function renderReview(){
 renderSelectedMember();
 renderTypeFields(currentType());
 renderDx();
-ipState.push({id:++ipId, loc:auth.loc, days:getLos(), pos:'21 – Inpatient Hospital', reqDate:TODAY, code:''});
+ipState.push({id:++ipId, loc:auth.loc, days:getLos(), pos:'21 – Inpatient Hospital', reqDate:TODAY, code:'', units:''});
 recalcDischarge(); go(1);
 </script>
 </body></html>

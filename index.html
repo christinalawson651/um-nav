@@ -188,6 +188,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-siz
 .cr-card-hdr .cr-count{font-size:11px;font-weight:600;color:var(--gray-500);}
 .seg-row,.log-row{display:flex;align-items:flex-start;gap:12px;padding:11px 16px;border-bottom:1px solid var(--gray-100);font-size:12.5px;}
 .seg-row:last-child,.log-row:last-child{border-bottom:none;}
+.log-row:hover{background:var(--gray-50);}
 .seg-ico{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;background:var(--primary-pale);color:var(--primary);}
 .seg-main{flex:1;}
 .seg-main .seg-title{font-weight:700;color:var(--gray-800);margin-bottom:2px;}
@@ -317,7 +318,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-siz
 .breadcrumb{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--gray-500);padding:7px 20px;background:white;border-bottom:1px solid var(--gray-200);}
 /* The IP review screen's Line Details/criteria/AI-note content can run long — without this, the only
    "Back to Auth" affordance (in the breadcrumb) scrolled out of view, leaving just the sidebar to get back. */
-#s-ip-review .breadcrumb{position:sticky;top:0;z-index:5;}
+#s-ip-review .breadcrumb{position:sticky;top:0;z-index:5;padding:5px 20px;}
 .breadcrumb a{color:var(--primary);text-decoration:none;cursor:pointer;}
 .breadcrumb a:hover{text-decoration:underline;}
 .bc-sep{color:var(--gray-300);}
@@ -747,6 +748,12 @@ mark.ev-flash{animation:evFlash 1.4s ease;}
 .ai-text{font-size:12px;color:var(--gray-700);line-height:1.7;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;}
 .ai-text.expanded{display:block;}
 
+/* IP review screen — everything above the working area scrolls in its own capped-height stack instead
+   of pushing .review-body down when Criteria Selection / AI Note are both expanded. flex-shrink:0 + a
+   fixed max-height means it never grows past that cap; anything taller scrolls inside it via its own
+   scrollbar, so .review-body's flex:1 share of the remaining height stays large and predictable. */
+.ipr-topstack{flex-shrink:0;overflow-y:auto;max-height:34vh;}
+
 /* SPLIT PANEL */
 .review-body{flex:1;display:flex;overflow:hidden;min-height:0;}
 
@@ -879,6 +886,14 @@ mark.ev-flash{animation:evFlash 1.4s ease;}
 .modal-close{color:var(--gray-400);cursor:pointer;font-size:18px;background:none;border:none;line-height:1;}
 .modal-body{padding:18px 20px;}
 .modal-footer{padding:11px 20px;border-top:1px solid var(--gray-200);display:flex;justify-content:flex-end;gap:8px;}
+.modal-min{color:var(--gray-400);cursor:pointer;font-size:16px;background:none;border:none;line-height:1;padding:0 2px;}
+.modal-min:hover{color:var(--gray-600);}
+.minimized-stack{position:fixed;bottom:16px;right:16px;z-index:1100;display:flex;flex-direction:column;gap:8px;align-items:flex-end;}
+.minimized-chip{display:flex;align-items:center;gap:8px;background:#fff;border:1px solid var(--gray-200);border-radius:10px;box-shadow:0 6px 20px rgba(0,0,0,0.18);padding:9px 12px;cursor:pointer;font-size:12.5px;color:var(--gray-700);max-width:280px;}
+.minimized-chip:hover{background:var(--gray-50);}
+.minimized-chip .mc-title{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600;}
+.minimized-chip .mc-close{color:var(--gray-400);font-size:13px;flex-shrink:0;}
+.minimized-chip .mc-close:hover{color:var(--gray-600);}
 .info-banner{background:var(--blue-bg);border:1px solid var(--blue-border);border-radius:6px;padding:9px 12px;margin-bottom:14px;font-size:12px;color:#1D4ED8;line-height:1.6;}
 .form-group{margin-bottom:13px;}
 .form-label{font-size:10px;font-weight:700;color:var(--gray-600);text-transform:uppercase;letter-spacing:0.4px;margin-bottom:5px;display:block;}
@@ -1029,7 +1044,7 @@ mark.ev-flash{animation:evFlash 1.4s ease;}
             </tr>
             <tr class="clickable" onclick="openIpCase('james')">
               <td><input type="checkbox" onclick="event.stopPropagation()"></td>
-              <td><span class="nba nba-teal nba-act" onclick="event.stopPropagation();openIpCase('james')" title="Next best action — click to start">&#8635; Concurrent Review</span><div class="ai-pill" title="AI pre-review: continued-stay summary drafted from day-5 clinicals; LOS running 1 day over guideline — variance flagged for your decision.">&#10024; AI: Stay summary drafted &middot; LOS +1d vs GLOS</div></td>
+              <td><span class="nba nba-teal nba-act" onclick="event.stopPropagation();openConcurrentReviewDirect('james')" title="Next best action — click to start">&#8635; Concurrent Review</span><div class="ai-pill" title="AI pre-review: continued-stay summary drafted from day-5 clinicals; LOS running 1 day over guideline — variance flagged for your decision.">&#10024; AI: Stay summary drafted &middot; LOS +1d vs GLOS</div></td>
               <td class="tat-cell" data-case="james"></td><td data-urgency-case="james">Standard</td>
               <td><div class="mem-link">James Whitfield</div><div class="mem-id">FLA0000087</div></td>
               <td style="text-align:center"><span class="sb sb-primary" style="font-weight:700;">1</span></td>
@@ -1559,12 +1574,12 @@ mark.ev-flash{animation:evFlash 1.4s ease;}
           <div id="ai-auth-note-wrap">
             <!-- Header / collapse toggle -->
             <div class="ai-note-collapse-hdr" onclick="toggleAINote()">
+              <span id="ai-note-chev" class="ai-chev up" style="margin-left:0;">&#9650;</span>
               <span style="font-size:15px;">&#10024;</span>
               <span style="font-size:12px;font-weight:700;color:var(--gray-700);">AI Authorization Note</span>
               <span class="ai-badge">AI-GENERATED</span>
               <span style="color:var(--gray-400);cursor:pointer;font-size:13px;" onclick="event.stopPropagation()">&#9998;</span>
               <span class="conf-badge">&#10024; 95% Confidence</span>
-              <span id="ai-note-chev" class="ai-chev up" style="margin-left:auto;">&#9650;</span>
             </div>
 
             <!-- Peek bar — shows only when body is collapsed -->
@@ -1741,10 +1756,10 @@ mark.ev-flash{animation:evFlash 1.4s ease;}
                 <div class="pn-card">
                   <!-- Header / collapse toggle -->
                   <div class="pn-card-hdr" onclick="togglePNCard()">
+                    <span id="pn-chev" class="ai-chev up" style="margin-left:0;color:var(--primary);">&#9650;</span>
                     <span style="font-size:15px;">&#10024;</span>
                     <span style="font-size:12px;font-weight:700;color:var(--gray-700);">AI Progress Note</span>
                     <span class="predec-badge">PRE-DECISION</span>
-                    <span id="pn-chev" class="ai-chev up" style="margin-left:auto;color:var(--primary);">&#9650;</span>
                   </div>
 
                   <!-- Body (open by default) -->
@@ -2412,26 +2427,28 @@ mark.ev-flash{animation:evFlash 1.4s ease;}
       </div>
       <div class="um-layout">
         <div class="review-main">
-          <!-- Line Item bar — which bed-day segment / service line is under review, with a dropdown for
-               details (mirrors the OP-style "Line Item: N ▾" bar). IP doesn't have simultaneous procedure
-               lines the way OP does, so "items" = bed-day segments + service lines on this stay; picking
-               one is informational (the determination is still per-stay), not a review-target switch. -->
-          <div id="ipr-item-bar" style="display:flex;align-items:center;gap:10px;padding:10px 20px;background:white;border-bottom:1px solid var(--gray-200);flex-shrink:0;flex-wrap:wrap;">
-            <span style="font-weight:700;font-size:12.5px;color:var(--gray-800);white-space:nowrap;">Line Item:</span>
-            <select class="form-ctrl" id="ipr-item-select" style="width:auto;min-width:280px;" onchange="iprItemChange()"></select>
-            <span class="sb" id="ipr-item-pill"></span>
-            <span id="ipr-item-detail" style="font-size:11.5px;color:var(--gray-500);margin-left:6px;"></span>
-          </div>
-          <div class="review-topbar" style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) minmax(0,1fr);">
-            <span id="ipr-status" style="justify-self:start;"></span>
-            <div class="ab-pagename" id="ipr-pagename" style="max-width:100%;"></div>
-            <span id="ipr-next-review-chip" style="justify-self:end;font-size:11.5px;color:var(--gray-600);background:var(--gray-50);border:1px solid var(--gray-200);border-radius:8px;padding:4px 10px;white-space:nowrap;"></span>
+          <!-- Everything above the actual working area (Line Item bar, status bar, Criteria Selection,
+               Line Details chips, AI Authorization Note, review-type banner) lives in its own scrollable
+               "top stack" capped at a fraction of the viewport height, instead of pushing .review-body
+               down when all of it is expanded. Bars inside are also trimmed thinner (less padding, tighter
+               gaps) so more fits before that cap kicks in — the working area (criteria checklist, LOC eval,
+               determination) below keeps a large, fixed floor regardless of how much is open up here. -->
+          <div id="ipr-topstack" class="ipr-topstack">
+          <!-- Centered page title removed per the real app's pattern (no such line there) — Status /
+               Next Action now sit on the right instead, matching the real app's Auth Detail and Line Item
+               header rows. #ipr-pagename stays in the DOM (hidden) since enterIpReview()/
+               ipUpdateReviewPagename() still write to it (procline mode's "Line Review — N lines" title,
+               etc.) — hiding rather than removing avoids touching that logic. -->
+          <div class="review-topbar" style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:5px 20px;">
+            <span id="ipr-next-review-chip" style="font-size:11.5px;color:var(--gray-600);background:var(--gray-50);border:1px solid var(--gray-200);border-radius:8px;padding:4px 10px;white-space:nowrap;"></span>
+            <div class="ab-pagename" id="ipr-pagename" style="display:none;"></div>
+            <span id="ipr-status-nba" style="display:flex;align-items:center;gap:6px;white-space:nowrap;"></span>
           </div>
           <!-- Criteria Selection — embeds the same fields as criteria-lookup-launch.html (source, launch/book
                view, diagnosis lookup radios) prominently, right below the AI note. Guideline drives which
                criteria set loads and is ours (not in the reference tool), kept on the same block. -->
-          <div id="ipr-guideline-bar" style="padding:12px 20px;background:white;border-bottom:1px solid var(--gray-200);flex-shrink:0;">
-            <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+          <div id="ipr-guideline-bar" style="padding:7px 20px;background:white;border-bottom:1px solid var(--gray-200);flex-shrink:0;">
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">
               <div style="display:flex;align-items:center;gap:8px;cursor:pointer;" onclick="iprToggleCritSel()">
                 <span id="ipr-crit-sel-chev" style="display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:5px;background:var(--gray-200);font-size:12px;font-weight:700;color:var(--gray-700);transition:transform .15s;">&#9662;</span>
                 <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--gray-500);">Criteria Selection</div>
@@ -2440,7 +2457,7 @@ mark.ev-flash{animation:evFlash 1.4s ease;}
               <button class="btn btn-secondary btn-sm ai-assist-mini-btn" onclick="toggleAiAssist()" style="margin-left:auto;font-size:11px;padding:4px 9px;" title="Show or hide AI pre-review on Next Best Actions">&#10024; AI Assist: ON</button>
             </div>
             <div id="ipr-crit-sel-body">
-            <div style="display:flex;gap:22px;align-items:center;flex-wrap:wrap;row-gap:10px;margin-bottom:8px;">
+            <div style="display:flex;gap:22px;align-items:center;flex-wrap:wrap;row-gap:6px;margin-bottom:6px;">
               <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
                 <div style="display:inline-flex;align-items:center;gap:8px;flex-wrap:nowrap;">
                 <label class="form-label" style="margin:0;white-space:nowrap;">Criteria Source <span style="color:var(--red);">*</span></label>
@@ -2464,7 +2481,7 @@ mark.ev-flash{animation:evFlash 1.4s ease;}
                 <button type="button" class="btn btn-outline btn-sm" id="cr-guideline-url-open" style="display:none;" onclick="window.open(document.getElementById('cr-guideline-url').value,'_blank')">Open</button>
               </div>
             </div>
-            <div style="display:flex;gap:16px;align-items:center;flex-wrap:wrap;row-gap:8px;">
+            <div style="display:flex;gap:16px;align-items:center;flex-wrap:wrap;row-gap:6px;">
               <label class="form-label" style="margin:0;white-space:nowrap;">Dx / Proc Code</label>
               <label style="display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--gray-700);cursor:pointer;white-space:nowrap;"><input type="radio" name="ipr-lookup-type" value="diagnosis" checked onchange="lookupTypeChange('ipr')"> Diagnosis</label>
               <label style="display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--gray-700);cursor:pointer;white-space:nowrap;"><input type="radio" name="ipr-lookup-type" value="procedure" onchange="lookupTypeChange('ipr')"> Procedure</label>
@@ -2476,20 +2493,21 @@ mark.ev-flash{animation:evFlash 1.4s ease;}
           <!-- Selected-lines chip strip — Line Review mode only. Mirrors OP's "Line Details" chips:
                shows every candidate line collapsed, lets the nurse add/remove lines from THIS review
                without leaving the screen, positioned above the AI Authorization Note. -->
-          <div id="ipr-line-chips" style="display:none;padding:0 20px;margin-top:12px;"></div>
+          <div id="ipr-line-chips" style="display:none;padding:0 20px;margin-top:8px;"></div>
           <!-- AI Authorization Note — collapsible, mirrors the OP review's AI-note pattern. -->
           <div id="ipr-ai-note-wrap">
-            <div class="ai-note-collapse-hdr" onclick="iprToggleAiNote()">
+            <div class="ai-note-collapse-hdr" onclick="iprToggleAiNote()" style="padding:6px 20px;">
+              <span id="ipr-ai-note-chev" class="ai-chev up" style="margin-left:0;">&#9650;</span>
               <span style="font-size:15px;">&#10024;</span>
               <span style="font-size:12px;font-weight:700;color:var(--gray-700);">AI Authorization Note</span>
               <span class="ai-badge">AI-GENERATED</span>
-              <span id="ipr-ai-note-chev" class="ai-chev up" style="margin-left:auto;">&#9650;</span>
             </div>
             <div id="ipr-ai-note-body" class="ai-note-body">
-              <div id="ipr-ai-note-content" style="padding:12px 20px;font-size:12px;color:var(--gray-700);line-height:1.7;"></div>
+              <div id="ipr-ai-note-content" style="padding:8px 20px;font-size:12px;color:var(--gray-700);line-height:1.6;"></div>
             </div>
           </div>
-          <div id="cr-ctx" style="margin:12px 20px 0;font-size:12px;color:var(--gray-600);background:var(--gray-50);border:1px solid var(--gray-200);border-radius:8px;padding:9px 12px;"></div>
+          <div id="cr-ctx" style="margin:8px 20px;font-size:12px;color:var(--gray-600);background:var(--gray-50);border:1px solid var(--gray-200);border-radius:8px;padding:7px 12px;"></div>
+          </div><!-- /ipr-topstack -->
 
           <div class="review-body">
             <!-- LEFT PANEL — mode-specific (nurse review OR MD/P2P determination) -->
@@ -2605,10 +2623,10 @@ mark.ev-flash{animation:evFlash 1.4s ease;}
                 <!-- AI Progress Note — pre-determination summary, mirrors the OP review's pn-card pattern -->
                 <div class="pn-card" id="ipr-pn-card">
                   <div class="pn-card-hdr" onclick="iprTogglePNCard()">
+                    <span id="ipr-pn-chev" class="ai-chev up" style="margin-left:0;color:var(--primary);">&#9650;</span>
                     <span style="font-size:15px;">&#10024;</span>
                     <span style="font-size:12px;font-weight:700;color:var(--gray-700);">AI Progress Note</span>
                     <span class="predec-badge">PRE-DECISION</span>
-                    <span id="ipr-pn-chev" class="ai-chev up" style="margin-left:auto;color:var(--primary);">&#9650;</span>
                   </div>
                   <div id="ipr-pn-card-body" class="pn-card-body">
                     <div id="ipr-gen-btn-wrap">
@@ -2668,21 +2686,23 @@ mark.ev-flash{animation:evFlash 1.4s ease;}
   </div>
 </div>
 
-<!-- ==================== MODAL: ADMISSION APPROVED — SET UP CONCURRENT REVIEW ==================== -->
+<!-- ==================== MODAL: ADMISSION APPROVED ==================== -->
+<!-- Initial Review is its own phase, separate from Concurrent Review (which hasn't started yet) — this
+     popup only confirms the initial certification. No concurrent-review date/scheduling here; the next
+     review gets scheduled later, either from the stay panel's own Schedule/Change action or the first
+     time an actual concurrent review is performed. -->
 <div id="m-ip-admit-approve" class="modal-overlay">
   <div class="modal-box" style="max-width:460px;">
-    <div class="modal-hdr"><span style="font-size:15px;color:var(--green);">&#10003;</span><span class="modal-title">Approve &amp; Set Concurrent Review Date</span><button class="modal-close" onclick="closeModal('m-ip-admit-approve')">&#10005;</button></div>
+    <div class="modal-hdr"><span style="font-size:15px;color:var(--green);">&#10003;</span><span class="modal-title">Approve</span><button class="modal-close" onclick="closeModal('m-ip-admit-approve')">&#10005;</button></div>
     <div class="modal-body">
-      <div style="font-size:12.5px;color:var(--gray-700);line-height:1.6;margin-bottom:14px;">Approving this inpatient authorization will set the concurrent review date. The concurrent review will be performed on that date.</div>
+      <div style="font-size:12.5px;color:var(--gray-700);line-height:1.6;margin-bottom:14px;">Approving this inpatient authorization certifies the initial length of stay.</div>
       <div class="form-group"><label class="form-label">Initial LOS (days)</label><input type="number" class="form-ctrl" id="ipa-los" readonly></div>
-      <div class="form-group"><label class="form-label">Concurrent Review Date <span id="ipa-ai-tag" style="font-weight:400;text-transform:none;color:var(--primary);"></span></label><input type="date" class="form-ctrl" id="ipa-date" oninput="ipaUpdateSummary()"></div>
       <div class="form-group"><label class="form-label">Notes</label><input type="text" class="form-ctrl" id="ipa-notes" placeholder="Initial review notes..." oninput="ipaUpdateSummary()"></div>
       <div id="ipa-summary" style="font-size:12px;color:var(--gray-700);background:var(--green-bg);border:1px solid var(--green-border);border-radius:8px;padding:9px 12px;display:flex;gap:8px;align-items:center;"></div>
     </div>
     <div class="modal-footer" style="justify-content:space-between;flex-wrap:wrap;gap:8px;">
       <button class="btn btn-outline btn-sm" onclick="closeModal('m-ip-admit-approve')">Cancel</button>
       <button class="btn btn-primary btn-sm" onclick="ipAdmitApproveSave()">&#10003; Approve</button>
-      <button class="btn btn-primary btn-sm" style="background:var(--green);border-color:var(--green);" onclick="ipAdmitApproveSchedule()">&#128197; Approve &amp; Set Concurrent Review Date</button>
     </div>
   </div>
 </div>
@@ -2798,6 +2818,7 @@ mark.ev-flash{animation:evFlash 1.4s ease;}
     <div class="modal-hdr">
       <span style="font-size:15px;">🗒</span>
       <span class="modal-title" id="crdetail-title">Review — Details</span>
+      <button class="modal-min" onclick="minimizeModal('m-crdetail')" title="Minimize — keep for reference">&#128469;</button>
       <button class="modal-close" onclick="closeModal('m-crdetail')">&#10005;</button>
     </div>
     <div class="modal-body" id="crdetail-body"></div>
@@ -3702,6 +3723,16 @@ function navStep(key, el) {
   if (isIpCase(currentCase)) { // inpatient case — every reached step lives on the concurrent-review screen
     if (key === 'worklist') { showScreen('s-dashboard'); return; }
     showScreen('s-auth-detail-ip');
+    if (key === 'auth') {
+      // showScreen alone is a no-op when we're already on s-auth-detail-ip (e.g. clicking "Authorization"
+      // from inside a review screen lands here, but clicking it while ALREADY here — scrolled deep into
+      // Line Items — did nothing visible). Open + scroll to accordion #1 (Authorization Details) so the
+      // click always lands somewhere, same as every other sidebar phase.
+      var ab = document.getElementById('ip-auth-body');
+      var abHdr = ab && ab.closest('.accordion') && ab.closest('.accordion').querySelector('.acc-hdr');
+      if (abHdr && !abHdr.classList.contains('open')) abHdr.classList.add('open');
+      pulseEl(ab, true);
+    }
     if (key === 'concurrent' || key === 'review') pulseIpPanel();
     return;
   }
@@ -5160,6 +5191,35 @@ function mdDecisionReturned() {
 /* MODALS */
 function openModal(id) { document.getElementById(id).classList.add('active'); }
 function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+// Minimizing a review pop-up (rather than closing it) lets the nurse keep it handy for reference — e.g.
+// the Initial Review recap — while she works a different review in the main screen behind it. Collapses
+// to a small restorable chip stacked bottom-right instead of disappearing entirely.
+var minimizedModals = {};
+function minimizeModal(id) {
+  var box = document.getElementById(id); if (!box) return;
+  box.classList.remove('active');
+  var titleEl = box.querySelector('.modal-title');
+  minimizedModals[id] = (titleEl && titleEl.textContent) || 'Details';
+  renderMinimizedStack();
+}
+function restoreMinimized(id) {
+  delete minimizedModals[id];
+  var box = document.getElementById(id); if (box) box.classList.add('active');
+  renderMinimizedStack();
+}
+function dismissMinimized(id) {
+  delete minimizedModals[id];
+  renderMinimizedStack();
+}
+function renderMinimizedStack() {
+  var el = document.getElementById('minimized-stack'); if (!el) return;
+  var ids = Object.keys(minimizedModals);
+  el.innerHTML = ids.map(function (id) {
+    return '<div class="minimized-chip" onclick="restoreMinimized(\'' + id + '\')" title="Click to restore">'
+      + '<span style="font-size:13px;">&#128203;</span><span class="mc-title">' + minimizedModals[id] + '</span>'
+      + '<span class="mc-close" onclick="event.stopPropagation();dismissMinimized(\'' + id + '\')" title="Dismiss">&#10005;</span></div>';
+  }).join('');
+}
 
 /* DROPDOWNS */
 function toggleDD(id) {
@@ -5446,13 +5506,13 @@ function editLine(caseKey, id) { var it = liFind(caseKey, id); if (!it) return; 
 function saveLine(caseKey, id) {
   var it = liFind(caseKey, id); if (!it) return;
   if (LI_AUTH_TYPE[caseKey] === 'Outpatient' && (!it.svcType || !String(it.code).trim())) { it._err = 'Service Type and Procedure Code are required.'; renderLineItems(caseKey); return; }
-  it.editing = false; it.isNew = false; it._err = ''; delete it._backup; renderLineItems(caseKey);
+  it.editing = false; it.expanded = false; it.isNew = false; it._err = ''; delete it._backup; renderLineItems(caseKey);
 }
 function cancelLine(caseKey, id) {
   var it = liFind(caseKey, id); if (!it) return;
   if (it.isNew) { var i = lineItems[caseKey].findIndex(function (x) { return x.id === id; }); lineItems[caseKey].splice(i, 1); renderLineItems(caseKey); return; }
   if (it._backup) LI_EDIT_FIELDS.forEach(function (f) { it[f] = it._backup[f]; });
-  it.editing = false; it._err = ''; delete it._backup; renderLineItems(caseKey);
+  it.editing = false; it.expanded = false; it._err = ''; delete it._backup; renderLineItems(caseKey);
 }
 function selLine(caseKey, id, c) { var it = liFind(caseKey, id); if (it) it.selected = c; renderLineItems(caseKey); }
 function selAll(caseKey, c) { lineItems[caseKey].forEach(function (x) { if (!x.determId) x.selected = c; }); renderLineItems(caseKey); }
@@ -5729,6 +5789,18 @@ function refreshLineItemsCell(key) {
   }
 }
 function openIpCase(k) { currentCase = k; showScreen('s-auth-detail-ip'); }
+// The dashboard's "Concurrent Review" NBA pill previously just opened the auth detail page like every
+// other pill — the nurse still had to select lines herself before reviewing. This selects the open
+// continued-stay review (plus any other undetermined Inpatient Lines, so they're reviewed together —
+// see ipConcurrentPseudoLine) and jumps straight into the review screen in one click.
+function openConcurrentReviewDirect(k) {
+  openIpCase(k);
+  var cr = crGet();
+  if (cr.status !== 'admitted') return; // not actually in a reviewable state — fall back to the detail page
+  cr._crSelected = true;
+  (cr.extraIpLines || []).forEach(function (x) { if (!x.determId) x.selected = true; });
+  ipReviewLinesSelected('ip');
+}
 function crParse(iso) { var p = iso.split('-'); return new Date(Date.UTC(+p[0], +p[1] - 1, +p[2])); }
 function crAddDays(iso, n) { var d = crParse(iso); d.setUTCDate(d.getUTCDate() + (+n || 0)); var z = function (x) { return String(x).padStart(2, '0'); }; return d.getUTCFullYear() + '-' + z(d.getUTCMonth() + 1) + '-' + z(d.getUTCDate()); }
 function crFmt(iso) { if (!iso) return '—'; var p = iso.split('-'); return p[1] + '/' + p[2] + '/' + p[0]; }
@@ -5900,7 +5972,15 @@ function buildIpTree(cr) {
       + phase('current', 'Initial Review', "openAdmissionReview(currentCase)")
       + phase('upcoming', 'Discharge', '');
   }
-  var html = phase('done', 'Authorization', "navStep('auth')") + phase('done', 'Clinical Review', "navStep('review')");
+  // Initial Review and Concurrent Review are both clinical reviews in the same workflow (initial, then
+  // ongoing) — grouped under one "Review" heading instead of reading as two unrelated top-level phases.
+  // Initial Review stays permanently clickable (not just a checkmark) so its criteria/determination are
+  // always available for reference while working a later concurrent review — reuses the same read-only
+  // recap (openCycleDetail) already built for every other review cycle, not a new view.
+  var initialCycle = cr.cycles.filter(function (c) { return c.type === 'Initial Review'; })[0];
+  var html = phase('done', 'Authorization', "navStep('auth')")
+    + '<div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:rgba(255,255,255,0.35);padding:8px 8px 2px;">Review</div>'
+    + phase('done', 'Initial Review', initialCycle ? ('openCycleDetail(' + initialCycle.id + ')') : "navStep('review')");
   var crCls = discharged ? 'done' : (cr.status === 'pending' ? 'current parked' : 'current');
   html += '<div class="ph ' + crCls + ' nav"><div class="ph-row" onclick="navStep(\'concurrent\')"><span class="ph-ico">' + (discharged ? '&#10003;' : '') + '</span><span class="ph-title">Concurrent Review</span>' + (discharged ? '' : '<span class="ph-chev">&#9662;</span>') + '</div>';
   if (!discharged) {
@@ -6015,7 +6095,7 @@ function renderIpWorklistRow(key) {
   if (nbaTd) {
     var pill = nbaTd.querySelector('.ai-pill');
     nbaTd.innerHTML = ns.nba + (pill ? pill.outerHTML : '');
-    var span = nbaTd.querySelector('.nba'); if (span) span.setAttribute('onclick', "event.stopPropagation();openIpCase('" + key + "')");
+    var span = nbaTd.querySelector('.nba'); if (span) span.setAttribute('onclick', "event.stopPropagation();" + (cr.status === 'admitted' ? "openConcurrentReviewDirect('" : "openIpCase('") + key + "')");
   }
   if (statusTd) statusTd.innerHTML = ns.status;
 }
@@ -6049,6 +6129,10 @@ function renderIpAuthBody() {
 var IP_POS_LIST = ['21 – Inpatient Hospital', '51 – Inpatient Psychiatric Facility', '61 – Comprehensive Inpatient Rehab', '31 – Skilled Nursing Facility', '11 – Office', '22 – On-Campus Outpatient Hospital', '— Not specified —'];
 // Matches the New Auth wizard's own Inpatient Line "Service Type" options (optional, informational).
 var IP_LINE_SVC_TYPES = ['Medical/Surgical', 'Behavioral Health', 'Rehabilitation', 'Skilled Nursing', 'Maternity', 'Hospice', 'Long-Term Acute Care'];
+// Same option lists the auth wizard uses for Admission Type/Source — kept identical so Line 1's Edit
+// form (wizard-parity) offers the same choices, not a re-invented list.
+var ADMISSION_TYPES = ['Elective', 'Emergency', 'Urgent', 'Newborn', 'Trauma'];
+var ADMISSION_SOURCES = ['Physician Referral', 'Clinic Referral', 'Transfer from Hospital', 'Transfer from SNF / Other Facility', 'Emergency Room', 'Court / Law Enforcement Referral', 'Information Not Available'];
 function ipVal(id) { var e = document.getElementById(id); return e ? e.value : ''; }
 function ipFld(l, inp) { return '<div><label class="form-label">' + l + '</label>' + inp + '</div>'; }
 // A service line performed during the inpatient stay must not end beyond the last certified bed day.
@@ -6086,6 +6170,10 @@ function ipProcCard(it) {
       + (it._elig ? eligBenefitsHtml(currentCase) : '')
       + '<div class="li-edit-actions"><button class="btn btn-outline btn-xs" onclick="ipCancelProc(' + it.id + ')">Cancel</button><button class="btn btn-primary btn-xs" onclick="ipSaveProc(' + it.id + ')">Save Line</button></div></div>';
   }
+  // Every line (Bed-Day, Inpatient, Service/Procedure, RX) shares the same leading caret pattern —
+  // click to expand and see the full review detail, matching "click a line to expand its review" on
+  // the Bed-Day group. Single-open-at-a-time, same as Bed-Day's cr._openSeg.
+  var openProc = cr._openProcId === ('proc:' + it.id);
   // Once independently determined (see ipProcDetermConfirm), the line shows its own outcome instead
   // of the selection checkbox/Review button — that determination is final and separate from the
   // bed-day stay's own concurrent-review determination.
@@ -6093,10 +6181,12 @@ function ipProcCard(it) {
     var rec = (cr.procDeterminations || []).find(function (x) { return x.id === it.determId; });
     var lineOutcome = rec ? (rec.outcomes.find(function (o) { return o.id === it.id; }) || {}).outcome : null;
     var tagCls = lineOutcome === 'deny' ? 't-deny' : 't-cert', tagTxt = lineOutcome === 'deny' ? 'Denied' : 'Approved';
-    return '<div class="li-card"><div class="li-card-top"><div><span class="li-code">' + (it.code || '—') + '</span> <span class="li-desc">' + (it.desc || it.svcType || 'Service line') + '</span></div>'
-      + '<div style="display:flex;gap:6px;align-items:center;"><span class="cr-tag ' + tagCls + '">' + tagTxt + '</span><button class="btn btn-outline btn-xs" onclick="ipToggleProcDetermDetail(' + it.id + ')">&#128203; Details</button></div></div>'
+    return '<div class="li-card"><div class="li-card-top" style="cursor:pointer;" onclick="ipToggleProcExpand(' + it.id + ')"><div style="display:flex;align-items:center;gap:8px;">'
+      + '<span class="li-caret">' + (openProc ? '&#9662;' : '&#9656;') + '</span>'
+      + '<span class="li-code">' + (it.code || '—') + '</span> <span class="li-desc">' + (it.desc || it.svcType || 'Service line') + '</span></div>'
+      + '<div style="display:flex;gap:6px;align-items:center;"><span class="cr-tag ' + tagCls + '">' + tagTxt + '</span></div></div>'
       + '<div class="li-meta">' + (it.svcType ? it.svcType + ' · ' : '') + (it.qty || 1) + ' ' + (it.unit || 'Units') + ' · ' + crFmt(it.start) + '–' + crFmt(it.end) + '</div>'
-      + '<div id="procdet-' + it.id + '" style="display:none;margin-top:8px;font-size:11.5px;color:var(--gray-600);background:var(--gray-50);border:1px solid var(--gray-200);border-radius:8px;padding:8px 10px;">' + (rec ? ('Reviewed &amp; decided by ' + rec.reviewedBy + ' &middot; ' + crFmt(rec.reviewDate) + (rec.note ? ' — ' + rec.note : '') + (rec.denialCode ? ' (' + rec.denialCode.split(' · ')[0] + ')' : '')) : '') + '</div>'
+      + (openProc ? '<div style="margin-top:8px;font-size:11.5px;color:var(--gray-600);background:var(--gray-50);border:1px solid var(--gray-200);border-radius:8px;padding:8px 10px;">' + (rec ? ('Reviewed &amp; decided by ' + rec.reviewedBy + ' &middot; ' + crFmt(rec.reviewDate) + (rec.note ? ' — ' + rec.note : '') + (rec.denialCode ? ' (' + rec.denialCode.split(' · ')[0] + ')' : '')) : '') + '</div>' : '')
       + '</div>';
   }
   var provLabel = it.sameAsReq ? (cr.attending || '—') : (it.provider || '—');
@@ -6109,13 +6199,20 @@ function ipProcCard(it) {
   var procNba = cr.status === 'pending-admission' ? '<span class="sb sb-blue" style="font-size:10px;">Initial Review</span>' : '';
   return '<div class="li-card"><div class="li-card-top" style="align-items:flex-start;"><div style="display:flex;align-items:flex-start;gap:8px;flex:1;min-width:170px;">'
     + '<input type="checkbox" class="li-sel" style="margin-top:2px;" ' + (it.selected ? 'checked' : '') + ' onchange="ipProcSel(' + it.id + ',this.checked)">'
-    + '<div><div><span class="li-code">' + (it.code || '—') + '</span> <span class="li-desc">' + (it.desc || it.svcType || 'Service line') + '</span></div>'
+    + '<span class="li-caret" style="margin-top:2px;" onclick="ipToggleProcExpand(' + it.id + ')">' + (openProc ? '&#9662;' : '&#9656;') + '</span>'
+    + '<div style="cursor:pointer;" onclick="ipToggleProcExpand(' + it.id + ')"><div><span class="li-code">' + (it.code || '—') + '</span> <span class="li-desc">' + (it.desc || it.svcType || 'Service line') + '</span></div>'
     +   '<div style="font-size:11px;color:var(--gray-500);margin-top:2px;">Servicing Provider: ' + provLabel + (it.pos ? ' &middot; POS ' + it.pos.split(' – ')[0] : '') + '</div></div></div>'
     + procCols
-    + '<div style="display:flex;gap:6px;align-items:center;">' + procNba + '<button class="btn btn-outline btn-xs" onclick="ipReviewProc(' + it.id + ')">&#128269; Review Medical Necessity</button><button class="btn btn-outline btn-xs" onclick="ipEditProc(' + it.id + ')">✎ Edit</button><button class="btn btn-ghost btn-xs" style="color:var(--red);" onclick="ipRemoveProc(' + it.id + ')">🗑</button></div></div>'
-    + (over ? '<div class="li-date-warn" style="margin-top:8px;">&#9888; End date (' + crFmt(it.end) + ') is beyond the certified stay (through ' + crFmt(lastDay) + '). A service line can\'t run past discharge. <button class="btn btn-outline btn-xs" onclick="ipCapProc(' + it.id + ')">Cap to ' + crFmt(lastDay) + '</button> <span style="color:var(--gray-500);">— care needed after discharge belongs on a separate post-acute / outpatient authorization.</span></div>' : '')
+    + '<div style="display:flex;gap:6px;align-items:center;">' + procNba + '<button class="btn btn-outline btn-xs" onclick="event.stopPropagation();ipReviewProc(' + it.id + ')">&#128269; Review Medical Necessity</button><button class="btn btn-outline btn-xs" onclick="event.stopPropagation();ipEditProc(' + it.id + ')">✎ Edit</button><button class="btn btn-ghost btn-xs" style="color:var(--red);" onclick="event.stopPropagation();ipRemoveProc(' + it.id + ')">🗑</button></div></div>'
+    + (openProc ? '<div style="margin-top:8px;font-size:12px;color:var(--gray-500);background:var(--gray-50);border:1px dashed var(--gray-300);border-radius:8px;padding:9px 12px;">Not yet reviewed — select this line and click <b>Review Selected</b> to record a determination.</div>' : '')
+    + (over ? '<div class="li-date-warn" style="margin-top:8px;">&#9888; End date (' + crFmt(it.end) + ') is beyond the certified stay (through ' + crFmt(lastDay) + '). A service line can\'t run past discharge. <button class="btn btn-outline btn-xs" onclick="event.stopPropagation();ipCapProc(' + it.id + ')">Cap to ' + crFmt(lastDay) + '</button> <span style="color:var(--gray-500);">— care needed after discharge belongs on a separate post-acute / outpatient authorization.</span></div>' : '')
     + '</div>';
 }
+// Generic single-open-at-a-time expand toggle for every line type (Proc/IP-extra/RX) — key is
+// "type:id" so ids that collide across the different arrays (e.g. procLine 1 and rxLine 1) don't
+// fight over the same open slot.
+function ipToggleLineExpand(type, id) { var cr = crGet(); var key = type + ':' + id; cr._openProcId = (cr._openProcId === key ? null : key); renderIpLines(); }
+function ipToggleProcExpand(id) { ipToggleLineExpand('proc', id); }
 function ipToggleSeg(id) { var cr = crGet(); cr._openSeg = (cr._openSeg === id ? null : id); renderIpLines(); }
 function ipToggleAdmitRow() { var cr = crGet(); cr._admitRowOpen = !cr._admitRowOpen; renderIpLines(); }
 // Edit the requested admission's own fields (LOC / LOS / diagnosis) before any review has happened —
@@ -6124,20 +6221,35 @@ function ipToggleAdmitRow() { var cr = crGet(); cr._admitRowOpen = !cr._admitRow
 function ipToggleAdmitEdit() {
   var cr = crGet();
   cr._admitEditing = !cr._admitEditing;
-  if (cr._admitEditing) cr._admitRowOpen = true; // editing implies expanded
+  // Editing implies expanded; leaving editing (Cancel — Save has its own explicit reset) collapses the
+  // row back rather than leaving it open in read-only view.
+  cr._admitRowOpen = cr._admitEditing;
   renderIpLines();
 }
 function ipSaveAdmitEdit() {
   var cr = crGet();
+  cr.admit = ipVal('ipa-edit-admit') || cr.admit;
+  cr.admType = ipVal('ipa-edit-admtype');
+  cr.admSource = ipVal('ipa-edit-admsource');
   cr.loc = ipVal('ipa-edit-loc') || cr.loc;
   cr.requestedLos = parseInt(ipVal('ipa-edit-los')) || cr.requestedLos || cr.los;
   cr.dxPrimary = cr.dxPrimary || {};
   cr.dxPrimary.code = ipVal('ipa-edit-dxcode');
   cr.dxPrimary.name = ipVal('ipa-edit-dxname');
   cr.dx = (cr.dxPrimary.code || '') + (cr.dxPrimary.name ? ' — ' + cr.dxPrimary.name : '');
+  cr.svcType = ipVal('ipa-edit-svc');
+  cr.code = ipVal('ipa-edit-code');
+  cr.units = ipVal('ipa-edit-units');
+  cr.pos = ipVal('ipa-edit-pos');
+  cr.reqDate = ipVal('ipa-edit-reqdate') || cr.admit;
+  cr.facility = ipVal('ipa-edit-facility') || cr.facility;
+  cr.attending = ipVal('ipa-edit-attending') || cr.attending;
+  if (cr.status === 'pending-admission') cr.certifiedThrough = cr.admit; // certifiedThrough seeds to the admit date pre-certification (see crState.newadmit1's own seed comment) — keep it in sync if admission date is edited
   cr._admitEditing = false;
+  cr._admitRowOpen = false; // same collapse-after-save fix as OP's saveLine() — editing had forced the row open, saving should return it to collapsed rather than leaving it expanded
   renderIpLines();
   renderIpHeader();
+  renderIpAuthBody(); // Authorization Details accordion also shows admit date/type/source — keep it in sync
   crToast('✓ Admission request updated');
 }
 function renderIpLines() {
@@ -6170,17 +6282,32 @@ function renderIpLines() {
       + '</div>';
     var grid;
     if (editing) {
+      // Full wizard parity for Line 1 — every field the auth wizard collects for the admission (page 1's
+      // Admission Type/Source + the admission's own Inpatient Line fields), not just LOC/LOS/diagnosis.
       grid = '<div class="li-edit-grid" style="margin-top:11px;">'
+        + ipFld('Admission Date', '<input type="date" class="form-ctrl" id="ipa-edit-admit" value="' + (cr.admit || '') + '">')
+        + ipFld('Admission Type', '<select class="form-ctrl" id="ipa-edit-admtype">' + ADMISSION_TYPES.map(function (o) { return '<option ' + (o === cr.admType ? 'selected' : '') + '>' + o + '</option>'; }).join('') + '</select>')
+        + ipFld('Admission Source', '<select class="form-ctrl" id="ipa-edit-admsource">' + ADMISSION_SOURCES.map(function (o) { return '<option ' + (o === cr.admSource ? 'selected' : '') + '>' + o + '</option>'; }).join('') + '</select>')
         + ipFld('Requested Level of Care', '<select class="form-ctrl" id="ipa-edit-loc">' + LOC_ALL.map(function (l) { return '<option ' + (l === cr.loc ? 'selected' : '') + '>' + l + '</option>'; }).join('') + '</select>')
         + ipFld('Requested Length of Stay', '<input type="number" min="1" class="form-ctrl" id="ipa-edit-los" value="' + (cr.requestedLos || cr.los) + '">')
         + ipFld('Primary Diagnosis Code', '<input class="form-ctrl" id="ipa-edit-dxcode" value="' + ((cr.dxPrimary || {}).code || '') + '">')
         + ipFld('Primary Diagnosis Name', '<input class="form-ctrl" id="ipa-edit-dxname" value="' + ((cr.dxPrimary || {}).name || '') + '">')
+        + ipFld('Service Type <span style="font-weight:400;color:var(--gray-500);text-transform:none;">(optional)</span>', '<select class="form-ctrl" id="ipa-edit-svc"><option value="" ' + (!cr.svcType ? 'selected' : '') + '>— Not specified —</option>' + IP_LINE_SVC_TYPES.map(function (s) { return '<option ' + (s === cr.svcType ? 'selected' : '') + '>' + s + '</option>'; }).join('') + '</select>')
+        + ipFld('Procedure Code <span style="font-weight:400;color:var(--gray-500);text-transform:none;">(optional)</span>', '<input class="form-ctrl" id="ipa-edit-code" value="' + (cr.code || '') + '" placeholder="CPT / HCPCS">')
+        + ipFld('Units <span style="font-weight:400;color:var(--gray-500);text-transform:none;">(optional)</span>', '<input type="number" min="1" class="form-ctrl" id="ipa-edit-units" value="' + (cr.units || '') + '" placeholder="1">')
+        + ipFld('Place of Service <span style="font-weight:400;color:var(--gray-500);text-transform:none;">(optional)</span>', '<select class="form-ctrl" id="ipa-edit-pos">' + IP_POS_LIST.map(function (p) { return '<option ' + (p === cr.pos ? 'selected' : '') + '>' + p + '</option>'; }).join('') + '</select>')
+        + ipFld('Request Date', '<input type="date" class="form-ctrl" id="ipa-edit-reqdate" value="' + (cr.reqDate || cr.admit || '') + '">')
+        + ipFld('Facility', '<input class="form-ctrl" id="ipa-edit-facility" value="' + (cr.facility || '') + '">')
+        + ipFld('Attending Provider', '<input class="form-ctrl" id="ipa-edit-attending" value="' + (cr.attending || '') + '">')
         + '</div>'
         + '<div class="li-edit-actions"><button class="btn btn-outline btn-xs" onclick="ipToggleAdmitEdit()">Cancel</button><button class="btn btn-primary btn-xs" onclick="ipSaveAdmitEdit()">Save Line</button></div>';
     } else {
       grid = open ? '<div class="li-grid" style="margin-top:11px;">'
-        + kvRow('Admission Date', crFmt(cr.admit)) + kvRow('Requested Level of Care', cr.loc) + kvRow('Requested Length of Stay', (cr.requestedLos || cr.los) + ' day(s)')
+        + kvRow('Admission Date', crFmt(cr.admit)) + kvRow('Admission Type', cr.admType) + kvRow('Admission Source', cr.admSource)
+        + kvRow('Requested Level of Care', cr.loc) + kvRow('Requested Length of Stay', (cr.requestedLos || cr.los) + ' day(s)')
         + kvRow('Primary Diagnosis', cr.dx, true)
+        + kvRow('Service Type', cr.svcType) + kvRow('Procedure Code', cr.code) + kvRow('Units', cr.units)
+        + kvRow('Place of Service', cr.pos) + kvRow('Request Date', cr.reqDate ? crFmt(cr.reqDate) : '')
         + kvRow('Facility', cr.facility) + kvRow('Attending Provider', cr.attending)
         + '</div>' : '';
     }
@@ -6191,13 +6318,14 @@ function renderIpLines() {
     // no empty placeholder sections cluttering the accordion. Every added line of every type gets a
     // review option (individual Review button or multi-select "Review Selected") — Line 1 (the
     // admission request itself) always has its own dedicated Review Medical Necessity button already.
-    var procGroup = (cr.procLines || []).length ? ('<div class="li-group"><div class="li-group-hd"><span>🩺 Service / Procedure Lines</span><span class="li-group-meta">' + cr.procLines.length + ' line' + (cr.procLines.length == 1 ? '' : 's') + '</span></div>' + cr.procLines.map(ipProcCard).join('') + ipProcToolbarHtml(cr) + '</div>') : '';
-    var rxGroup = (cr.rxLines || []).length ? ('<div class="li-group"><div class="li-group-hd"><span>&#128138; RX Lines</span><span class="li-group-meta">' + cr.rxLines.length + ' line' + (cr.rxLines.length == 1 ? '' : 's') + '</span></div>' + cr.rxLines.map(ipRxCard).join('') + ipLineToolbarHtml('rx', cr.rxLines) + '</div>') : '';
-    // Toolbar sits BELOW the line rows (matches the reference app: rows first, "Review Selected" after).
+    var procGroup = (cr.procLines || []).length ? ('<div class="li-group"><div class="li-group-hd"><span>🩺 Service / Procedure Lines</span><span class="li-group-meta">' + cr.procLines.length + ' line' + (cr.procLines.length == 1 ? '' : 's') + '</span></div>' + cr.procLines.map(ipProcCard).join('') + '</div>') : '';
+    var rxGroup = (cr.rxLines || []).length ? ('<div class="li-group"><div class="li-group-hd"><span>&#128138; RX Lines</span><span class="li-group-meta">' + cr.rxLines.length + ' line' + (cr.rxLines.length == 1 ? '' : 's') + '</span></div>' + cr.rxLines.map(ipRxCard).join('') + '</div>') : '';
+    // One combined "Select all / Review Selected" toolbar below every line group, instead of a separate
+    // toolbar per type — spans Inpatient + Service/Procedure + RX together (see ipCombinedToolbarHtml).
     el.innerHTML =
       '<div class="li-group"><div class="li-group-hd"><span>🛏 Inpatient Lines</span><span class="li-group-meta">' + (1 + (cr.extraIpLines || []).length) + ' line' + ((cr.extraIpLines || []).length ? 's' : '') + '</span></div>'
-      + '<div class="li-card' + (editing ? ' editing' : '') + '">' + head + grid + '</div>' + extraIp + ipLineToolbarHtml('ip', ipLineArrFor('ip')) + '</div>'
-      + procGroup + rxGroup;
+      + '<div class="li-card' + (editing ? ' editing' : '') + '">' + head + grid + '</div>' + extraIp + '</div>'
+      + procGroup + rxGroup + ipCombinedToolbarHtml();
     var cnt0 = document.getElementById('ip-li-count'); if (cnt0) cnt0.textContent = 1 + (cr.extraIpLines || []).length + (cr.procLines || []).length + (cr.rxLines || []).length;
     return;
   }
@@ -6207,9 +6335,15 @@ function renderIpLines() {
   var beds = cr.segments.map(function (s) {
     var tag = s.decision === 'Certified' ? 't-cert' : (s.decision === 'Partial' ? 't-pend' : 't-deny');
     var open = cr._openSeg === s.id; var c = crCycleForSeg(s);
+    // Only the LAST (current) segment can be selected to continue the stay — older segments are pure
+    // history, same as any other already-determined line losing its checkbox once decided. Checkbox
+    // sits in front, same position/style as every other line type's — the checkbox's own onclick stops
+    // propagation so checking it doesn't also toggle the card's expand (the card-top's own onclick).
+    var isCurrent = s.id === cr.segId && cr.status === 'admitted';
+    var segCheckbox = isCurrent ? '<input type="checkbox" class="li-sel" onclick="event.stopPropagation()" onchange="ipLineSel(\'ip\',0,this.checked)" ' + (cr._crSelected !== false ? 'checked' : '') + ' title="Include the continued-stay review in a combined selection">' : '';
     return '<div class="li-card seg-card' + (open ? ' open' : '') + '">'
       + '<div class="li-card-top" style="cursor:pointer;" onclick="ipToggleSeg(' + s.id + ')">'
-      + '<div style="display:flex;align-items:center;gap:8px;"><span class="seg-chev">' + (open ? '▾' : '▸') + '</span>' + crNumBadge(s.src) + '<span class="li-code">🛏 ' + s.loc + '</span> <span class="li-desc">' + crFmt(s.start) + ' – ' + crFmt(s.end) + '</span></div>'
+      + '<div style="display:flex;align-items:center;gap:8px;">' + segCheckbox + '<span class="seg-chev">' + (open ? '▾' : '▸') + '</span>' + crNumBadge(s.src) + '<span class="li-code">🛏 ' + s.loc + '</span> <span class="li-desc">' + crFmt(s.start) + ' – ' + crFmt(s.end) + '</span></div>'
       + '<div style="display:flex;align-items:center;gap:8px;"><span class="seg-days">' + s.days + 'd</span><span class="cr-tag ' + tag + '">' + s.decision + '</span>' + (c && c.mdStatus !== 'pending' ? '<button class="btn btn-outline btn-xs" onclick="event.stopPropagation();openReReview(' + c.id + ')">&#9998; Edit</button>' : '') + '</div></div>'
       + (open ? '<div class="li-seg-body">' + (c ? '<div style="font-size:11px;color:var(--gray-500);margin-bottom:8px;">Certifying review: ' + crTypeLabel(c.type) + '</div>' + crReviewDetailHtml(c) : '<div style="color:var(--gray-400);font-size:12px;">No review on record for this line.</div>') + '</div>' : '')
       + '</div>';
@@ -6224,27 +6358,35 @@ function renderIpLines() {
     else if (cr.status === 'pending') banner = '<div class="cr-banner b-pend" style="margin:0 0 10px;"><span>⏸</span> Pended — awaiting additional clinical (RFI).</div>';
     else if (cr.lastDenied > 0) banner = '<div class="cr-banner b-deny" style="margin:0 0 10px;"><span>✕</span> Last review denied ' + cr.lastDenied + ' day(s) — notice issued.</div>';
     var nextTxt = cr.nextReview ? (crFmt(cr.nextReview) + (due ? ' · <span style="color:var(--amber);font-weight:700;">DUE</span>' : '')) : '<span style="color:var(--gray-400);">None scheduled</span>';
-    var actions = (cr.draftReview ? '<button class="btn btn-primary btn-sm" onclick="ipResumeDraft()">&#9655; Continue Review</button>'
+    // A resume/complete action in progress (draft saved, MD review pending, RFI pending) still surfaces
+    // its button right here next to the status it belongs to. Otherwise — the plain, nothing-blocking
+    // case — Concurrent Review + Discharge move to the bottom combined bar (see ipCombinedToolbarHtml)
+    // so there's one action row per screen instead of two.
+    var crBlocked = !!cr.draftReview || cr.status === 'mdreview' || cr.status === 'pending';
+    var actions = cr.draftReview ? '<button class="btn btn-primary btn-sm" onclick="ipResumeDraft()">&#9655; Continue Review</button>'
       : cr.status === 'mdreview' ? '<button class="btn btn-primary btn-sm" onclick="openCrMd()">👨‍⚕️ Complete Review</button>'
       : cr.status === 'pending' ? '<button class="btn btn-primary btn-sm" onclick="crResume()">▶ Resume Review</button>'
-      : '<button class="btn btn-primary btn-sm" onclick="openCrReview()">' + (cr.nextReview ? '↻ Continue Stay Review' + (due ? ' — due' : '') : '➕ Start Concurrent Review') + '</button>')
-      + '<button class="btn btn-outline btn-sm" onclick="openDischarge()">🏠 Discharge</button>';
+      : '';
+    if (crBlocked) actions += '<button class="btn btn-outline btn-sm" onclick="openDischarge()">🏠 Discharge</button>';
+    // Select-to-review checkbox now lives on the Bed-Day line card itself (matching every other line
+    // type's leading checkbox) — see the `beds` map above. No checkbox here anymore.
     stay = '<div class="li-stay" id="ip-cr-panel">' + banner
       + '<div class="li-stay-meta"><span>Certified through <b>' + crFmt(cr.certifiedThrough) + '</b> (' + cr.los + ' days)</span><span>Next review: <b>' + nextTxt + '</b> <button class="btn btn-outline btn-xs" onclick="openCrSchedule()">📅 ' + (cr.nextReview ? 'Change' : 'Schedule') + '</button></span><span>' + cr.cycles.length + ' review' + (cr.cycles.length == 1 ? '' : 's') + '</span></div>'
-      + '<div class="li-stay-actions">' + actions + '</div></div>';
+      + (actions ? '<div class="li-stay-actions">' + actions + '</div>' : '') + '</div>';
   }
   var extraIp = (cr.extraIpLines || []).map(ipExtraLineCard).join('');
   // Service/Procedure and RX groups only appear once at least one such line has been added — no empty
-  // placeholder sections. Every added line of every type gets a review option (individual Review button
-  // or multi-select "Review Selected") — certified bed-day segments already have their own review UI.
-  var extraIpToolbar = ipLineToolbarHtml('ip', cr.extraIpLines);
-  var procGroup = (cr.procLines || []).length ? ('<div class="li-group"><div class="li-group-hd"><span>🩺 Service / Procedure Lines</span><span class="li-group-meta">' + cr.procLines.length + ' line' + (cr.procLines.length == 1 ? '' : 's') + '</span></div>' + cr.procLines.map(ipProcCard).join('') + ipProcToolbarHtml(cr) + '</div>') : '';
-  var rxGroup = (cr.rxLines || []).length ? ('<div class="li-group"><div class="li-group-hd"><span>&#128138; RX Lines</span><span class="li-group-meta">' + cr.rxLines.length + ' line' + (cr.rxLines.length == 1 ? '' : 's') + '</span></div>' + cr.rxLines.map(ipRxCard).join('') + ipLineToolbarHtml('rx', cr.rxLines) + '</div>') : '';
-  // Toolbar sits BELOW the line rows (matches the reference app: rows first, "Review Selected" after).
+  // placeholder sections. One combined "Select all / Review Selected" toolbar spans every line group
+  // (Bed-Day + Inpatient extras + Service/Procedure + RX) instead of a separate toolbar per type — see
+  // ipCombinedToolbarHtml. It reads the SAME array ipLineArrFor('ip') returns — including the
+  // continued-stay pseudo-line — so it combines that with any other selected line of any type.
+  var procGroup = (cr.procLines || []).length ? ('<div class="li-group"><div class="li-group-hd"><span>🩺 Service / Procedure Lines</span><span class="li-group-meta">' + cr.procLines.length + ' line' + (cr.procLines.length == 1 ? '' : 's') + '</span></div>' + cr.procLines.map(ipProcCard).join('') + '</div>') : '';
+  var rxGroup = (cr.rxLines || []).length ? ('<div class="li-group"><div class="li-group-hd"><span>&#128138; RX Lines</span><span class="li-group-meta">' + cr.rxLines.length + ' line' + (cr.rxLines.length == 1 ? '' : 's') + '</span></div>' + cr.rxLines.map(ipRxCard).join('') + '</div>') : '';
+  var bottomBarConcurrent = cr.status === 'admitted' && !cr.draftReview;
   el.innerHTML =
     '<div class="li-group"><div class="li-group-hd"><span>🛏 Bed-Day Lines</span><span class="li-group-meta">' + cr.segments.length + ' line' + (cr.segments.length == 1 ? '' : 's') + ' · ' + cr.los + ' days certified · click a line to expand its review</span></div>'
-    + beds + extraIp + extraIpToolbar + stay + '</div>'
-    + procGroup + rxGroup;
+    + beds + extraIp + stay + '</div>'
+    + procGroup + rxGroup + ipCombinedToolbarHtml({ concurrent: bottomBarConcurrent });
   var cnt = document.getElementById('ip-li-count'); if (cnt) cnt.textContent = cr.segments.length + (cr.extraIpLines ? cr.extraIpLines.length : 0) + (cr.procLines ? cr.procLines.length : 0) + (cr.rxLines ? cr.rxLines.length : 0);
 }
 function renderIpCrBody() { /* retired — concurrent-review activity now lives under the bed-day lines */ }
@@ -6267,29 +6409,39 @@ var ipReviewLineType = 'proc';
 function ipAdmitPseudoLine(cr) {
   return { id: 0, isAdmission: true, loc: cr.loc, days: cr.requestedLos || cr.los, svcType: cr.dx, pos: '', start: cr.admit, end: cr.certifiedThrough, reqDate: cr.admit, selected: cr._admitSelected !== false, determId: cr.admitDetermId || null };
 }
+// Same trick, once the stay has moved past admission: the open continued-stay/concurrent review is
+// represented as the same synthesized id-0 entry so it can be selected and reviewed together with any
+// other undetermined Inpatient Lines — previously Bed-Day Lines had no checkbox at all and the
+// continued-stay review was reachable ONLY via its own dedicated button, disconnected from every other
+// line's select-and-review flow. Only offered while there's an actual review to do (admitted, not
+// mid-MD-review/pended/discharged) — ipReviewLinesSelected() below detects id 0 and routes accordingly.
+function ipConcurrentPseudoLine(cr) {
+  return { id: 0, isConcurrent: true, loc: cr.loc, days: cr.los, svcType: cr.dx, pos: '', start: cr.admit, end: cr.certifiedThrough, reqDate: cr.certifiedThrough, selected: cr._crSelected !== false, determId: null };
+}
 function ipLineArrFor(type) {
   var cr = crGet();
   if (type === 'ip') {
     var arr = (cr.extraIpLines || []).slice();
     if (cr.status === 'pending-admission') arr.unshift(ipAdmitPseudoLine(cr));
+    else if (cr.status === 'admitted') arr.unshift(ipConcurrentPseudoLine(cr));
     return arr;
   }
   return (type === 'rx' ? cr.rxLines : cr.procLines) || [];
 }
 function ipLineSel(type, id, checked) {
-  if (type === 'ip' && id === 0) { crGet()._admitSelected = checked; renderIpLines(); return; }
+  if (type === 'ip' && id === 0) { var cr0 = crGet(); if (cr0.status === 'pending-admission') cr0._admitSelected = checked; else cr0._crSelected = checked; renderIpLines(); return; }
   var it = ipLineArrFor(type).find(function (x) { return x.id === id; }); if (it) it.selected = checked; renderIpLines();
 }
 function ipLineSelAll(type, checked) {
-  if (type === 'ip') crGet()._admitSelected = checked;
-  ipLineArrFor(type).forEach(function (x) { if (!x.determId && !x.isAdmission) x.selected = checked; });
+  if (type === 'ip') { var cr0 = crGet(); if (cr0.status === 'pending-admission') cr0._admitSelected = checked; else cr0._crSelected = checked; }
+  ipLineArrFor(type).forEach(function (x) { if (!x.determId && !x.isAdmission && !x.isConcurrent) x.selected = checked; });
   renderIpLines();
 }
 function ipReviewLine(type, id) {
   var cr = crGet();
   ipLineArrFor(type).forEach(function (x) {
     var sel = (x.id === id);
-    if (x.isAdmission) cr._admitSelected = sel; else if (!x.determId) x.selected = sel;
+    if (x.isAdmission) cr._admitSelected = sel; else if (x.isConcurrent) cr._crSelected = sel; else if (!x.determId) x.selected = sel;
   });
   ipReviewLinesSelected(type);
 }
@@ -6297,10 +6449,14 @@ function ipReviewLinesSelected(type) {
   ipReviewLineType = type;
   ipReviewLineIds = ipLineArrFor(type).filter(function (x) { return x.selected && !x.determId; }).map(function (x) { return x.id; });
   if (!ipReviewLineIds.length) return;
-  // The admission line is bundled in — its own dedicated review (LOC eval, discharge planning, the
-  // admit-approve gate) is the master action; any other selected Inpatient Lines ride along and get
-  // approved together with it (see ipTagCombinedAdmitExtras, called from crApproveConfirm's admission branch).
-  if (type === 'ip' && ipReviewLineIds.indexOf(0) > -1) { openAdmissionReview(currentCase); return; }
+  // The admission line / open concurrent review are bundled in — whichever one applies is the master
+  // action for the stay (LOC eval, discharge planning, admit-approve gate for admission; continued-stay
+  // criteria + certify/deny/send for concurrent); any other selected Inpatient Lines ride along and get
+  // approved together with it (see ipTagCombinedAdmitExtras / ipTagCombinedConcurrentExtras).
+  if (type === 'ip' && ipReviewLineIds.indexOf(0) > -1) {
+    if (crGet().status === 'pending-admission') openAdmissionReview(currentCase); else openCrReview();
+    return;
+  }
   enterIpReview('procline');
 }
 // Backward-compat thin wrappers — existing rendered markup calls these proc-specific names directly.
@@ -6336,23 +6492,27 @@ function renderProclinePanel() {
   var dc = document.getElementById('procline-deny-code'); if (dc) { dc.innerHTML = crCodeOptions(DENIAL_CODES); dc.style.borderColor = ''; }
   var note = document.getElementById('procline-note'); if (note) { note.value = ''; note.style.borderColor = ''; }
 }
-function ipToggleProcDetermDetail(id) { var el = document.getElementById('procdet-' + id); if (el) el.style.display = el.style.display === 'none' ? 'block' : 'none'; }
 function ipUpdateReviewPagename() {
   if (ipReviewMode !== 'procline') return; // admission/concurrent/md/p2p keep their own fixed title
   var pagename = document.getElementById('ipr-pagename'); if (!pagename) return;
   pagename.textContent = 'Line Review — ' + ipReviewLineIds.length + ' line' + (ipReviewLineIds.length === 1 ? '' : 's');
 }
-// Selected-lines chip strip on the Line Review / Admission Review screens — mirrors OP's "Line Details"
-// chips: every undetermined line of the type under review is shown collapsed, checkbox reflects whether
-// it's currently part of THIS review, letting the nurse add/remove lines without leaving the screen.
-// The admission line itself (id 0) is a chip like any other — same checked/unchecked styling, fully
-// toggleable — since unchecking it here has no effect on the Approve button (that always finalizes the
-// admission; the chip only controls which OTHER lines are bundled into ipTagCombinedAdmitExtras).
+// Selected-lines chip strip on the Line Review / Admission Review / Concurrent Review screens — mirrors
+// OP's "Line Details" chips (renderReviewLines), which already combines Proc + RX lines into one strip.
+// Every undetermined line of the type under review is shown collapsed, checkbox reflects whether it's
+// currently part of THIS review, letting the nurse add/remove lines without leaving the screen.
+// The admission/concurrent line itself (id 0) is a chip like any other — same checked/unchecked styling,
+// fully toggleable — since unchecking it here has no effect on the Approve button (that always finalizes
+// the admission/stay review; the chip only controls which OTHER lines are bundled alongside it).
+// In admission/concurrent modes, Proc and RX lines ride along too (their own .selected flag, not the
+// ipReviewLineIds snapshot Inpatient lines use) — bundled into the same determination on certify, see
+// ipTagCombinedAdmitExtras/ipTagCombinedConcurrentExtras.
 function renderIprLineChips() {
   var el = document.getElementById('ipr-line-chips'); if (!el) return;
-  if (ipReviewMode !== 'procline' && ipReviewMode !== 'admission') { el.style.display = 'none'; return; }
+  if (ipReviewMode !== 'procline' && ipReviewMode !== 'admission' && ipReviewMode !== 'concurrent') { el.style.display = 'none'; return; }
   el.style.display = 'block';
-  var lineType = ipReviewMode === 'admission' ? 'ip' : ipReviewLineType;
+  var bundling = ipReviewMode === 'admission' || ipReviewMode === 'concurrent';
+  var lineType = bundling ? 'ip' : ipReviewLineType;
   var arr = ipLineArrFor(lineType).filter(function (x) { return !x.determId; });
   var n = ipReviewLineIds.length;
   var chips = arr.map(function (it) {
@@ -6361,12 +6521,25 @@ function renderIprLineChips() {
     var nm = (s.desc ? s.desc + ' &middot; ' : '') + s.title;
     return '<label class="rl-chip' + (checked ? ' on' : '') + '"><input type="checkbox" ' + (checked ? 'checked' : '') + ' onchange="ipLineChipToggle(' + it.id + ',this.checked)"> ' + nm + '</label>';
   }).join('');
+  var extraArr = [], extraChips = '';
+  if (bundling) {
+    var cr = crGet();
+    extraArr = (cr.procLines || []).filter(function (x) { return !x.determId; }).map(function (x) { return { it: x, type: 'proc' }; })
+      .concat((cr.rxLines || []).filter(function (x) { return !x.determId; }).map(function (x) { return { it: x, type: 'rx' }; }));
+    extraChips = extraArr.map(function (e) {
+      var s = ipLineReviewSummary(e.type, e.it);
+      var nm = (s.desc ? s.desc + ' &middot; ' : '') + s.title;
+      return '<label class="rl-chip' + (e.it.selected ? ' on' : '') + '"><input type="checkbox" ' + (e.it.selected ? 'checked' : '') + ' onchange="ipLineSel(\'' + e.type + '\',' + e.it.id + ',this.checked);renderIprLineChips()"> ' + nm + '</label>';
+    }).join('');
+  }
+  var total = arr.length + extraArr.length;
+  var nTotal = n + extraArr.filter(function (e) { return e.it.selected; }).length;
   el.innerHTML = '<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px;">'
-    + '<strong style="font-size:12.5px;color:var(--gray-800);">Line Details (' + arr.length + ')</strong>'
-    + '<span style="font-size:11px;color:var(--gray-500);">reviewing ' + n + ' of ' + arr.length + ' together</span>'
+    + '<strong style="font-size:12.5px;color:var(--gray-800);">Line Details (' + total + ')</strong>'
+    + '<span style="font-size:11px;color:var(--gray-500);">reviewing ' + nTotal + ' of ' + total + ' together</span>'
     + '<button class="btn btn-outline btn-sm" style="margin-left:auto;" onclick="ipLineChipSelectAll(true)">Select all</button>'
     + '<button class="btn btn-outline btn-sm" onclick="ipLineChipSelectAll(false)">Deselect</button></div>'
-    + '<div style="display:flex;gap:8px;flex-wrap:wrap;">' + (chips || '<span style="font-size:12px;color:var(--gray-400);">No lines available.</span>') + '</div>';
+    + '<div style="display:flex;gap:8px;flex-wrap:wrap;">' + ((chips + extraChips) || '<span style="font-size:12px;color:var(--gray-400);">No lines available.</span>') + '</div>';
 }
 function ipLineChipToggle(id, checked) {
   var i = ipReviewLineIds.indexOf(id);
@@ -6375,22 +6548,58 @@ function ipLineChipToggle(id, checked) {
   renderIprLineChips(); if (ipReviewMode === 'procline') renderProclinePanel(); ipUpdateReviewPagename();
 }
 function ipLineChipSelectAll(sel) {
-  var lineType = ipReviewMode === 'admission' ? 'ip' : ipReviewLineType;
+  var bundling = ipReviewMode === 'admission' || ipReviewMode === 'concurrent';
+  var lineType = bundling ? 'ip' : ipReviewLineType;
   var arr = ipLineArrFor(lineType).filter(function (x) { return !x.determId; });
   ipReviewLineIds = sel ? arr.map(function (x) { return x.id; }) : [];
+  if (bundling) {
+    var cr = crGet();
+    (cr.procLines || []).forEach(function (x) { if (!x.determId) x.selected = sel; });
+    (cr.rxLines || []).forEach(function (x) { if (!x.determId) x.selected = sel; });
+  }
   renderIprLineChips(); if (ipReviewMode === 'procline') renderProclinePanel(); ipUpdateReviewPagename();
 }
-// Toolbar above each line group (Inpatient / Service·Procedure / RX) — lets the nurse select one or
-// several not-yet-determined lines of THAT type to review together (mirrors OP's pattern).
-function ipLineToolbarHtml(type, arr) {
-  var undetermined = (arr || []).filter(function (x) { return !x.determId; });
-  if (!undetermined.length) return '';
-  var nSel = undetermined.filter(function (x) { return x.selected; }).length;
-  return '<div class="li-toolbar"><label class="li-selall"><input type="checkbox" ' + (nSel === undetermined.length ? 'checked' : '') + ' onchange="ipLineSelAll(\'' + type + '\',this.checked)"> Select all</label>'
-    + '<span style="font-size:11px;color:var(--gray-500);">' + nSel + ' of ' + undetermined.length + ' selected</span>'
-    + '<button class="btn btn-primary btn-sm" ' + (nSel ? '' : 'disabled') + ' onclick="event.stopPropagation();ipReviewLinesSelected(\'' + type + '\')">&#128269; Review Selected (' + nSel + ')</button></div>';
+// One combined "Select all / Review Selected" toolbar spanning every line type (Inpatient/Bed-Day,
+// Service·Procedure, RX) instead of a separate toolbar per type — sits once, below the last line group.
+// Routing: the bed-day/admission line, if selected, is always the "master" review — any other selected
+// lines of ANY type ride along and show up together in that same review screen (see renderIprLineChips
+// and ipTagCombinedAdmitExtras/ipTagCombinedConcurrentExtras), matching how OP's Line Details already
+// combines Proc + RX. Only when NO Inpatient/Bed-Day line is selected does this fall back to a
+// standalone Proc-only or RX-only review.
+// opts.concurrent (admitted, nothing else in progress) folds the "Concurrent Review"/"Discharge" actions
+// that used to sit in the stay panel into this same bottom bar — one action row per screen, not two.
+function ipCombinedToolbarHtml(opts) {
+  opts = opts || {};
+  var cr = crGet();
+  var all = ipLineArrFor('ip').concat(cr.procLines || [], cr.rxLines || []).filter(function (x) { return !x.determId; });
+  var nSel = all.filter(function (x) { return x.selected; }).length;
+  var due = crDue(cr);
+  var dischargeBtn = opts.concurrent ? ' <button class="btn btn-outline btn-sm" onclick="event.stopPropagation();openDischarge()">&#127968; Discharge</button>' : '';
+  if (!all.length) {
+    if (!opts.concurrent) return '';
+    return '<div class="li-toolbar" style="justify-content:flex-end;"><button class="btn btn-primary btn-sm" onclick="openCrReview()">&#8635; Concurrent Review' + (due ? ' (due)' : '') + '</button>' + dischargeBtn + '</div>';
+  }
+  var reviewLabel = opts.concurrent
+    ? ('&#8635; Concurrent Review' + (due ? ' (due)' : '') + ' — Review Selected (' + nSel + ')')
+    : ('&#128269; Review Selected (' + nSel + ')');
+  return '<div class="li-toolbar"><label class="li-selall"><input type="checkbox" ' + (nSel === all.length ? 'checked' : '') + ' onchange="ipCombinedSelAll(this.checked)"> Select all</label>'
+    + '<span style="font-size:11px;color:var(--gray-500);">' + nSel + ' of ' + all.length + ' selected</span>'
+    + '<button class="btn btn-primary btn-sm" ' + (nSel ? '' : 'disabled') + ' onclick="event.stopPropagation();ipCombinedReviewSelected()">' + reviewLabel + '</button>' + dischargeBtn + '</div>';
 }
-function ipProcToolbarHtml(cr) { return ipLineToolbarHtml('proc', cr.procLines); }
+function ipCombinedSelAll(checked) {
+  var cr = crGet();
+  if (cr.status === 'pending-admission') cr._admitSelected = checked; else cr._crSelected = checked;
+  (cr.extraIpLines || []).forEach(function (x) { if (!x.determId) x.selected = checked; });
+  (cr.procLines || []).forEach(function (x) { if (!x.determId) x.selected = checked; });
+  (cr.rxLines || []).forEach(function (x) { if (!x.determId) x.selected = checked; });
+  renderIpLines();
+}
+function ipCombinedReviewSelected() {
+  var cr = crGet();
+  if (ipLineArrFor('ip').some(function (x) { return x.selected && !x.determId; })) { ipReviewLinesSelected('ip'); return; }
+  if ((cr.procLines || []).some(function (x) { return x.selected && !x.determId; })) { ipReviewLinesSelected('proc'); return; }
+  if ((cr.rxLines || []).some(function (x) { return x.selected && !x.determId; })) { ipReviewLinesSelected('rx'); return; }
+}
 function ipProcDetermConfirm() {
   if (!ipReviewLineIds.length) return; // chips deselected down to none — nothing to record
   var cr = crGet();
@@ -6428,28 +6637,39 @@ function ipProcDetermConfirm() {
   showScreen('s-auth-detail-ip');
   crToast(kind === 'approve' ? '✓ Line(s) approved · notice issued' : (kind === 'partial' ? '◑ Line(s) partially approved · notice issued' : '✕ Line(s) denied · notice issued'));
 }
-// When the admission line (id 0) is reviewed combined with one or more other Inpatient Lines, the
-// admission's own outcome is recorded by the cycle/segment crApproveConfirm() just created — this tags
-// the OTHER selected lines as approved alongside it, via the same shared procDeterminations store the
-// standalone procline engine uses, so they get the identical "Approved" badge/Details treatment.
-function ipTagCombinedAdmitExtras() {
+// When the admission/concurrent line (id 0) is reviewed combined with one or more other lines of ANY
+// type — other Inpatient Lines, Service/Procedure Lines, RX Lines, all shown together as chips by
+// renderIprLineChips — the master line's own outcome is recorded by the cycle/segment crApproveConfirm()
+// just created; this tags the OTHER selected lines (whatever type) as approved alongside it, via the
+// same shared procDeterminations store the standalone procline engine uses, so they get the identical
+// "Approved" badge/Details treatment. Scoped to the certify path only — if the review is instead
+// denied/partial/sent to MD, bundled extras are deliberately left undetermined rather than silently
+// approved alongside an adverse or still-pending outcome.
+function ipTagCombinedExtras(noteSuffix) {
   var cr = crGet();
   var extraIds = (ipReviewLineType === 'ip' ? ipReviewLineIds : []).filter(function (id) { return id !== 0; });
   ipReviewLineIds = [];
-  if (!extraIds.length) return;
+  var procIds = (cr.procLines || []).filter(function (x) { return x.selected && !x.determId; }).map(function (x) { return x.id; });
+  var rxIds = (cr.rxLines || []).filter(function (x) { return x.selected && !x.determId; }).map(function (x) { return x.id; });
+  if (!extraIds.length && !procIds.length && !rxIds.length) return;
   cr.procDeterminations = cr.procDeterminations || [];
   cr.procDetermId = (cr.procDetermId || 0) + 1;
+  var allIds = extraIds.concat(procIds, rxIds);
   var rec = {
-    id: cr.procDetermId, lineType: 'ip', lineIds: extraIds.slice(),
-    outcomes: extraIds.map(function (id) { return { id: id, outcome: 'approve' }; }),
+    id: cr.procDetermId, lineType: 'ip', lineIds: allIds.slice(),
+    outcomes: allIds.map(function (id) { return { id: id, outcome: 'approve' }; }),
     kind: 'approve', label: 'Approved', denialCode: '',
-    note: 'Reviewed together with the admission decision.',
+    note: 'Reviewed together with the ' + noteSuffix + '.',
     by: 'M Craft, UM Nurse', reviewedBy: 'M Craft, UM Nurse', reviewDate: CR_TODAY, date: CR_TODAY,
     amendments: []
   };
   cr.procDeterminations.push(rec);
   (cr.extraIpLines || []).forEach(function (it) { if (extraIds.indexOf(it.id) > -1) { it.determId = rec.id; it.selected = false; } });
+  (cr.procLines || []).forEach(function (it) { if (procIds.indexOf(it.id) > -1) { it.determId = rec.id; it.selected = false; } });
+  (cr.rxLines || []).forEach(function (it) { if (rxIds.indexOf(it.id) > -1) { it.determId = rec.id; it.selected = false; } });
 }
+function ipTagCombinedAdmitExtras() { ipTagCombinedExtras('admission decision'); }
+function ipTagCombinedConcurrentExtras() { ipTagCombinedExtras('concurrent review'); }
 function ipEditProc(id) { var cr = crGet(); var it = cr.procLines.find(function (x) { return x.id === id; }); if (it) { it.editing = true; renderIpLines(); } }
 function ipSaveProc(id) { var cr = crGet(); var it = cr.procLines.find(function (x) { return x.id === id; }); if (!it) return; it.svcType = ipVal('ipp-svc-' + id); it.code = ipVal('ipp-code-' + id); it.desc = ipVal('ipp-desc-' + id); it.qty = ipVal('ipp-qty-' + id); it.unit = ipVal('ipp-unit-' + id); it.pos = ipVal('ipp-pos-' + id); it.reqDate = ipVal('ipp-reqdate-' + id); it.sameAsReq = !!(document.getElementById('ipp-sameas-' + id) || {}).checked; if (!it.sameAsReq) it.provider = ipVal('ipp-prov-' + id); it.start = ipVal('ipp-start-' + id); it.end = ipVal('ipp-end-' + id); it.editing = false; it.isNew = false; renderIpLines(); }
 function ipCancelProc(id) { var cr = crGet(); var i = cr.procLines.findIndex(function (x) { return x.id === id; }); if (i < 0) return; if (cr.procLines[i].isNew) cr.procLines.splice(i, 1); else cr.procLines[i].editing = false; renderIpLines(); }
@@ -6462,11 +6682,15 @@ function ipToggleElig(id) { var cr = crGet(); var it = (cr.procLines || []).find
 // Each additional line starts the day AFTER the previous line's last day (Line 1 / the last certified
 // bed-day segment for the first one, then chains off the prior extra line) — recomputed on every render
 // so inserts/removals/day-count edits always keep the whole chain consistent, never stale.
+// Auto-chains each extra line to start right after the previous one ends — but respects an explicit
+// startOverride (set via Edit) the same way the wizard's own chain does: the manual date wins as long as
+// it isn't before the natural minimum (can't overlap the prior line), otherwise falls back to the chain.
 function ipRechainExtraLines() {
   var cr = crGet();
   var anchor = cr.status === 'pending-admission' ? crAddDays(cr.admit, cr.requestedLos || cr.los || 0) : cr.certifiedThrough;
   (cr.extraIpLines || []).forEach(function (it) {
-    it.start = crAddDays(anchor, 1);
+    var minStart = crAddDays(anchor, 1);
+    it.start = (it.startOverride && it.startOverride >= minStart) ? it.startOverride : minStart;
     it.end = crAddDays(it.start, it.days || 1);
     anchor = it.end;
   });
@@ -6477,12 +6701,14 @@ function ipExtraLineCard(it) {
     var posOpts = IP_POS_LIST.map(function (p) { return '<option ' + (p === it.pos ? 'selected' : '') + '>' + p + '</option>'; }).join('');
     return '<div class="li-card editing"><div class="li-edit-grid">'
       + ipFld('Service Type <span style="font-weight:400;color:var(--gray-500);text-transform:none;">(optional)</span>', '<select class="form-ctrl" id="ipl-svc-' + it.id + '">' + svcOpts + '</select>')
+      + ipFld('Procedure Code <span style="font-weight:400;color:var(--gray-500);text-transform:none;">(optional)</span>', '<input class="form-ctrl" id="ipl-code-' + it.id + '" value="' + (it.code || '') + '" placeholder="CPT / HCPCS">')
+      + ipFld('Units <span style="font-weight:400;color:var(--gray-500);text-transform:none;">(optional)</span>', '<input type="number" min="1" class="form-ctrl" id="ipl-units-' + it.id + '" value="' + (it.units || '') + '" placeholder="1">')
       + ipFld('Level of Care', '<select class="form-ctrl" id="ipl-loc-' + it.id + '">' + LOC_ALL.map(function (l) { return '<option ' + (l === it.loc ? 'selected' : '') + '>' + l + '</option>'; }).join('') + '</select>')
       + ipFld('Requested Days', '<input type="number" min="1" class="form-ctrl" id="ipl-days-' + it.id + '" value="' + (it.days || 1) + '">')
       + ipFld('Place of Service <span style="font-weight:400;color:var(--gray-500);text-transform:none;">(optional)</span>', '<select class="form-ctrl" id="ipl-pos-' + it.id + '">' + posOpts + '</select>')
       + ipFld('Request Date', '<input type="date" class="form-ctrl" id="ipl-reqdate-' + it.id + '" value="' + (it.reqDate || CR_TODAY) + '">')
-      + ipFld('Start Date', '<input class="form-ctrl readonly" value="' + crFmt(it.start) + '" disabled title="Starts the day after the previous inpatient line\'s last day">')
-      + ipFld('End Date', '<input class="form-ctrl readonly" value="' + crFmt(it.end) + '" disabled title="Calculated from Requested Days">')
+      + ipFld('Start Date <span style="font-weight:400;color:var(--gray-500);text-transform:none;">(defaults to prior line\'s end — editable)</span>', '<input type="date" class="form-ctrl" id="ipl-start-' + it.id + '" value="' + (it.start || '') + '">')
+      + ipFld('End Date', '<input class="form-ctrl readonly" value="' + crFmt(it.end) + '" disabled title="Calculated from Start + Requested Days">')
       + '</div>'
       + '<div style="margin-top:8px;"><button type="button" class="btn btn-outline btn-xs" onclick="ipToggleIpLineElig(' + it.id + ')">' + (it._elig ? '&#10003; Eligibility Checked' : '&#10003; Check Eligibility') + '</button></div>'
       + (it._elig ? eligBenefitsHtml(currentCase) : '')
@@ -6495,25 +6721,32 @@ function ipExtraLineCard(it) {
     var rec = (cr.procDeterminations || []).find(function (x) { return x.id === it.determId; });
     var lineOutcome = rec ? (rec.outcomes.find(function (o) { return o.id === it.id; }) || {}).outcome : null;
     var tagCls = lineOutcome === 'deny' ? 't-deny' : 't-cert', tagTxt = lineOutcome === 'deny' ? 'Denied' : 'Approved';
-    return '<div class="li-card"><div class="li-card-top"><div><span class="li-code">&#128719; ' + it.loc + '</span> <span class="li-desc">' + it.days + ' day(s) requested</span></div>'
-      + '<div style="display:flex;gap:6px;align-items:center;"><span class="cr-tag ' + tagCls + '">' + tagTxt + '</span><button class="btn btn-outline btn-xs" onclick="ipToggleProcDetermDetail(' + it.id + ')">&#128203; Details</button></div></div>'
+    var openLine = cr._openProcId === ('ip:' + it.id);
+    return '<div class="li-card"><div class="li-card-top" style="cursor:pointer;" onclick="ipToggleLineExpand(\'ip\',' + it.id + ')"><div style="display:flex;align-items:center;gap:8px;">'
+      + '<span class="li-caret">' + (openLine ? '&#9662;' : '&#9656;') + '</span>'
+      + '<span class="li-code">&#128719; ' + it.loc + '</span> <span class="li-desc">' + it.days + ' day(s) requested</span></div>'
+      + '<div style="display:flex;gap:6px;align-items:center;"><span class="cr-tag ' + tagCls + '">' + tagTxt + '</span></div></div>'
       + '<div class="li-meta">' + crFmt(it.start) + '–' + crFmt(it.end) + '</div>'
-      + '<div id="procdet-' + it.id + '" style="display:none;margin-top:8px;font-size:11.5px;color:var(--gray-600);background:var(--gray-50);border:1px solid var(--gray-200);border-radius:8px;padding:8px 10px;">' + (rec ? ('Reviewed &amp; decided by ' + rec.reviewedBy + ' &middot; ' + crFmt(rec.reviewDate) + (rec.note ? ' — ' + rec.note : '')) : '') + '</div>'
+      + (openLine ? '<div style="margin-top:8px;font-size:11.5px;color:var(--gray-600);background:var(--gray-50);border:1px solid var(--gray-200);border-radius:8px;padding:8px 10px;">' + (rec ? ('Reviewed &amp; decided by ' + rec.reviewedBy + ' &middot; ' + crFmt(rec.reviewDate) + (rec.note ? ' — ' + rec.note : '')) : '') + '</div>' : '')
       + '</div>';
   }
   var ipLineCols = liColsHtml([
-    { label: 'Days Req', value: it.days },
+    { label: 'Days Req', value: it.days + (it.units ? ' · ' + it.units + ' unit(s)' : '') },
     { label: 'Req Date', value: crFmt(it.reqDate) },
     { label: 'Start', value: crFmt(it.start) },
     { label: 'End', value: crFmt(it.end) }
   ]);
   var ipLineNba = crGet().status === 'pending-admission' ? '<span class="sb sb-blue" style="font-size:10px;">Initial Review</span>' : '';
+  var openLineU = crGet()._openProcId === ('ip:' + it.id);
   return '<div class="li-card"><div class="li-card-top" style="align-items:flex-start;"><div style="display:flex;align-items:flex-start;gap:8px;flex:1;min-width:170px;">'
     + '<input type="checkbox" class="li-sel" style="margin-top:2px;" ' + (it.selected ? 'checked' : '') + ' onchange="ipLineSel(\'ip\',' + it.id + ',this.checked)">'
-    + '<div><div><span class="li-code">&#128719; ' + it.loc + '</span> <span class="li-desc">' + (it.svcType ? it.svcType : 'Requested') + '</span></div>'
+    + '<span class="li-caret" style="margin-top:2px;" onclick="ipToggleLineExpand(\'ip\',' + it.id + ')">' + (openLineU ? '&#9662;' : '&#9656;') + '</span>'
+    + '<div style="cursor:pointer;" onclick="ipToggleLineExpand(\'ip\',' + it.id + ')"><div><span class="li-code">&#128719; ' + it.loc + '</span> <span class="li-desc">' + (it.code ? it.code + ' — ' : '') + (it.svcType ? it.svcType : 'Requested') + '</span></div>'
     +   (it.pos ? '<div style="font-size:11px;color:var(--gray-500);margin-top:2px;">POS ' + it.pos.split(' – ')[0] + '</div>' : '') + '</div></div>'
     + ipLineCols
-    + '<div style="display:flex;gap:6px;align-items:center;">' + ipLineNba + '<button class="btn btn-outline btn-xs" onclick="ipReviewLine(\'ip\',' + it.id + ')">&#128269; Review Medical Necessity</button><button class="btn btn-outline btn-xs" onclick="ipEditIpLine(' + it.id + ')">&#9998; Edit</button><button class="btn btn-ghost btn-xs" style="color:var(--red);" onclick="ipRemoveIpLine(' + it.id + ')">&#128465;</button></div></div></div></div>';
+    + '<div style="display:flex;gap:6px;align-items:center;">' + ipLineNba + '<button class="btn btn-outline btn-xs" onclick="event.stopPropagation();ipReviewLine(\'ip\',' + it.id + ')">&#128269; Review Medical Necessity</button><button class="btn btn-outline btn-xs" onclick="event.stopPropagation();ipEditIpLine(' + it.id + ')">&#9998; Edit</button><button class="btn btn-ghost btn-xs" style="color:var(--red);" onclick="event.stopPropagation();ipRemoveIpLine(' + it.id + ')">&#128465;</button></div></div>'
+    + (openLineU ? '<div style="margin-top:8px;font-size:12px;color:var(--gray-500);background:var(--gray-50);border:1px dashed var(--gray-300);border-radius:8px;padding:9px 12px;">Not yet reviewed — select this line and click <b>Review Selected</b> to record a determination.</div>' : '')
+    + '</div>';
 }
 // Single "Add Line" entry point — one button, then choose the type, instead of a separate button
 // per line-type group. IP offers Inpatient/Procedure/RX; OP (no bed-day concept) only Procedure/RX.
@@ -6532,9 +6765,9 @@ function addLineTypeChosen(type) {
     else if (type === 'rx') rxLiAdd(currentCase);
   }
 }
-function ipAddIpLine() { var cr = crGet(); cr.extraIpLines = cr.extraIpLines || []; cr.ipLineSeq = (cr.ipLineSeq || 0) + 1; cr.extraIpLines.push({ id: cr.ipLineSeq, loc: cr.loc, days: 1, svcType: '', pos: '', reqDate: CR_TODAY, editing: true, isNew: true, _elig: false, selected: true, determId: null }); renderIpLines(); }
+function ipAddIpLine() { var cr = crGet(); cr.extraIpLines = cr.extraIpLines || []; cr.ipLineSeq = (cr.ipLineSeq || 0) + 1; cr.extraIpLines.push({ id: cr.ipLineSeq, loc: cr.loc, days: 1, svcType: '', code: '', units: '', pos: '', reqDate: CR_TODAY, startOverride: null, editing: true, isNew: true, _elig: false, selected: true, determId: null }); renderIpLines(); }
 function ipEditIpLine(id) { var cr = crGet(); var it = (cr.extraIpLines || []).find(function (x) { return x.id === id; }); if (it) { it.editing = true; renderIpLines(); } }
-function ipSaveIpLine(id) { var cr = crGet(); var it = (cr.extraIpLines || []).find(function (x) { return x.id === id; }); if (!it) return; it.loc = ipVal('ipl-loc-' + id) || it.loc; it.days = parseInt(ipVal('ipl-days-' + id)) || it.days; it.svcType = ipVal('ipl-svc-' + id); it.pos = ipVal('ipl-pos-' + id); it.reqDate = ipVal('ipl-reqdate-' + id); it.editing = false; it.isNew = false; renderIpLines(); }
+function ipSaveIpLine(id) { var cr = crGet(); var it = (cr.extraIpLines || []).find(function (x) { return x.id === id; }); if (!it) return; it.loc = ipVal('ipl-loc-' + id) || it.loc; it.days = parseInt(ipVal('ipl-days-' + id)) || it.days; it.svcType = ipVal('ipl-svc-' + id); it.code = ipVal('ipl-code-' + id); it.units = ipVal('ipl-units-' + id); it.pos = ipVal('ipl-pos-' + id); it.reqDate = ipVal('ipl-reqdate-' + id); it.startOverride = ipVal('ipl-start-' + id) || null; it.editing = false; it.isNew = false; renderIpLines(); }
 function ipCancelIpLine(id) { var cr = crGet(); var i = (cr.extraIpLines || []).findIndex(function (x) { return x.id === id; }); if (i < 0) return; if (cr.extraIpLines[i].isNew) cr.extraIpLines.splice(i, 1); else cr.extraIpLines[i].editing = false; renderIpLines(); }
 function ipRemoveIpLine(id) { var cr = crGet(); cr.extraIpLines = (cr.extraIpLines || []).filter(function (x) { return x.id !== id; }); renderIpLines(); }
 function ipToggleIpLineElig(id) { var cr = crGet(); var it = (cr.extraIpLines || []).find(function (x) { return x.id === id; }); if (it) { it._elig = !it._elig; renderIpLines(); } }
@@ -6564,9 +6797,12 @@ function ipRxCard(it) {
     var rxRec = (cr.procDeterminations || []).find(function (x) { return x.id === it.determId; });
     var rxOutcome = rxRec ? (rxRec.outcomes.find(function (o) { return o.id === it.id; }) || {}).outcome : null;
     var rxTagCls = rxOutcome === 'deny' ? 't-deny' : 't-cert', rxTagTxt = rxOutcome === 'deny' ? 'Denied' : 'Approved';
-    return '<div class="li-card"><div class="li-card-top"><div><span class="li-code">&#128138; ' + (it.drug || 'RX line') + '</span> <span class="li-desc">Qty ' + it.qty + ' &middot; ' + it.days + ' day(s)</span></div>'
-      + '<div style="display:flex;gap:6px;align-items:center;"><span class="cr-tag ' + rxTagCls + '">' + rxTagTxt + '</span><button class="btn btn-outline btn-xs" onclick="ipToggleProcDetermDetail(' + it.id + ')">&#128203; Details</button></div></div>'
-      + '<div id="procdet-' + it.id + '" style="display:none;margin-top:8px;font-size:11.5px;color:var(--gray-600);background:var(--gray-50);border:1px solid var(--gray-200);border-radius:8px;padding:8px 10px;">' + (rxRec ? ('Reviewed &amp; decided by ' + rxRec.reviewedBy + ' &middot; ' + crFmt(rxRec.reviewDate) + (rxRec.note ? ' — ' + rxRec.note : '')) : '') + '</div>'
+    var openRx = cr._openProcId === ('rx:' + it.id);
+    return '<div class="li-card"><div class="li-card-top" style="cursor:pointer;" onclick="ipToggleLineExpand(\'rx\',' + it.id + ')"><div style="display:flex;align-items:center;gap:8px;">'
+      + '<span class="li-caret">' + (openRx ? '&#9662;' : '&#9656;') + '</span>'
+      + '<span class="li-code">&#128138; ' + (it.drug || 'RX line') + '</span> <span class="li-desc">Qty ' + it.qty + ' &middot; ' + it.days + ' day(s)</span></div>'
+      + '<div style="display:flex;gap:6px;align-items:center;"><span class="cr-tag ' + rxTagCls + '">' + rxTagTxt + '</span></div></div>'
+      + (openRx ? '<div style="margin-top:8px;font-size:11.5px;color:var(--gray-600);background:var(--gray-50);border:1px solid var(--gray-200);border-radius:8px;padding:8px 10px;">' + (rxRec ? ('Reviewed &amp; decided by ' + rxRec.reviewedBy + ' &middot; ' + crFmt(rxRec.reviewDate) + (rxRec.note ? ' — ' + rxRec.note : '')) : '') + '</div>' : '')
       + '</div>';
   }
   var rxCols = liColsHtml([
@@ -6576,12 +6812,16 @@ function ipRxCard(it) {
     { label: 'Req Date', value: crFmt(it.reqDate) }
   ]);
   var rxNba = cr.status === 'pending-admission' ? '<span class="sb sb-blue" style="font-size:10px;">Initial Review</span>' : '';
+  var openRxU = cr._openProcId === ('rx:' + it.id);
   return '<div class="li-card"><div class="li-card-top" style="align-items:flex-start;"><div style="display:flex;align-items:flex-start;gap:8px;flex:1;min-width:170px;">'
     + '<input type="checkbox" class="li-sel" style="margin-top:2px;" ' + (it.selected ? 'checked' : '') + ' onchange="ipLineSel(\'rx\',' + it.id + ',this.checked)">'
-    + '<div><div><span class="li-code">&#128138; ' + (it.drug || 'RX line') + '</span> <span class="li-desc">' + (it.form || '') + '</span></div>'
+    + '<span class="li-caret" style="margin-top:2px;" onclick="ipToggleLineExpand(\'rx\',' + it.id + ')">' + (openRxU ? '&#9662;' : '&#9656;') + '</span>'
+    + '<div style="cursor:pointer;" onclick="ipToggleLineExpand(\'rx\',' + it.id + ')"><div><span class="li-code">&#128138; ' + (it.drug || 'RX line') + '</span> <span class="li-desc">' + (it.form || '') + '</span></div>'
     +   '<div style="font-size:11px;color:var(--gray-500);margin-top:2px;">Prescriber: ' + (it.sameAsReq ? (cr.attending || '—') : (it.prescriber || '—')) + (it.pharmacy ? ' &middot; Pharmacy: ' + it.pharmacy : '') + '</div></div></div>'
     + rxCols
-    + '<div style="display:flex;gap:6px;align-items:center;">' + rxNba + '<button class="btn btn-outline btn-xs" onclick="ipReviewLine(\'rx\',' + it.id + ')">&#128269; Review Medical Necessity</button><button class="btn btn-outline btn-xs" onclick="ipEditRx(' + it.id + ')">&#9998; Edit</button><button class="btn btn-ghost btn-xs" style="color:var(--red);" onclick="ipRemoveRx(' + it.id + ')">&#128465;</button></div></div></div>';
+    + '<div style="display:flex;gap:6px;align-items:center;">' + rxNba + '<button class="btn btn-outline btn-xs" onclick="event.stopPropagation();ipReviewLine(\'rx\',' + it.id + ')">&#128269; Review Medical Necessity</button><button class="btn btn-outline btn-xs" onclick="event.stopPropagation();ipEditRx(' + it.id + ')">&#9998; Edit</button><button class="btn btn-ghost btn-xs" style="color:var(--red);" onclick="event.stopPropagation();ipRemoveRx(' + it.id + ')">&#128465;</button></div></div>'
+    + (openRxU ? '<div style="margin-top:8px;font-size:12px;color:var(--gray-500);background:var(--gray-50);border:1px dashed var(--gray-300);border-radius:8px;padding:9px 12px;">Not yet reviewed — select this line and click <b>Review Selected</b> to record a determination.</div>' : '')
+    + '</div>';
 }
 function ipAddRx() { var cr = crGet(); cr.rxLines = cr.rxLines || []; cr.rxSeq = (cr.rxSeq || 0) + 1; cr.rxLines.push({ id: cr.rxSeq, drug: '', form: '', qty: 30, days: 30, refills: 0, prescriber: '', sameAsReq: true, pharmacy: '', reqDate: CR_TODAY, editing: true, isNew: true, _elig: false, selected: true, determId: null }); renderIpLines(); }
 function ipEditRx(id) { var cr = crGet(); var it = (cr.rxLines || []).find(function (x) { return x.id === id; }); if (it) { it.editing = true; renderIpLines(); } }
@@ -6657,40 +6897,32 @@ var IPR_MODE_META = {
 // The service/procedure line(s) currently under independent review — populated by ipReviewProc()/
 // ipReviewProcSelected() before entering 'procline' mode.
 var ipReviewLineIds = [];
-// Line Item bar — lists bed-day segments + service lines as selectable "items" with a details readout.
-// Purely informational for IP (the determination is per-stay, not per-line), mirroring the OP-style
-// "Line Item: N ▾" bar the real app uses.
-var iprItemsCache = [];
-function iprRenderItemBar() {
-  var cr = crGet(); var items = [];
-  if (!(cr.segments || []).length) {
-    // Pre-certification (pending admission) — no segment exists yet, but the requested bed stay is
-    // still the line under review; show it as a pending line instead of "No line items yet."
-    items.push({ label: '🛏 ' + cr.loc + ' — ' + crFmt(cr.admit) + ' (pending admission)', detail: (cr.requestedLos || 0) + ' day(s) requested', pillCls: 'sb-amber', pillText: 'Pending' });
-  }
-  (cr.segments || []).forEach(function (s) {
-    items.push({ label: '🛏 ' + s.loc + ' — ' + crFmt(s.start) + '–' + crFmt(s.end), detail: s.days + ' day(s) certified', pillCls: s.decision === 'Certified' ? 'sb-green' : (s.decision === 'Partial' ? 'sb-amber' : 'sb-red'), pillText: s.decision });
-  });
-  (cr.procLines || []).forEach(function (p) {
-    items.push({ label: '🩺 ' + (p.code || '—') + ' — ' + (p.desc || p.svcType || 'Service line'), detail: (p.qty || 1) + ' ' + (p.unit || 'Units') + ' · ' + crFmt(p.start) + '–' + crFmt(p.end), pillCls: 'sb-blue', pillText: 'Service Line' });
-  });
-  iprItemsCache = items;
-  var sel = document.getElementById('ipr-item-select');
-  sel.innerHTML = items.length ? items.map(function (it, i) { return '<option value="' + i + '">' + it.label + '</option>'; }).join('') : '<option>No line items yet</option>';
-  iprItemChange();
-}
-function iprItemChange() {
-  var idx = parseInt(ipVal('ipr-item-select'));
-  var it = iprItemsCache[idx];
-  var pill = document.getElementById('ipr-item-pill'), detail = document.getElementById('ipr-item-detail');
-  if (!it) { if (pill) pill.textContent = ''; if (detail) detail.textContent = ''; return; }
-  if (pill) { pill.className = 'sb ' + it.pillCls; pill.textContent = it.pillText; }
-  if (detail) detail.textContent = it.detail;
+// Status / Next Action on the right of the review-topbar — same Status→NBA pairs already used on the
+// Auth Detail action bar (renderIpStatus) and the canonical map in memory ([[um-status-nba-map]]), just
+// plain labels here (no action button — the actual Pend/Send-to-MD/Record-Determination controls stay
+// pinned at the bottom of the screen, this is read-only context). Deliberately does NOT introduce a new
+// "Pending Determination" mid-review status — certifying is the OUTCOME of a Concurrent Review round
+// (Certified Through / Days / Next Review), not a status of its own; the case stays "Concurrent Review"
+// throughout until MD-routed, pended, or discharged.
+function renderIprStatusNba() {
+  var el = document.getElementById('ipr-status-nba'); if (!el) return;
+  var cr = crGet();
+  var status, cls, nba;
+  if (cr.status === 'discharged') { status = 'Discharged'; cls = 'sb'; nba = 'Completed'; }
+  else if (cr.status === 'mdreview') {
+    var pc = null; cr.cycles.forEach(function (x) { if (x.mdStatus === 'pending') pc = x; });
+    var isP2P = pc && pc.reviewType === 'P2P';
+    status = isP2P ? 'Pending Peer-to-Peer' : 'Pending MD Review'; cls = 'sb sb-blue';
+    nba = isP2P ? 'P2P' : 'MD Review';
+  } else if (cr.status === 'pending') { status = 'Pending Information'; cls = 'sb sb-amber'; nba = 'Follow Up RFI'; }
+  else if (cr.status === 'pending-admission') { status = 'Ready for Review'; cls = 'sb sb-blue'; nba = 'Initial Review'; }
+  else { status = 'Concurrent Review'; cls = 'sb sb-teal'; nba = 'Concurrent Review'; }
+  el.innerHTML = '<span style="font-size:9.5px;font-weight:700;color:var(--gray-400);text-transform:uppercase;letter-spacing:.04em;">Status</span> <span class="' + cls + '" style="font-size:11px;">' + status + '</span>'
+    + '<span style="font-size:9.5px;font-weight:700;color:var(--gray-400);text-transform:uppercase;letter-spacing:.04em;margin-left:8px;">Next Action</span> <span class="sb" style="font-size:11px;background:var(--primary-pale);color:var(--primary);">' + nba + '</span>';
 }
 function enterIpReview(mode) {
   ipReviewMode = mode;
   var cr = crGet();
-  iprRenderItemBar();
   var isMd = (mode === 'md' || mode === 'p2p');
   var isProcline = mode === 'procline';
   document.getElementById('ipr-nurse-panel').style.display = (isMd || isProcline) ? 'none' : 'block';
@@ -6714,7 +6946,8 @@ function enterIpReview(mode) {
     : isProcline ? ('Line Review — ' + ipReviewLineIds.length + ' line' + (ipReviewLineIds.length === 1 ? '' : 's'))
     : meta.title;
   var nrChip = document.getElementById('ipr-next-review-chip');
-  if (nrChip) nrChip.textContent = cr.nextReview ? ('Next Review: ' + crFmt(cr.nextReview)) : '';
+  if (nrChip) { nrChip.style.display = cr.nextReview ? 'inline-block' : 'none'; nrChip.textContent = cr.nextReview ? ('Next Review: ' + crFmt(cr.nextReview)) : ''; }
+  renderIprStatusNba();
   var bcm = document.getElementById('ipr-bc-member'); if (bcm) bcm.textContent = cr.member + ' (' + (cr.mbr || '') + ')';
   var bca = document.getElementById('ipr-bc-auth'); if (bca) bca.textContent = 'Auth ' + cr.authNo;
   iprRenderFooter(mode);
@@ -7425,7 +7658,7 @@ function renderIprHistory() {
   var body = document.getElementById('iprhist-body'); if (!body) return;
   body.innerHTML = cr.cycles.slice().reverse().map(function (c) {
     var o = crOutcome(c);
-    return '<div class="log-row"><div class="seg-ico" style="background:var(--gray-100);color:var(--gray-600);">⚖</div><div class="seg-main"><div class="seg-title">' + crTypeLabel(c.type) + ' <span style="font-weight:400;color:var(--gray-500);">· ' + crFmt(c.date) + '</span></div><div class="seg-sub">' + c.by + '</div></div><span class="cr-tag ' + o.cls + '">' + o.label + '</span></div>';
+    return '<div class="log-row" style="cursor:pointer;" onclick="openCycleDetail(' + c.id + ')" title="View full detail"><div class="seg-ico" style="background:var(--gray-100);color:var(--gray-600);">⚖</div><div class="seg-main"><div class="seg-title">' + crTypeLabel(c.type) + ' <span style="font-weight:400;color:var(--gray-500);">· ' + crFmt(c.date) + '</span></div><div class="seg-sub">' + c.by + '</div></div><span class="cr-tag ' + o.cls + '">' + o.label + '</span></div>';
   }).join('') || '<p style="color:var(--gray-400);font-size:12px;">No prior reviews.</p>';
 }
 // Restores a Save-for-Later draft onto the just-loaded review form (guideline/source/LOC/days/note/checks).
@@ -7452,6 +7685,14 @@ function iprRestoreDraft(cr) {
 }
 function openCrReview() {
   var cr = crGet(); if (cr.status === 'discharged') return;
+  rrAmendCycleId = null; // this is always a FRESH review — openReReviewFull is the only amend entry point
+  // Recompute fresh from current checkbox state regardless of how this was reached (stay-panel action
+  // button, dashboard pill, sidebar — none of them go through ipReviewLinesSelected first) — mirrors
+  // openAdmissionReview's same fix. The open review itself (id 0) is always included; any other
+  // Inpatient Lines currently checked ride along with it.
+  ipReviewLineType = 'ip';
+  ipReviewLineIds = ipLineArrFor('ip').filter(function (x) { return x.selected && !x.determId; }).map(function (x) { return x.id; });
+  if (ipReviewLineIds.indexOf(0) < 0) ipReviewLineIds.unshift(0);
   var dcWrap = document.getElementById('cr-dc-wrap'); if (dcWrap) dcWrap.style.display = 'block';
   document.getElementById('cr-ctx').innerHTML = 'This is <b>Concurrent Review #' + crReviewNum() + '</b>. Certified through <b>' + crFmt(cr.certifiedThrough) + '</b> (' + cr.los + ' days) — this review covers <b>additional</b> bed days beyond that date.';
   iprSourceChange();
@@ -7483,6 +7724,7 @@ function openCrReview() {
 function openAdmissionReview(key) {
   currentCase = key;
   var cr = crGet();
+  rrAmendCycleId = null; // this is always a FRESH review — openReReviewFull is the only amend entry point
   // Recompute fresh from current checkbox state regardless of how this was reached (sidebar/top-bar
   // buttons call this directly, without going through ipReviewLinesSelected first) — the admission
   // itself (id 0) is always included; any other Inpatient Lines currently checked ride along with it.
@@ -7519,7 +7761,11 @@ function crScheduleConfirm() {
   closeModal('m-crschedule'); syncIp(); crToast('📅 Next review scheduled — ' + crFmt(v));
 }
 function crClearReview() { var cr = crGet(); cr.nextReview = ''; closeModal('m-crschedule'); syncIp(); crToast('Next review cleared — none scheduled'); }
-// Live requested-vs-approved summary + highlight the recommended action (Determination when fully approved; Send to MD for partial/denial).
+// Live requested-vs-approved summary + highlight the RECOMMENDED action — but every determination stays
+// clickable regardless of the recommendation (Approve/Partial/Deny/Send to MD are all always available;
+// the recommendation is advisory, not a gate). Record Determination routes to whichever outcome the
+// entered days actually represent, same as Send to MD does — the two buttons are just two doors to the
+// same set of outcomes, so the nurse is never forced down one path because the other looked greyed out.
 function crUpdateRecommend() {
   var cr = crGet();
   var req = parseInt(document.getElementById('cr-days').value) || 0;
@@ -7529,34 +7775,42 @@ function crUpdateRecommend() {
   if (!crNextManual) document.getElementById('cr-next').value = crAddDays(cr.certifiedThrough, appr > 0 ? appr : 0);
   var sum = document.getElementById('cr-approve-summary'), md = document.getElementById('cr-btn-md'), det = document.getElementById('cr-btn-det');
   if (!sum || !md || !det) return;
-  // Highlight Send to MD Review whenever the criteria checklist itself isn't fully met — independent of
-  // whatever the nurse has typed into Days to Approve, since matching day counts shouldn't paper over
-  // unmet criteria.
+  det.disabled = false; // never gated by the recommendation — see comment above
   var totalCrit = crTotalCrit(), metCrit = crMetCount(), allCritMet = totalCrit > 0 ? metCrit >= totalCrit : true;
   var full = req > 0 && appr === req, partial = appr > 0 && appr < req;
   if (full && !allCritMet) {
     sum.style.background = '#FEF2F2'; sum.style.color = '#B91C1C';
     sum.innerHTML = '&#10007; ' + metCrit + ' of ' + totalCrit + ' criteria met &mdash; days requested match, but criteria are not fully met. Recommended action: <b>send to MD</b> before certifying.';
     md.className = 'btn btn-primary btn-sm'; md.innerHTML = '&#128104;&#8205;&#9877; Send to MD Review';
-    det.className = 'btn btn-outline btn-sm'; det.disabled = true; det.innerHTML = '&#10003; Record Determination';
+    det.className = 'btn btn-outline btn-sm'; det.innerHTML = '&#10003; Record Determination (Approve anyway)';
   } else if (full) {
     sum.style.background = 'var(--green-bg)'; sum.style.color = 'var(--green)';
     sum.innerHTML = '&#10003; Criteria met &mdash; approving <b>all ' + req + '</b> requested day' + (req === 1 ? '' : 's') + '. Recommended action: record the determination (Approve).';
-    det.className = 'btn btn-primary btn-sm'; det.disabled = false; det.innerHTML = '&#10003; Record Determination (Approve)';
+    det.className = 'btn btn-primary btn-sm'; det.innerHTML = '&#10003; Record Determination (Approve)';
     md.className = 'btn btn-outline btn-sm'; md.innerHTML = '&#128104;&#8205;&#9877; Send to MD Review';
   } else if (partial) {
     sum.style.background = '#FFFBEB'; sum.style.color = '#B45309';
     sum.innerHTML = '&#9682; Partial &mdash; approving <b>' + appr + ' of ' + req + '</b> day' + (req === 1 ? '' : 's') + ' (' + (req - appr) + ' not certified). Recommended action: <b>send to MD</b> for the non-certified portion.';
     md.className = 'btn btn-primary btn-sm'; md.innerHTML = '&#128104;&#8205;&#9877; Send to MD (Partial)';
-    det.className = 'btn btn-outline btn-sm'; det.disabled = true; det.innerHTML = '&#10003; Record Determination';
+    det.className = 'btn btn-outline btn-sm'; det.innerHTML = '&#10003; Record Determination (Partial)';
   } else {
     sum.style.background = '#FEF2F2'; sum.style.color = '#B91C1C';
     sum.innerHTML = '&#10007; Criteria not met &mdash; <b>0 of ' + req + '</b> day' + (req === 1 ? '' : 's') + ' certified. Recommended action: <b>send to MD</b> for the denial.';
     md.className = 'btn btn-primary btn-sm'; md.innerHTML = '&#128104;&#8205;&#9877; Send to MD (Denial)';
-    det.className = 'btn btn-outline btn-sm'; det.disabled = true; det.innerHTML = '&#10003; Record Determination';
+    det.className = 'btn btn-outline btn-sm'; det.innerHTML = '&#10003; Record Determination (Deny)';
   }
 }
-function crDetermPrimary() { var req = parseInt(ipVal('cr-days')) || 0, a = parseInt(ipVal('cr-approve')); if (isNaN(a)) a = req; if (req > 0 && a === req) openCrApprove(); }
+// Both buttons route to the same outcome set from whatever's currently entered — Record Determination
+// certifies directly on a full match (the only outcome a nurse can finalize herself for a concurrent
+// review); partial/zero still open the same recommend-to-MD modals Send to MD uses (a nurse can't
+// finalize an adverse concurrent-review outcome — see the m-crdeny banner), just reachable from either
+// button instead of only one.
+function crDetermPrimary() {
+  var req = parseInt(ipVal('cr-days')) || 0, a = parseInt(ipVal('cr-approve')); if (isNaN(a)) a = req;
+  if (req > 0 && a === req) openCrApprove();
+  else if (a > 0) openCrPartial();
+  else openCrDeny('Clinical');
+}
 function crSendPrimary() { var req = parseInt(ipVal('cr-days')) || 0, a = parseInt(ipVal('cr-approve')); if (isNaN(a)) a = req; if (a >= req && req > 0) openCrSend(); else if (a > 0) openCrPartial(); else openCrDeny('Clinical'); }
 var LOC_RANK_MAP = { 'Acute Inpatient': 5, 'Long-Term Acute Care': 4, 'Inpatient Rehab': 3, 'Skilled Nursing': 2, 'Observation': 1 };
 var LOC_ALL = ['Acute Inpatient', 'Long-Term Acute Care', 'Inpatient Rehab', 'Skilled Nursing', 'Observation'];
@@ -7676,10 +7930,43 @@ function openCrApprove() {
   document.getElementById('cra-note').value = crPendingReview.note;
   openModal('m-crapprove');
 }
+// Re-review certify: amends the cycle IN PLACE (this is the one outcome a nurse can finalize herself,
+// same authority as a fresh review) — prior values are snapshotted to c.amendments first, so nothing is
+// silently overwritten, then the linked segment + stay totals are recalculated from the new numbers.
+function crAmendCertify(c, r, code) {
+  var cr = crGet();
+  var seg = cr.segments.find(function (s) { return s.src === c.type; });
+  var priorSummary = (c.certified || 0) + ' certified / ' + (c.denied || 0) + ' denied' + (c.guideline ? '; guideline: ' + c.guideline : '') + (c.note ? '; note: “' + c.note + '”' : '');
+  c.amendments = c.amendments || [];
+  c.amendments.push({ at: CR_TODAY, amendedBy: 'M Craft, UM Nurse', reason: 'Re-reviewed and re-certified', summary: 'was ' + priorSummary });
+  c.requested = r.req; c.certified = r.req; c.denied = 0;
+  c.criteria = r.metCount + '/' + r.total + ' Met'; c.critDetail = r.critDetail;
+  c.guideline = r.guideline; c.loc = r.loc; c.approvalCode = code;
+  c.note = ipVal('cra-note') || c.note;
+  c.source = r.source; c.sourceLabel = r.sourceLabel; c.sourceDetail = r.sourceDetail;
+  c.locMode = r.locMode; c.dxType = r.dxType; c.dxValue = r.dxValue;
+  c.notice = crNotice(c.type === 'Initial Review' ? 'certification' : (LOC_RANK(r.loc) < LOC_RANK(cr.loc) ? 'reduction' : 'certification'));
+  if (r.dischargePlanning) c.dischargePlanning = r.dischargePlanning;
+  if (seg) { seg.days = r.req; seg.loc = r.loc; seg.decision = 'Certified'; }
+  recomputeIpTotals(cr);
+  if (c.type !== 'Initial Review') c.nextReview = r.next || c.nextReview;
+  cr.nextReview = c.nextReview || cr.nextReview; cr.lastDenied = 0; cr.loc = r.loc; cr.status = 'admitted';
+  rrAmendCycleId = null;
+}
 function crApproveConfirm() {
   var code = ipVal('cra-code'); if (!code) { document.getElementById('cra-code').style.borderColor = 'var(--red)'; return; }
   var r = crPendingReview, cr = crGet();
   cr.draftReview = null; // determination recorded — clear any saved-for-later draft for this stay
+  if (rrAmendCycleId) {
+    var amendC = cr.cycles.find(function (x) { return x.id === rrAmendCycleId; });
+    if (amendC) {
+      crAmendCertify(amendC, r, code);
+      closeModal('m-crapprove'); showScreen('s-auth-detail-ip');
+      crToast('✓ Re-review saved — record amended · notice issued');
+      return;
+    }
+    rrAmendCycleId = null; // stale id — fall through to a normal fresh-review certify rather than silently failing
+  }
   if (ipReviewMode === 'admission') {
     // First certification of the stay — creates the Initial Review cycle/segment (not a numbered
     // concurrent review), then routes into the same Approve & Save / Approve & Set Review Date gate
@@ -7699,6 +7986,8 @@ function crApproveConfirm() {
   var next = r.next || crAddDays(start, r.req);
   cr.segId++; cr.segments.push({ id: cr.segId, loc: r.loc, start: start, end: end, days: r.req, decision: 'Certified', src: 'Concurrent Review #' + n });
   cr.cycleId++; cr.cycles.push({ id: cr.cycleId, type: 'Concurrent Review #' + n, date: CR_TODAY, requested: r.req, certified: r.req, denied: 0, criteria: r.metCount + '/' + r.total + ' Met', by: 'M Craft, UM Nurse', reviewedBy: 'M Craft, UM Nurse', reviewDate: CR_TODAY, nextReview: next, guideline: r.guideline, loc: r.loc, locChange: downgrade ? (cr.loc + ' → ' + r.loc) : null, critDetail: r.critDetail, approvalCode: code, notice: crNotice(kind), note: ipVal('cra-note') || 'Continued-stay criteria met; certifying additional days.', amendments: [], source: r.source, sourceLabel: r.sourceLabel, sourceDetail: r.sourceDetail, locMode: r.locMode, dxType: r.dxType, dxValue: r.dxValue, dischargePlanning: r.dischargePlanning });
+  ipTagCombinedConcurrentExtras(); // any other Inpatient Lines reviewed together with this stay review get approved alongside it
+  cr._crSelected = true;
   cr.los += r.req; cr.certifiedThrough = end; cr.nextReview = next; cr.lastDenied = 0; cr.status = 'admitted'; cr.loc = r.loc;
   closeModal('m-crapprove'); showScreen('s-auth-detail-ip');
   crToast(downgrade ? '⇩ Certified ' + r.req + 'd at ' + r.loc + ' (step-down) · notice issued' : '✓ Certified ' + r.req + 'd · ' + code.split(' · ')[0] + ' · notice issued');
@@ -7735,12 +8024,24 @@ function crPartialConfirm() {
   crRouteToMd2(r, dcode, ipVal('crp-note')); closeModal('m-crpartial');
 }
 // Adverse (deny / partial) routes to MD with the recommended code; no notice until the physician finalizes.
+// Reachable from BOTH the admission review and any concurrent review (Record Determination and Send to
+// MD both route here now — see crDetermPrimary/crSendPrimary) — the cycle type has to reflect whichever
+// one is actually in progress, not assume concurrent.
 function crRouteToMd2(r, denialCode, note) {
   var cr = crGet(), n = crReviewNum();
+  var cycleType = ipReviewMode === 'admission' ? 'Initial Review' : ('Concurrent Review #' + n);
+  // Amending into an adverse/partial outcome can't finalize itself (same rule as any fresh review — a
+  // nurse can't issue the denial directly) and mustn't touch the settled cycle being re-reviewed either
+  // — it creates a NEW MD-bound cycle referencing it instead (amendsCycleId), so the original stays fully
+  // preserved and the cycle TYPE stays the normal pattern other code matches against (sidebar history,
+  // crReviewNum's numbering, the icon lookup in openCycleDetail/crReviewDetailHtml).
+  var amending = !!rrAmendCycleId;
+  if (amending) note = (note || '') + ' (re-review of a prior determination — original record preserved)';
   cr.draftReview = null;
   cr.cycleId++;
-  cr.cycles.push({ id: cr.cycleId, type: 'Concurrent Review #' + n, date: CR_TODAY, requested: r.req, certified: 0, denied: 0, criteria: r.metCount + '/' + r.total + ' Met', by: 'M Craft, UM Nurse', reviewedBy: 'M Craft, UM Nurse', reviewDate: CR_TODAY, nextReview: '', guideline: r.guideline, loc: r.loc, critDetail: r.critDetail, note: note || 'Adverse recommendation routed to MD.', mdStatus: 'pending', reviewType: 'MD', kind: r.kind, recCertify: r.cert || 0, recDeny: (r.deny != null ? r.deny : r.req), recApprovalCode: r.approvalCode || null, recDenialCode: denialCode, denyType: r.denyType || 'Clinical', notice: null, amendments: [], source: r.source, sourceLabel: r.sourceLabel, sourceDetail: r.sourceDetail, locMode: r.locMode, dxType: r.dxType, dxValue: r.dxValue, dischargePlanning: r.dischargePlanning });
+  cr.cycles.push({ id: cr.cycleId, type: cycleType, date: CR_TODAY, requested: r.req, certified: 0, denied: 0, criteria: r.metCount + '/' + r.total + ' Met', by: 'M Craft, UM Nurse', reviewedBy: 'M Craft, UM Nurse', reviewDate: CR_TODAY, nextReview: '', guideline: r.guideline, loc: r.loc, critDetail: r.critDetail, note: note || 'Adverse recommendation routed to MD.', mdStatus: 'pending', reviewType: 'MD', kind: r.kind, recCertify: r.cert || 0, recDeny: (r.deny != null ? r.deny : r.req), recApprovalCode: r.approvalCode || null, recDenialCode: denialCode, denyType: r.denyType || 'Clinical', notice: null, amendments: [], amendsCycleId: amending ? rrAmendCycleId : null, source: r.source, sourceLabel: r.sourceLabel, sourceDetail: r.sourceDetail, locMode: r.locMode, dxType: r.dxType, dxValue: r.dxValue, dischargePlanning: r.dischargePlanning });
   cr.status = 'mdreview';
+  rrAmendCycleId = null;
   showScreen('s-auth-detail-ip');
   crToast('🩺 Adverse recommendation (' + (denialCode ? denialCode.split(' · ')[0] : '') + ') routed to MD — no notice until MD determines');
 }
@@ -7754,10 +8055,15 @@ function openCrSend() {
 function crSendConfirm() {
   var type = (document.querySelector('input[name=cr-send-type]:checked') || {}).value || 'md';
   var r = crPendingReview, cr = crGet(), n = crReviewNum();
+  var cycleType = ipReviewMode === 'admission' ? 'Initial Review' : ('Concurrent Review #' + n);
+  var amending = !!rrAmendCycleId;
+  var note = ipVal('crs-note') || ('Routed for ' + (type === 'p2p' ? 'peer-to-peer' : 'MD') + ' review.');
+  if (amending) note += ' (re-review of a prior determination — original record preserved)';
   cr.draftReview = null;
   cr.cycleId++;
-  cr.cycles.push({ id: cr.cycleId, type: 'Concurrent Review #' + n, date: CR_TODAY, requested: r.req, certified: 0, denied: 0, criteria: r.metCount + '/' + r.total + ' Met', by: 'M Craft, UM Nurse', reviewedBy: 'M Craft, UM Nurse', reviewDate: CR_TODAY, nextReview: '', guideline: r.guideline, loc: r.loc, critDetail: r.critDetail, note: ipVal('crs-note') || ('Routed for ' + (type === 'p2p' ? 'peer-to-peer' : 'MD') + ' review.'), mdStatus: 'pending', reviewType: type === 'p2p' ? 'P2P' : 'MD', kind: 'review', recCertify: r.req, recDeny: 0, recDenialCode: null, notice: null, amendments: [], source: r.source, sourceLabel: r.sourceLabel, sourceDetail: r.sourceDetail, locMode: r.locMode, dxType: r.dxType, dxValue: r.dxValue, dischargePlanning: r.dischargePlanning });
+  cr.cycles.push({ id: cr.cycleId, type: cycleType, date: CR_TODAY, requested: r.req, certified: 0, denied: 0, criteria: r.metCount + '/' + r.total + ' Met', by: 'M Craft, UM Nurse', reviewedBy: 'M Craft, UM Nurse', reviewDate: CR_TODAY, nextReview: '', guideline: r.guideline, loc: r.loc, critDetail: r.critDetail, note: note, mdStatus: 'pending', reviewType: type === 'p2p' ? 'P2P' : 'MD', kind: 'review', recCertify: r.req, recDeny: 0, recDenialCode: null, notice: null, amendments: [], amendsCycleId: amending ? rrAmendCycleId : null, source: r.source, sourceLabel: r.sourceLabel, sourceDetail: r.sourceDetail, locMode: r.locMode, dxType: r.dxType, dxValue: r.dxValue, dischargePlanning: r.dischargePlanning });
   cr.status = 'mdreview';
+  rrAmendCycleId = null;
   closeModal('m-crsend'); showScreen('s-auth-detail-ip');
   crToast((type === 'p2p' ? '☎ Peer-to-Peer' : '🩺 MD review') + ' requested');
 }
@@ -8004,7 +8310,93 @@ function rrUpdateDenied() {
   document.getElementById('rr-denied').value = Math.max(req - cert, 0);
 }
 var rrCurrentId = null;
+// Set while the full s-ip-review screen is open in "amend an existing cycle" mode (see openReReviewFull).
+// Cleared once the amendment is actually saved, or when a FRESH (non-amend) review is entered, so stale
+// amend context never leaks into an unrelated later review.
+var rrAmendCycleId = null;
+// Re-Review dispatches to one of two flows:
+// - Initial Review / Concurrent Review cycles reopen the SAME full-screen review used for a fresh
+//   review (criteria selection, guideline, AI note, LOC eval, discharge planning, full Pend/Send-to-
+//   MD/Record-Determination) — see openReReviewFull below — so a re-review has full functional parity
+//   with the original, instead of the older compact form.
+// - Discharge Review has its own dedicated flow (openDischarge/m-discharge) that this screen doesn't
+//   model, so it keeps the older compact amendment form.
 function openReReview(id) {
+  var cr = crGet(); var c = null; for (var i = 0; i < cr.cycles.length; i++) { if (cr.cycles[i].id === id) c = cr.cycles[i]; }
+  if (!c) return;
+  if (c.type === 'Discharge Review') { openReReviewLegacy(id); return; }
+  openReReviewFull(id, c);
+}
+// Restores a past cycle's own criteria checklist into the live #cr-crit-list — used instead of
+// crLoadCriteria's guideline-template load so a re-review sees exactly what the original review was
+// evaluated against, not whatever the guideline's default checklist looks like today.
+function crRestoreCritDetail(items) {
+  var body = document.getElementById('cr-crit-list'); if (!body || !items || !items.length) return;
+  body.innerHTML = items.map(function (x, i) {
+    return '<label class="cr-crit' + (x.met ? ' met' : '') + '" id="crcrit-' + i + '"><input type="checkbox" ' + (x.met ? 'checked' : '') + ' onchange="this.closest(\'.cr-crit\').classList.toggle(\'met\',this.checked);renderIprCriteriaDetails();renderIprAiNote(ipReviewMode);crUpdateRecommend();"><span class="cc-txt">' + x.text + '</span></label>';
+  }).join('');
+  if (typeof renderIprCriteriaDetails === 'function') renderIprCriteriaDetails();
+  if (typeof renderIprAiNote === 'function') renderIprAiNote(ipReviewMode);
+}
+// Opens the full s-ip-review screen pre-filled from a past cycle's stored data, in "amend" mode
+// (rrAmendCycleId set) — confirming certifies/routes exactly like a fresh review, but the certify path
+// amends THIS cycle in place (prior values snapshotted to c.amendments, nothing silently overwritten)
+// instead of creating a new one; adverse/MD-routed outcomes create a new MD-bound cycle referencing this
+// one instead, so the original record is never touched by an outcome the nurse can't finalize herself.
+// c.guideline stores the guideline's LABEL text (crCurGuideline() always returns g.label, never the
+// GUIDELINES key) — reverse-lookup the key so it can actually be selected back into #cr-guideline.
+function crGuidelineKeyByLabel(label) {
+  if (!label) return '';
+  for (var k in GUIDELINES) { if (GUIDELINES[k].label === label) return k; }
+  return '';
+}
+function openReReviewFull(id, c) {
+  var cr = crGet();
+  closeModal('m-crdetail');
+  rrAmendCycleId = id;
+  var mode = c.type === 'Initial Review' ? 'admission' : 'concurrent';
+  var dcWrap = document.getElementById('cr-dc-wrap'); if (dcWrap) dcWrap.style.display = (mode === 'admission') ? 'none' : 'block';
+  // c.source is missing on older records (pre-dating that field) — infer a source that actually keeps
+  // the resolved guideline key selectable: 'custom' only offers link-type guidelines (would hide a
+  // built-in GUIDELINES key entirely), 'manual' disables the dropdown outright, so fall back to whichever
+  // of iq/cwqi actually lists that key (matching this app's own iq-/mcg- prefix convention).
+  var glKey = crGuidelineKeyByLabel(c.guideline);
+  var inferredSrc = glKey ? (glKey.indexOf('iq-') === 0 ? 'iq' : 'cwqi') : 'manual';
+  var srcSel = document.getElementById('iprgl-source'); if (srcSel) srcSel.value = c.source || inferredSrc;
+  iprSourceChange();
+  var locRadio = document.querySelector('input[name=cr-loc-mode][value="' + (c.locMode || 'confirm') + '"]'); if (locRadio) locRadio.checked = true;
+  var curLoc = document.getElementById('cr-cur-loc'); if (curLoc) curLoc.textContent = cr.loc;
+  crLocMode();
+  document.getElementById('cr-days').value = c.requested || 0;
+  document.getElementById('cr-approve').value = c.certified || 0;
+  document.getElementById('cr-note').value = c.note || '';
+  crNextManual = true; // keep the historical next-review date rather than auto-recomputing it
+  crUpdateRecommend();
+  var dp = c.dischargePlanning || {};
+  var dcReadiness = document.getElementById('cr-dc-readiness'); if (dcReadiness) dcReadiness.value = dp.readiness || '';
+  var dcDate = document.getElementById('cr-dc-date'); if (dcDate) dcDate.value = dp.date || '';
+  var dcNote = document.getElementById('cr-dc-note'); if (dcNote) dcNote.value = dp.note || '';
+  crDcUpdateChip();
+  var hasDc = !!(dp.readiness || dp.date || (dp.note && dp.note.trim()));
+  var dcBody = document.getElementById('cr-dc-body'); if (dcBody) dcBody.style.display = hasDc ? 'block' : 'none';
+  var dcChev = document.getElementById('cr-dc-chev'); if (dcChev) dcChev.style.transform = hasDc ? 'rotate(90deg)' : 'rotate(0deg)';
+  enterIpReview(mode); // rebuilds the whole screen from scratch (incl. its own criteria template load)
+  // Re-apply the historical values enterIpReview's own init (iprSourceChange/lookupTypeChange/etc.) just
+  // reset to defaults, then overwrite the criteria list with what THIS cycle actually recorded — after
+  // enterIpReview, which is the point crLoadCriteria's guideline-template load actually runs.
+  var glSel = document.getElementById('cr-guideline'); if (glSel && glKey) glSel.value = glKey;
+  var dxRadio = document.querySelector('input[name="ipr-lookup-type"][value="' + (c.dxType || 'diagnosis') + '"]'); if (dxRadio) { dxRadio.checked = true; lookupTypeChange('ipr'); }
+  if (c.dxValue) { var dxv = document.getElementById('ipr-dx-value'); if (dxv) dxv.value = c.dxValue; }
+  document.getElementById('cr-days').value = c.requested || 0;
+  document.getElementById('cr-approve').value = c.certified || 0;
+  document.getElementById('cr-note').value = c.note || '';
+  document.getElementById('cr-next').value = c.nextReview || '';
+  crRestoreCritDetail(c.critDetail || []);
+  crUpdateRecommend();
+  var ctx = document.getElementById('cr-ctx');
+  if (ctx) ctx.innerHTML = '<b>&#128260; Re-Review</b> of <b>' + c.type + '</b> (' + crFmt(c.date) + ') — amending this record in place; the prior values are preserved in its Amendment History.';
+}
+function openReReviewLegacy(id) {
   var cr = crGet(); var c = null; for (var i = 0; i < cr.cycles.length; i++) { if (cr.cycles[i].id === id) c = cr.cycles[i]; }
   if (!c) return;
   rrCurrentId = id;
@@ -8495,10 +8887,28 @@ function renderTat() {
   document.querySelectorAll('.tat-cell').forEach(function (td) {
     var c = td.getAttribute('data-case');
     var dl;
+    // Every row gets a tooltip with the actual deadline/date the countdown is measuring — the cell
+    // itself only ever shows a relative countdown or "Overdue", never the calendar date/time.
     if (c) {
-      if (isIpCase(c)) { var nr = (crState[c] || {}).nextReview; dl = nr ? regParse(nr + 'T09:00:00').getTime() : NaN; } // IP worklist clock = concurrent-review due
-      else { dl = regDue(c) ? regDue(c).getTime() : NaN; }
-    } else { dl = Date.parse(td.getAttribute('data-deadline')); }
+      if (isIpCase(c)) {
+        var crc = crState[c] || {};
+        if (crc.status === 'pending-admission') {
+          // Not yet admitted — no concurrent review exists yet, so the operative clock is Initial
+          // Review's own regulatory turnaround (same mechanism OP uses), not cr.nextReview.
+          var d0 = regDue(c); dl = d0 ? d0.getTime() : NaN;
+          td.title = d0 ? ('Initial Review due: ' + regFmtDT(d0)) : 'No deadline on file';
+        } else {
+          var nr = crc.nextReview; dl = nr ? regParse(nr + 'T09:00:00').getTime() : NaN; // IP worklist clock = concurrent-review due
+          td.title = nr ? ('Next review: ' + crFmt(nr)) : 'No next review scheduled';
+        }
+      } else {
+        var d1 = regDue(c); dl = d1 ? d1.getTime() : NaN;
+        td.title = d1 ? ('Due: ' + regFmtDT(d1)) : 'No deadline on file';
+      }
+    } else {
+      dl = Date.parse(td.getAttribute('data-deadline'));
+      td.title = isNaN(dl) ? '' : ('Due: ' + regFmtDT(new Date(dl)));
+    }
     if (isNaN(dl)) { td.innerHTML = '<span style="color:var(--gray-400);">—</span>'; return; }
     var rem = dl - now;
     if (rem <= 0) { var o = -rem, od = Math.floor(o / 86400000), oh = Math.floor((o % 86400000) / 3600000), om = Math.floor((o % 3600000) / 60000); td.innerHTML = '<span class="tat-red" style="white-space:nowrap;">⚠ Overdue ' + (od > 0 ? od + 'd ' : '') + oh + 'h ' + om + 'm</span>'; atRisk++; return; }
@@ -9154,14 +9564,18 @@ function buildNewIpCase(p) {
     diagnoses: (p.diagnoses || []).filter(function (d) { return !d.primary; }).map(function (d) { return { code: d.code || '', name: d.name || '' }; }),
     admit: admit, loc: loc, dx: (p.dxCode || '') + (p.dxName ? ' — ' + p.dxName : ''), facility: p.servFac || '—', attending: p.reqProv || '—',
     admType: p.admType || '', admSource: p.admSource || '',
+    // Line 1 IS the admission itself — the wizard's ipLines[0] carries these same fields (Service Type/
+    // Procedure Code/Units/Place of Service/Request Date), captured here so Line 1's own Edit form has
+    // full wizard parity instead of only LOC/LOS/diagnosis.
+    svcType: (p.ipLines && p.ipLines[0] && p.ipLines[0].svcType) || '', code: (p.ipLines && p.ipLines[0] && p.ipLines[0].code) || '', units: (p.ipLines && p.ipLines[0] && p.ipLines[0].units) || '', pos: (p.ipLines && p.ipLines[0] && p.ipLines[0].pos) || '', reqDate: (p.ipLines && p.ipLines[0] && p.ipLines[0].reqDate) || admit,
     eligPayer: p.eligPayer || '', eligLabel: p.eligLabel || '', eligCob: p.eligCob || '',
     los: 0, certifiedThrough: admit, nextReview: '', requestedLos: requestedLos,
     status: 'pending-admission', pendReason: null, lastDenied: 0, dischargeDate: null,
     segId: 0, cycleId: 0, procId: (p.procLines || []).length,
     procLines: (p.procLines || []).map(function (it, i) { return { id: i + 1, svcType: it.svcType || '', code: it.code || '', desc: it.desc || '', qty: it.qty || 1, unit: it.unit || 'Units', pos: it.pos || '21 – Inpatient Hospital', provider: it.provider || p.servFac || '', start: it.start || admit, end: it.end || admit, editing: false, isNew: false, selected: true, determId: null }; }),
-    // The wizard's ipLines[0] is the admission itself (already captured in admit/loc/requestedLos above)
-    // — any additional lines beyond that are the equivalent of um-nav's own "+ Add Line → Inpatient Line".
-    extraIpLines: (p.ipLines || []).slice(1).map(function (it, i) { return { id: i + 1, loc: it.loc || loc, days: it.days || 1, svcType: it.svcType || '', code: it.code || '', pos: it.pos || '', reqDate: it.start || admit, start: it.start || admit, end: it.end || admit, editing: false, isNew: false, selected: true, determId: null, _elig: false }; }),
+    // The wizard's ipLines[0] is the admission itself (already captured above) — any additional lines
+    // beyond that are the equivalent of um-nav's own "+ Add Line → Inpatient Line".
+    extraIpLines: (p.ipLines || []).slice(1).map(function (it, i) { return { id: i + 1, loc: it.loc || loc, days: it.days || 1, svcType: it.svcType || '', code: it.code || '', units: it.units || '', pos: it.pos || '', reqDate: it.start || admit, start: it.start || admit, end: it.end || admit, startOverride: it.start || null, editing: false, isNew: false, selected: true, determId: null, _elig: false }; }),
     rxLines: [], segments: [], cycles: []
   };
   crState[key].ipLineSeq = crState[key].extraIpLines.length;
@@ -9211,28 +9625,23 @@ function showAuthCreatedToast(authType, ip, isDraft) {
   t.classList.add('show');
   setTimeout(function () { t.classList.remove('show'); }, 3600);
 }
-// Admission-approval gate for a new inpatient auth: the nurse chooses to save with concurrent review
-// left opt-in (unscheduled), or set the first continued-stay review date right away.
+// Admission-approval gate for a new inpatient auth — confirms the initial certification only. Concurrent
+// Review is a separate, later phase (hasn't started yet at this point), so no review date is scheduled
+// or mentioned here; that happens via the stay panel's own Schedule/Change action or the first actual
+// concurrent review's own auto-suggested date.
 var ipAdmitPendingKey = null;
 function openIpAdmitApprove(key) {
   ipAdmitPendingKey = key;
   var cr = crState[key];
   document.getElementById('ipa-los').value = cr.los;
-  var aiOn = !document.body.classList.contains('ai-off');
-  var dateEl = document.getElementById('ipa-date'), aiTag = document.getElementById('ipa-ai-tag');
-  // AI recommends reviewing on or before the certified-through date (last safe day before coverage
-  // lapses) — respects the global AI Assist toggle, and stays fully editable either way.
-  dateEl.value = aiOn ? cr.certifiedThrough : '';
-  if (aiTag) aiTag.innerHTML = aiOn ? '&#10024; AI-recommended' : '';
   document.getElementById('ipa-notes').value = '';
   ipaUpdateSummary();
   openModal('m-ip-admit-approve');
 }
 function ipaUpdateSummary() {
   var los = document.getElementById('ipa-los').value;
-  var date = document.getElementById('ipa-date').value;
   var el = document.getElementById('ipa-summary'); if (!el) return;
-  el.innerHTML = '<span style="color:var(--green);">&#8505;&#65039;</span> Approved ' + los + ' initial day' + (los == 1 ? '' : 's') + '. Concurrent review date: <b>' + (date ? crFmt(date) : 'N/A') + '</b>';
+  el.innerHTML = '<span style="color:var(--green);">&#8505;&#65039;</span> Approved ' + los + ' initial day' + (los == 1 ? '' : 's') + '.';
 }
 function ipaCommitNotes(cr) {
   var text = (document.getElementById('ipa-notes').value || '').trim();
@@ -9241,16 +9650,6 @@ function ipaCommitNotes(cr) {
 function ipAdmitApproveSave() {
   var key = ipAdmitPendingKey, cr = key ? crState[key] : null;
   if (cr) ipaCommitNotes(cr);
-  closeModal('m-ip-admit-approve');
-  if (key) openIpCase(key);
-  ipAdmitPendingKey = null;
-}
-function ipAdmitApproveSchedule() {
-  var key = ipAdmitPendingKey, cr = key ? crState[key] : null;
-  if (cr) {
-    ipaCommitNotes(cr);
-    cr.nextReview = document.getElementById('ipa-date').value || cr.certifiedThrough;
-  }
   closeModal('m-ip-admit-approve');
   if (key) openIpCase(key);
   ipAdmitPendingKey = null;
@@ -9418,5 +9817,6 @@ Clinicals attached: Psychiatric eval 07/26/2026, medication log<br>
   <iframe id="aw-frame" class="aw-frame" title="New Authorization Wizard"></iframe>
 </div>
 <div id="aw-toast" class="aw-toast"></div>
+<div id="minimized-stack" class="minimized-stack"></div>
 </body>
 </html>
