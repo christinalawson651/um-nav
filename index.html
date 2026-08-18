@@ -7432,10 +7432,22 @@ function iprTab(name) {
 function renderIprRecords() {
   var glVal = (typeof ipVal === 'function') ? ipVal('cr-guideline') : null;
   var link = glVal && String(glVal).indexOf('cgl:') === 0 && typeof cglFind === 'function' ? cglFind(glVal) : null;
+  // Same case-specific fallback as crLoadCriteria()/renderIprGuidelines() — otherwise Manual mode could
+  // pair the checklist from one guideline (via the fallback) with Medical Records evidence from another
+  // (the case's static MED_REC default).
+  if (!link && !GUIDELINES[glVal] && CR_LINK_FALLBACK_BY_CASE[currentCase]) {
+    var fb = cglFind('cgl:' + CR_LINK_FALLBACK_BY_CASE[currentCase]);
+    if (fb && fb.medRec) link = fb;
+  }
   var mr = (link && link.medRec) || MED_REC[currentCase] || (isIpCase(currentCase) ? MED_REC.james : MED_REC[currentCase]) || MED_REC.james;
   var list = document.getElementById('iprrec-crit-list');
+  // Met/Needed here must track the ACTUAL checkbox state in the criteria checklist, not the static
+  // snapshot baked into medRec.criteria — otherwise checking every box on the left (e.g. the all-green
+  // demo default) leaves stale "Needed" entries on the right that no longer reflect reality.
+  var checkboxes = document.querySelectorAll('#cr-crit-list .cr-crit input');
   if (list) list.innerHTML = mr.criteria.map(function (c, i) {
-    return '<div class="mr-crit ' + c.status + '" onclick="iprFlashEv(' + i + ')"><span class="mr-dot"></span><span>' + c.label + ' <span style="color:' + (c.status === 'met' ? 'var(--green)' : 'var(--amber)') + ';font-weight:700;white-space:nowrap;">· ' + (c.status === 'met' ? 'Met' : 'Needed') + '</span></span></div>';
+    var status = checkboxes.length === mr.criteria.length ? (checkboxes[i].checked ? 'met' : 'needed') : c.status;
+    return '<div class="mr-crit ' + status + '" onclick="iprFlashEv(' + i + ')"><span class="mr-dot"></span><span>' + c.label + ' <span style="color:' + (status === 'met' ? 'var(--green)' : 'var(--amber)') + ';font-weight:700;white-space:nowrap;">· ' + (status === 'met' ? 'Met' : 'Needed') + '</span></span></div>';
   }).join('');
   var doc = document.getElementById('iprrec-doc'); if (doc) doc.innerHTML = mr.body;
 }
@@ -8203,6 +8215,7 @@ function crCritToggle(i, checkbox, aiMet) {
     if (!changed) { var sel = noteWrap.querySelector('select'); if (sel) sel.value = ''; crCritNoteChange(i, ''); }
   }
   renderIprCriteriaDetails(); renderIprAiNote(ipReviewMode); iprRenderPnPreview(); crUpdateRecommend();
+  if (typeof renderIprRecords === 'function') renderIprRecords(); // keep Medical Records' Met/Needed status live with the checkbox that was just toggled
 }
 function crCritNoteChange(i, val) {
   var cr = crGet(); cr.critOverrideNotes = cr.critOverrideNotes || {};
