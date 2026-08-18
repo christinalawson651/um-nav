@@ -200,14 +200,15 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-siz
 .cr-tag.t-pend{background:#FEF3C7;color:#B45309;}
 .cr-num-badge{display:inline-flex;align-items:center;font-size:10px;font-weight:800;letter-spacing:.02em;padding:2px 8px;border-radius:9px;white-space:nowrap;background:var(--teal-light);color:var(--teal);margin-right:5px;}
 .cr-actions{display:flex;gap:9px;flex-wrap:wrap;align-items:center;padding:14px 16px;border-top:1px solid var(--gray-200);background:var(--gray-50);border-radius:0 0 12px 12px;margin-top:2px;}
-.cr-crit{display:flex;align-items:flex-start;gap:9px;padding:9px 11px;border:1px solid var(--gray-200);border-radius:8px;margin-bottom:7px;cursor:pointer;font-size:12.5px;}
-.cr-crit input{margin-top:2px;accent-color:var(--primary);width:15px;height:15px;flex-shrink:0;}
+.cr-crit{display:flex;align-items:flex-start;gap:11px;padding:11px 14px;border:1px solid var(--gray-200);border-radius:8px;margin-bottom:8px;cursor:pointer;font-size:14px;}
+.cr-crit input{margin-top:2px;accent-color:var(--primary);width:18px;height:18px;flex-shrink:0;}
 .cr-crit .cc-txt{color:var(--gray-700);flex:1;}
+.cc-mark{flex-shrink:0;font-weight:800;font-size:15px;margin-top:1px;}
 .cr-crit.met{border-color:var(--green);background:var(--green-bg);}
-.cc-ev-link{flex-shrink:0;font-size:13px;color:var(--primary);cursor:pointer;opacity:.75;}
+.cc-ev-link{flex-shrink:0;font-size:15px;color:var(--primary);cursor:pointer;opacity:.75;}
 .cc-ev-link:hover{opacity:1;}
-.cr-radio{display:flex;align-items:center;gap:8px;padding:8px 11px;border:1px solid var(--gray-200);border-radius:8px;margin-bottom:7px;cursor:pointer;font-size:12.5px;color:var(--gray-700);}
-.cr-radio input{accent-color:var(--primary);width:15px;height:15px;}
+.cr-radio{display:flex;align-items:center;gap:9px;padding:10px 14px;border:1px solid var(--gray-200);border-radius:8px;margin-bottom:8px;cursor:pointer;font-size:14px;color:var(--gray-700);}
+.cr-radio input{accent-color:var(--primary);width:18px;height:18px;}
 .cr-radio:hover{background:var(--gray-50);}
 .cr-banner{display:flex;align-items:center;gap:10px;padding:11px 14px;border-radius:10px;font-size:12.5px;font-weight:600;margin-bottom:14px;}
 .cr-banner.b-deny{background:#FEF2F2;border:1px solid #FCA5A5;color:#B91C1C;}
@@ -1053,6 +1054,39 @@ mark.ev-flash{animation:evFlash 1.4s ease;}
               <td><span class="sb sb-teal">Concurrent Review</span></td>
               <td>07/10/2026</td><td style="color:var(--gray-400)">Ongoing</td><td style="color:var(--gray-400)">&#9998;</td>
             </tr>
+            <tr class="clickable" onclick="openIpCase('eleanor')">
+              <td><input type="checkbox" onclick="event.stopPropagation()"></td>
+              <td><span class="nba" style="font-size:11px;background:var(--gray-100);color:var(--gray-600);">Discharged</span></td>
+              <td class="tat-cell" data-case="eleanor"></td><td data-urgency-case="eleanor">Standard</td>
+              <td><div class="mem-link">Eleanor Vasquez</div><div class="mem-id">MBR#000512</div></td>
+              <td style="text-align:center">0</td>
+              <td><span style="color:var(--primary);font-weight:500;">IP812034</span></td>
+              <td data-li-case="eleanor"><div style="font-weight:600;">3</div><div style="font-size:10px;color:var(--gray-500);">Discharged 07/07 &middot; to SNF</div></td>
+              <td><span class="sb" style="font-size:11px;background:var(--gray-100);color:var(--gray-600);">Discharged</span></td>
+              <td>06/28/2026</td><td>07/07/2026</td><td style="color:var(--gray-400)">&#9998;</td>
+            </tr>
+            <tr class="clickable" onclick="openIpCase('eleanorSnf')">
+              <td><input type="checkbox" onclick="event.stopPropagation()"></td>
+              <td><span class="nba nba-blue nba-act" onclick="event.stopPropagation();openIpCase('eleanorSnf')" title="Next best action — click to start">&#9655; Initial Review</span><div class="ai-pill" title="AI pre-review: functional deconditioning supports skilled-level care; no acute instability identified from the hospital transfer summary.">&#10024; AI: 2/4 admission criteria matched</div></td>
+              <td class="tat-cell" data-case="eleanorSnf"></td><td data-urgency-case="eleanorSnf">Standard</td>
+              <td><div class="mem-link">Eleanor Vasquez</div><div class="mem-id">MBR#000512</div></td>
+              <td style="text-align:center">0</td>
+              <td><span style="color:var(--primary);font-weight:500;">IP812035</span></td>
+              <td data-li-case="eleanorSnf"><div style="font-weight:600;">1</div><div style="font-size:10px;color:var(--gray-500);">Not yet certified</div></td>
+              <td><span class="sb sb-amber">Ready for Review</span></td>
+              <td>07/07/2026</td><td style="color:var(--gray-400)">&mdash;</td><td style="color:var(--gray-400)">&#9998;</td>
+            </tr>
+            <tr class="clickable" onclick="openIpCase('walter')">
+              <td><input type="checkbox" onclick="event.stopPropagation()"></td>
+              <td><span class="nba nba-teal nba-act" style="font-size:11px;" onclick="event.stopPropagation();openConcurrentReviewDirect('walter')" title="Next best action — click to start">&#8635; Concurrent Review</span><div class="ai-pill" title="AI pre-review: continued IV antibiotic and supplemental-oxygen needs support ongoing stay; hemodynamic and oral-intake criteria appear resolved.">&#10024; AI: 2/4 criteria matched</div></td>
+              <td class="tat-cell" data-case="walter"></td><td data-urgency-case="walter">Standard</td>
+              <td><div class="mem-link">Walter Higgins</div><div class="mem-id">MBR#000618</div></td>
+              <td style="text-align:center"><span class="sb sb-primary" style="font-weight:700;">1</span></td>
+              <td><span style="color:var(--primary);font-weight:500;">IP934120</span></td>
+              <td data-li-case="walter"><div style="font-weight:600;">2</div><div style="font-size:10px;color:var(--primary);">Certified thru 07/15</div></td>
+              <td><span class="sb sb-teal" style="font-size:11px;">Concurrent Review</span></td>
+              <td>07/07/2026</td><td style="color:var(--gray-400)">Ongoing</td><td style="color:var(--gray-400)">&#9998;</td>
+            </tr>
             <tr class="clickable" onclick="showScreen('s-auth-detail-rc')">
               <td><input type="checkbox" onclick="event.stopPropagation()"></td>
               <td><span class="nba nba-blue nba-act" onclick="event.stopPropagation();showScreen('s-auth-detail-rc')" title="Next best action — click to start">&#9655; Initial Review</span><div class="ai-pill" title="AI pre-review: InterQual criteria 5/5 matched from the attached clinicals; approval note drafted.">&#10024; AI: 5/5 criteria matched &middot; note drafted</div></td>
@@ -1526,7 +1560,7 @@ mark.ev-flash{animation:evFlash 1.4s ease;}
             <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
               <div style="display:flex;align-items:center;gap:8px;cursor:pointer;" onclick="opToggleCritSel(false)">
                 <span id="op-m-crit-sel-chev" style="display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:5px;background:var(--gray-200);font-size:12px;font-weight:700;color:var(--gray-700);transition:transform .15s;">&#9662;</span>
-                <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--gray-500);">Criteria Selection</div>
+                <div style="font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--gray-500);">Criteria Selection</div>
               </div>
               <div id="op-m-crit-sel-summary" style="display:none;font-size:12px;color:var(--gray-700);cursor:pointer;" onclick="opToggleCritSel(false)"></div>
               <button class="btn btn-secondary btn-sm ai-assist-mini-btn" onclick="toggleAiAssist()" style="margin-left:auto;font-size:11px;padding:4px 9px;" title="Show or hide AI pre-review on Next Best Actions">&#10024; AI Assist: ON</button>
@@ -2047,7 +2081,7 @@ mark.ev-flash{animation:evFlash 1.4s ease;}
             <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
               <div style="display:flex;align-items:center;gap:8px;cursor:pointer;" onclick="opToggleCritSel(true)">
                 <span id="op-rc-crit-sel-chev" style="display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:5px;background:var(--gray-200);font-size:12px;font-weight:700;color:var(--gray-700);transition:transform .15s;">&#9662;</span>
-                <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--gray-500);">Criteria Selection</div>
+                <div style="font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--gray-500);">Criteria Selection</div>
               </div>
               <div id="op-rc-crit-sel-summary" style="display:none;font-size:12px;color:var(--gray-700);cursor:pointer;" onclick="opToggleCritSel(true)"></div>
               <button class="btn btn-secondary btn-sm ai-assist-mini-btn" onclick="toggleAiAssist()" style="margin-left:auto;font-size:11px;padding:4px 9px;" title="Show or hide AI pre-review on Next Best Actions">&#10024; AI Assist: ON</button>
@@ -2451,7 +2485,7 @@ mark.ev-flash{animation:evFlash 1.4s ease;}
             <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">
               <div style="display:flex;align-items:center;gap:8px;cursor:pointer;" onclick="iprToggleCritSel()">
                 <span id="ipr-crit-sel-chev" style="display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:5px;background:var(--gray-200);font-size:12px;font-weight:700;color:var(--gray-700);transition:transform .15s;">&#9662;</span>
-                <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--gray-500);">Criteria Selection</div>
+                <div style="font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--gray-500);">Criteria Selection</div>
               </div>
               <div id="ipr-crit-sel-summary" style="display:none;font-size:12px;color:var(--gray-700);cursor:pointer;" onclick="iprToggleCritSel()"></div>
               <button class="btn btn-secondary btn-sm ai-assist-mini-btn" onclick="toggleAiAssist()" style="margin-left:auto;font-size:11px;padding:4px 9px;" title="Show or hide AI pre-review on Next Best Actions">&#10024; AI Assist: ON</button>
@@ -2516,7 +2550,7 @@ mark.ev-flash{animation:evFlash 1.4s ease;}
                    live Criteria Selection experience independently, each their own pass. Split out of the
                    nurse-only determination fields below so MD/P2P get it too, per explicit request. -->
               <div id="ipr-crit-block" style="padding:14px 20px 0 20px;">
-                <div class="form-label" style="margin-bottom:7px;"><span id="cr-crit-label">Continued-Stay Criteria</span> <span style="font-weight:400;color:var(--gray-500);text-transform:none;" id="cr-crit-src"></span></div>
+                <div class="form-label" style="margin-bottom:8px;font-size:13px;"><span id="cr-crit-label">Continued-Stay Criteria</span> <span style="font-weight:400;color:var(--gray-500);text-transform:none;" id="cr-crit-src"></span></div>
                 <div id="cr-crit-list"></div>
                 <!-- MCG/InterQual/CWQI: read-only recap of the externally-completed review (that content is
                      proprietary and was reviewed on the separate Launch Criteria page, not editable here). -->
@@ -2530,7 +2564,7 @@ mark.ev-flash{animation:evFlash 1.4s ease;}
                 <div id="ipr-loc-bar" style="margin-top:14px;border-top:1px solid var(--gray-200);padding-top:12px;">
                   <div onclick="iprToggleLoc()" style="cursor:pointer;display:flex;align-items:center;gap:8px;">
                     <span id="ipr-loc-chev" style="transition:transform .15s;font-size:11px;color:var(--gray-500);">&#9662;</span>
-                    <div class="form-label" style="margin-bottom:0;">Level of Care Evaluation <span style="color:var(--red);">*</span></div>
+                    <div class="form-label" style="margin-bottom:0;font-size:13px;">Level of Care Evaluation <span style="color:var(--red);">*</span></div>
                     <span id="ipr-loc-summary-chip" class="sb sb-green" style="margin-left:auto;font-size:10px;">LOC Confirmed</span>
                   </div>
                   <div id="ipr-loc-body" style="display:block;margin-top:10px;">
@@ -2686,27 +2720,6 @@ mark.ev-flash{animation:evFlash 1.4s ease;}
   </div>
 </div>
 
-<!-- ==================== MODAL: ADMISSION APPROVED ==================== -->
-<!-- Initial Review is its own phase, separate from Concurrent Review (which hasn't started yet) — this
-     popup only confirms the initial certification. No concurrent-review date/scheduling here; the next
-     review gets scheduled later, either from the stay panel's own Schedule/Change action or the first
-     time an actual concurrent review is performed. -->
-<div id="m-ip-admit-approve" class="modal-overlay">
-  <div class="modal-box" style="max-width:460px;">
-    <div class="modal-hdr"><span style="font-size:15px;color:var(--green);">&#10003;</span><span class="modal-title">Approve</span><button class="modal-close" onclick="closeModal('m-ip-admit-approve')">&#10005;</button></div>
-    <div class="modal-body">
-      <div style="font-size:12.5px;color:var(--gray-700);line-height:1.6;margin-bottom:14px;">Approving this inpatient authorization certifies the initial length of stay.</div>
-      <div class="form-group"><label class="form-label">Initial LOS (days)</label><input type="number" class="form-ctrl" id="ipa-los" readonly></div>
-      <div class="form-group"><label class="form-label">Notes</label><input type="text" class="form-ctrl" id="ipa-notes" placeholder="Initial review notes..." oninput="ipaUpdateSummary()"></div>
-      <div id="ipa-summary" style="font-size:12px;color:var(--gray-700);background:var(--green-bg);border:1px solid var(--green-border);border-radius:8px;padding:9px 12px;display:flex;gap:8px;align-items:center;"></div>
-    </div>
-    <div class="modal-footer" style="justify-content:space-between;flex-wrap:wrap;gap:8px;">
-      <button class="btn btn-outline btn-sm" onclick="closeModal('m-ip-admit-approve')">Cancel</button>
-      <button class="btn btn-primary btn-sm" onclick="ipAdmitApproveSave()">&#10003; Approve</button>
-    </div>
-  </div>
-</div>
-
 <!-- ==================== MODAL: SCHEDULE / CHANGE NEXT REVIEW ==================== -->
 <div id="m-crschedule" class="modal-overlay">
   <div class="modal-box" style="max-width:400px;">
@@ -2725,15 +2738,29 @@ mark.ev-flash{animation:evFlash 1.4s ease;}
 </div>
 
 <!-- ==================== MODAL: CR APPROVE (approval code) ==================== -->
+<!-- Single certify screen. Admission certifications get an HITL choice between "Certify & Notify"
+     (leave the concurrent review date unscheduled — opt in later via Schedule/Change) and "Certify &
+     Set Concurrent Review Date" (schedule it right now) — no second follow-up popup. Ongoing
+     concurrent-review certifications are already mid-cycle so they only ever get the one certify
+     button, but the Concurrent Review Date field is still shown and editable here too (defaulted from
+     the clinical review screen's own Next Review Date field, #cr-next) — see openCrApprove(). -->
 <div id="m-crapprove" class="modal-overlay">
   <div class="modal-box">
-    <div class="modal-hdr"><span style="font-size:15px;color:var(--green);">&#10003;</span><span class="modal-title">Approve Continued Stay</span><button class="modal-close" onclick="closeModal('m-crapprove')">&#10005;</button></div>
+    <div class="modal-hdr"><span style="font-size:15px;color:var(--green);">&#10003;</span><span class="modal-title" id="cra-title">Approve Continued Stay</span><button class="modal-close" onclick="closeModal('m-crapprove')">&#10005;</button></div>
     <div class="modal-body">
       <div id="cra-ctx" style="font-size:12px;color:var(--gray-700);background:var(--green-bg);border:1px solid var(--green-border);border-radius:8px;padding:9px 12px;margin-bottom:14px;"></div>
       <div class="form-group"><label class="form-label">Approval Code <span style="color:var(--gray-400);font-weight:400;text-transform:none;">(required)</span></label><select class="form-ctrl" id="cra-code"></select></div>
+      <div class="form-group" id="cra-nextreview-wrap" style="display:none;">
+        <label class="form-label">Concurrent Review Date <span id="cra-ai-tag" style="font-weight:400;text-transform:none;color:var(--primary);"></span> <span style="font-weight:400;text-transform:none;color:var(--gray-500);">(can be any date, including before the certified-through date, if an earlier check-in is warranted)</span></label>
+        <input type="date" class="form-ctrl" id="cra-nextreview" oninput="craUpdateNextSummary()">
+      </div>
       <div class="form-group"><label class="form-label">Additional Notes</label><textarea class="form-ctrl" id="cra-note" rows="2"></textarea></div>
     </div>
-    <div class="modal-footer"><button class="btn btn-secondary btn-sm" onclick="closeModal('m-crapprove')">Cancel</button><button class="btn btn-primary btn-sm" onclick="crApproveConfirm()">&#10003; Certify &amp; Notify</button></div>
+    <div class="modal-footer" style="justify-content:space-between;flex-wrap:wrap;gap:8px;">
+      <button class="btn btn-secondary btn-sm" onclick="closeModal('m-crapprove')">Cancel</button>
+      <button class="btn btn-primary btn-sm" onclick="crApproveConfirm(false)">&#10003; Certify &amp; Notify</button>
+      <button class="btn btn-primary btn-sm" id="cra-setnext-btn" style="display:none;background:var(--green);border-color:var(--green);" onclick="crApproveConfirm(true)">&#128197; Certify &amp; Set Concurrent Review Date</button>
+    </div>
   </div>
 </div>
 
@@ -3667,7 +3694,7 @@ function updateSideNav(id) {
     if (treeIp) treeIp.innerHTML = buildIpTree(crGet());
     if (id === 's-auth-detail-ip') {
       renderIp();
-      var laIp = document.getElementById('li-acc-ip'); if (laIp) laIp.classList.toggle('acc-next', crGet().status !== 'discharged');
+      var laIp = document.getElementById('li-acc-ip'); if (laIp) laIp.classList.toggle('acc-next', ['discharged', 'completed'].indexOf(crGet().status) === -1);
     }
     return;
   }
@@ -5572,8 +5599,55 @@ var CR_CRITERIA = [
 // Guideline dropdowns. We never fabricate real external guideline URLs ourselves — the nurse supplies
 // her own, and once saved they become real named options she can "select from" on future reviews,
 // instead of retyping a URL into a bare "Other" field every time.
-var CUSTOM_GUIDELINE_LINKS = [];
-var cglSeq = 0;
+var CUSTOM_GUIDELINE_LINKS = [
+  { id: 1, label: 'Sepsis Management & Post-Acute Transition Pathway', url: 'https://www.sccm.org/SurvivingSepsisCampaign/Guidelines' },
+  { id: 2, label: 'COPD Exacerbation & Hypercapnic Respiratory Failure — Complex Care Pathway', url: 'https://goldcopd.org' },
+  // Unlike the two links above (URL-only — crLoadCriteria() shows the generic "review the linked
+  // guideline" placeholder for those), this one carries its own `criteria` array, so selecting it under
+  // Custom source renders a real, checkable Continued-Stay Criteria list instead of the placeholder —
+  // see crLoadCriteria()'s `linkCritArr` handling.
+  {
+    id: 3, label: 'Heart Failure Acute Inpatient Utilization Guideline — Organization-Developed, Public Evidence-Based', url: 'https://www.acc.org/guidelines',
+    criteria: [
+      'Persistent hypoxia or respiratory distress',
+      'Continued need for oxygen above baseline, CPAP/BiPAP or ventilatory support',
+      'Ongoing pulmonary edema or clinically significant congestion',
+      'Continued IV diuresis requiring hospital-level monitoring because of instability, renal impairment or inadequate response',
+      'Continued IV vasoactive, vasodilator, inotropic or antiarrhythmic treatment',
+      'Unstable blood pressure or clinically significant arrhythmia',
+      'Worsening renal function or electrolyte abnormalities requiring active management',
+      'Inadequate urine output or unresolved cardiorenal syndrome',
+      'New complication requiring acute inpatient treatment',
+      'Oral medication transition has not been safely achieved',
+      'Discharge would create a documented immediate risk of deterioration'
+    ],
+    dischargeNote: 'Consider discharge or a lower level of care when: dyspnea has resolved or returned near baseline; oxygenation is stable at baseline requirements; hemodynamics are stable; congestion has substantially improved; renal function and electrolytes are stable or safely manageable; the patient is responding to an oral diuretic regimen; no inpatient-only medication or monitoring is required; and medication reconciliation, education and follow-up are arranged. IV Lasix alone should not automatically satisfy continued inpatient stay — the record should show why IV therapy, monitoring and the patient\'s condition cannot be managed at observation or a lower level.',
+    // Evidence written against THIS guideline's 11-item wording/order (indices 0-10) — overrides
+    // MED_REC.james (which stays keyed to the original 4-item MCG criteria) for as long as this
+    // guideline is selected. See renderIprRecords()'s medRec override.
+    medRec: {
+      member: 'James Whitfield',
+      criteria: [
+        { label: 'Persistent hypoxia or respiratory distress', status: 'needed' },
+        { label: 'Continued O2 above baseline / CPAP-BiPAP / ventilatory support', status: 'needed' },
+        { label: 'Ongoing pulmonary edema or clinically significant congestion', status: 'met' },
+        { label: 'Continued IV diuresis requiring hospital-level monitoring', status: 'met' },
+        { label: 'Continued IV vasoactive / vasodilator / inotropic / antiarrhythmic tx', status: 'needed' },
+        { label: 'Unstable blood pressure or clinically significant arrhythmia', status: 'met' },
+        { label: 'Worsening renal function or electrolyte abnormalities', status: 'met' },
+        { label: 'Inadequate urine output or unresolved cardiorenal syndrome', status: 'met' },
+        { label: 'New complication requiring acute inpatient treatment', status: 'needed' },
+        { label: 'Oral medication transition not yet safely achieved', status: 'met' },
+        { label: 'Discharge would create a documented immediate risk of deterioration', status: 'needed' }
+      ],
+      body: '<h4>Progress Note — Hospital Day 5 · Cardiology (Continued Stay)</h4>'
+        + '<p><b>Subjective:</b> 68M, acute-on-chronic systolic heart failure (EF 30%), now hospital day 5. Improving overall; still limited exercise tolerance.</p>'
+        + '<p><b>Objective:</b> <mark class="ev ev-needed" data-ev="0">Dyspnea at rest has resolved; no respiratory distress currently</mark>. <mark class="ev ev-needed" data-ev="1">Weaned off supplemental oxygen — SpO&#8322; 96% on room air</mark>. <mark class="ev ev-met" data-ev="2">Persistent bibasilar crackles and trace lower-extremity edema on exam; JVD ~9 cm</mark>. <mark class="ev ev-met" data-ev="3">Remains on IV furosemide infusion titrated to urine output, net &minus;1.2 L/24h; daily weights and strict I/Os continuing</mark>. <mark class="ev ev-needed" data-ev="4">No vasoactive, vasodilator, or inotropic infusions currently required</mark>. <mark class="ev ev-met" data-ev="5">Telemetry shows intermittent atrial fibrillation with RVR to the 120s — rate-controlled but not yet stable off IV agents</mark>. <mark class="ev ev-met" data-ev="6">Creatinine up from baseline 1.1 to 1.6 with associated hypokalemia, being actively repleted and monitored</mark>. <mark class="ev ev-met" data-ev="7">Urine output marginal relative to diuretic dose — cardiorenal picture, nephrology consulted</mark>. <mark class="ev ev-needed" data-ev="8">No new acute complication identified this admission</mark>.</p>'
+        + '<p><b>Assessment / Plan:</b> <mark class="ev ev-met" data-ev="9">Oral diuretic transition attempted hospital day 4 with rebound congestion — reverted to IV therapy; oral transition not yet safely achieved</mark>. <mark class="ev ev-needed" data-ev="10">No documentation of imminent deterioration risk at this time</mark>. Continue IV diuresis and telemetry monitoring; nephrology and cardiology co-managing; reassess oral transition in 24&ndash;48h.</p>'
+    }
+  }
+];
+var cglSeq = 3;
 function cglOptionGroupHtml() {
   if (!CUSTOM_GUIDELINE_LINKS.length) return '';
   return '<optgroup label="My Guideline Links">' + CUSTOM_GUIDELINE_LINKS.map(function (l) {
@@ -5688,7 +5762,18 @@ var GUIDELINES = {
     ]
   }
 };
-var CR_GUIDELINE_BY_CASE = { james: 'mcg-chf', newadmit1: 'mcg-pna' };
+// Without an entry here, crLoadCriteria()/renderIprGuidelines() fall all the way back to 'mcg-chf' (heart
+// failure) for ANY case under Manual source — wrong for a non-cardiac admission. walter (COPD/pneumonia)
+// maps to the closest respiratory/infectious analog; eleanorSnf (SNF rehab admission) maps to the generic
+// InterQual continued-stay set — neither is a perfect clinical match (this demo has no dedicated
+// COPD/SNF-rehab named guideline), but both are far closer than the heart-failure default.
+var CR_GUIDELINE_BY_CASE = { james: 'mcg-chf', newadmit1: 'mcg-pna', walter: 'mcg-pna', eleanorSnf: 'iq-gen' };
+// When a case has its own organization-developed CUSTOM_GUIDELINE_LINKS entry that's a strictly better
+// fit than the vendor default above, this takes priority for the FALLBACK path (Manual mode / nothing
+// explicitly selected) — James's own Heart Failure guideline replaces the generic "MCG" reference his
+// CR_GUIDELINE_BY_CASE entry would otherwise surface. Explicitly picking MCG as Criteria Source still
+// works exactly as before — this only changes what shows up when nothing more specific is chosen.
+var CR_LINK_FALLBACK_BY_CASE = { james: 3 };
 function crCurGuideline() { var g = GUIDELINES[ipVal('cr-guideline')]; return g ? g.label : crGuidelineLabelText(); }
 // Picks the guideline key matching a library prefix ('iq' or 'mcg') — prefers this case's native
 // guideline when it's already in that library, else the first matching entry.
@@ -5761,6 +5846,119 @@ var crState = {
     los: 0, certifiedThrough: '2026-07-14', nextReview: '', requestedLos: 3,
     status: 'pending-admission', pendReason: null, lastDenied: 0, dischargeDate: null,
     segId: 0, cycleId: 0, procId: 0, procLines: [], segments: [], cycles: []
+  },
+  // Complex-care demo case: multi-comorbidity sepsis admission -> 3 concurrent reviews -> LOC step-down
+  // to Skilled Nursing -> discharge home. Fully played out in the past (relative to CR_TODAY) so the
+  // whole Initial Review -> Concurrent Review -> Discharge story is already on the record for a demo
+  // walkthrough (Bed-Day Lines shows all 4 segments, Determinations History shows all 5 cycles).
+  // Criteria Source is Custom throughout — see CUSTOM_GUIDELINE_LINKS below for the pre-loaded guideline.
+  eleanor: {
+    member: 'Eleanor Vasquez', mbr: 'MBR#000512', authNo: 'IP812034', initials: 'EV', memberSub: '74F · FL Medicare Advantage',
+    dxPrimary: { code: 'A41.51', name: 'Sepsis due to Escherichia coli [E. coli]' },
+    diagnoses: [
+      { code: 'J44.1', name: 'COPD with (acute) exacerbation' },
+      { code: 'N17.9', name: 'Acute kidney injury, unspecified' },
+      { code: 'E11.22', name: 'Type 2 diabetes mellitus with diabetic chronic kidney disease' }
+    ],
+    admit: '2026-06-28', loc: 'Acute Inpatient', dx: 'A41.51 — Sepsis due to Escherichia coli [E. coli]',
+    admType: 'Emergency', admSource: 'Emergency Room',
+    facility: 'St. Anthony Medical Center', attending: 'Dr. Michael Tran, Critical Care Medicine',
+    los: 9, certifiedThrough: '2026-07-07', nextReview: '',
+    status: 'discharged', pendReason: null, lastDenied: 0, dischargeDate: '2026-07-07',
+    followUpAuthKey: 'eleanorSnf',
+    segId: 3, cycleId: 4, procId: 0,
+    procLines: [],
+    segments: [
+      { id: 1, loc: 'Acute Inpatient', start: '2026-06-28', end: '2026-07-01', days: 3, decision: 'Certified', src: 'Initial Review' },
+      { id: 2, loc: 'Acute Inpatient', start: '2026-07-01', end: '2026-07-04', days: 3, decision: 'Certified', src: 'Concurrent Review #1' },
+      { id: 3, loc: 'Acute Inpatient', start: '2026-07-04', end: '2026-07-07', days: 3, decision: 'Certified', src: 'Concurrent Review #2' }
+    ],
+    cycles: [
+      { id: 1, type: 'Initial Review', date: '2026-06-28', requested: 3, certified: 3, denied: 0, criteria: '5/5 Met', by: 'M Craft, UM Nurse', reviewedBy: 'M Craft, UM Nurse', reviewDate: '2026-06-28', nextReview: '2026-07-01', guideline: 'Sepsis Management & Post-Acute Transition Pathway (Facility Custom Guideline)', loc: 'Acute Inpatient', approvalCode: 'AP-CL-01 · Meets clinical criteria', notice: { type: 'certification', label: 'Certification / Approval Notice', audience: 'Provider', timing: 'Sent same business day, before the certified-through date expires — includes the next review date.', appeal: false, date: '2026-06-28' }, note: 'Admitted via ED with septic shock (E. coli UTI source), COPD exacerbation, and AKI on CKD — meets acute inpatient admission criteria.', source: 'custom', sourceLabel: 'Custom', locMode: 'confirm', dxType: 'diagnosis', dxValue: 'Sepsis due to Escherichia coli [E. coli] | A41.51 | ICD-10', amendments: [], critDetail: [
+        { text: 'Suspected/confirmed infection with SIRS/sepsis criteria met (SOFA ≥ 2)', met: true },
+        { text: 'IV broad-spectrum antibiotics initiated within 1 hour of recognition', met: true },
+        { text: 'Hemodynamic instability requiring IV fluid resuscitation and close monitoring', met: true },
+        { text: 'Comorbid COPD exacerbation requiring supplemental oxygen / bronchodilator therapy', met: true },
+        { text: 'Acute kidney injury requiring inpatient monitoring of renal function', met: true }
+      ] },
+      { id: 2, type: 'Concurrent Review #1', date: '2026-07-01', requested: 3, certified: 3, denied: 0, criteria: '4/4 Met', by: 'M Craft, UM Nurse', reviewedBy: 'M Craft, UM Nurse', reviewDate: '2026-07-01', nextReview: '2026-07-04', guideline: 'Sepsis Management & Post-Acute Transition Pathway (Facility Custom Guideline)', loc: 'Acute Inpatient', locChange: null, approvalCode: 'AP-CL-01 · Meets clinical criteria', notice: { type: 'certification', label: 'Certification / Approval Notice', audience: 'Provider', timing: 'Sent same business day, before the certified-through date expires — includes the next review date.', appeal: false, date: '2026-07-01' }, note: 'Continued IV antibiotics per culture/sensitivity; still weaning supplemental O2 for COPD; renal function trending toward baseline.', source: 'custom', sourceLabel: 'Custom', locMode: 'confirm', dxType: 'diagnosis', dxValue: 'Sepsis due to Escherichia coli [E. coli] | A41.51 | ICD-10', amendments: [], critDetail: [
+        { text: 'Continued IV antibiotic therapy per culture and sensitivity results', met: true },
+        { text: 'Persistent supplemental oxygen requirement above baseline (COPD)', met: true },
+        { text: 'Renal function trending — creatinine not yet returned to baseline', met: true },
+        { text: 'Vital sign instability precludes safe transfer to a lower level of care', met: true }
+      ] },
+      { id: 3, type: 'Concurrent Review #2', date: '2026-07-04', requested: 3, certified: 3, denied: 0, criteria: '4/4 Met', by: 'M Craft, UM Nurse', reviewedBy: 'M Craft, UM Nurse', reviewDate: '2026-07-04', nextReview: '2026-07-07', guideline: 'Sepsis Management & Post-Acute Transition Pathway (Facility Custom Guideline)', loc: 'Acute Inpatient', locChange: null, approvalCode: 'AP-CL-01 · Meets clinical criteria', notice: { type: 'certification', label: 'Certification / Approval Notice', audience: 'Provider', timing: 'Sent same business day, before the certified-through date expires — includes the next review date.', appeal: false, date: '2026-07-04' }, note: 'Hemodynamically stable off pressors; COPD symptoms improving; acute issues resolved. Deconditioning/mobility deficits remain — discharge planning finalized for SNF placement.', source: 'custom', sourceLabel: 'Custom', locMode: 'confirm', dxType: 'diagnosis', dxValue: 'Sepsis due to Escherichia coli [E. coli] | A41.51 | ICD-10', dischargePlanning: { readiness: 'ready-soon', date: '2026-07-07', note: 'Acute medical issues resolved; not yet safe for home due to deconditioning/mobility deficits. Transferring to Golden Oak Skilled Nursing & Rehabilitation for a short rehab course — separate SNF authorization to follow.' }, amendments: [], critDetail: [
+        { text: 'Hemodynamically stable off vasopressor support', met: true },
+        { text: 'Weaning supplemental oxygen; COPD symptoms improving', met: true },
+        { text: 'Renal function at/near baseline', met: true },
+        { text: 'Functional deficits identified — physical/occupational therapy evaluation recommended', met: true }
+      ] },
+      { id: 4, type: 'Discharge Review', date: '2026-07-07', requested: 0, certified: 0, denied: 0, criteria: 'Discharge', by: 'M Craft, UM Nurse', reviewedBy: 'M Craft, UM Nurse', reviewDate: '2026-07-07', nextReview: '', loc: 'Acute Inpatient', note: 'Member discharged from acute care to Golden Oak Skilled Nursing & Rehabilitation for continued rehab. Final acute LOS: 9 days certified. Follow-up SNF authorization (Auth IP812035) opened for the continued stay.', dischargePlan: { disposition: 'Skilled Nursing Facility', date: '2026-07-07', criteria: ['Clinically stable — vitals at/near baseline', 'Off IV therapy / transitioned to oral', 'Tolerating oral intake', 'Discharge medications reconciled', 'Follow-up care arranged'], services: 'Transfer to Golden Oak Skilled Nursing & Rehabilitation for skilled nursing / PT-OT rehab', followup: 'SNF admission same day — see Auth IP812035', los: 9 }, amendments: [] }
+    ]
+  },
+  // Follow-up SNF authorization opened as a direct result of Eleanor's acute-stay discharge above
+  // (priorAuthKey links back to it — see ipAuthChain()/the blue "Follow-up authorization" banner in
+  // renderIpHeader(), distinct from the amber readmission banner since this is a planned continuation
+  // of care, not an unplanned return). Left fully un-reviewed (pending-admission, no cycles/segments
+  // yet) so it's a live, workable case — Custom source + the pre-seeded guideline link (see
+  // CUSTOM_GUIDELINE_LINKS) both apply here too.
+  eleanorSnf: {
+    member: 'Eleanor Vasquez', mbr: 'MBR#000512', authNo: 'IP812035', initials: 'EV', memberSub: '74F · FL Medicare Advantage',
+    dxPrimary: { code: 'R26.2', name: 'Difficulty in walking, not elsewhere classified' },
+    diagnoses: [
+      { code: 'A41.51', name: 'Sepsis due to Escherichia coli [E. coli] (resolved, history)' },
+      { code: 'J44.1', name: 'COPD with (acute) exacerbation (improved)' },
+      { code: 'N17.9', name: 'Acute kidney injury, unspecified (resolving)' },
+      { code: 'E11.22', name: 'Type 2 diabetes mellitus with diabetic chronic kidney disease' }
+    ],
+    admit: '2026-07-07', loc: 'Skilled Nursing', dx: 'R26.2 — Difficulty in walking, not elsewhere classified',
+    admType: 'Elective', admSource: 'Transfer from Hospital',
+    facility: 'Golden Oak Skilled Nursing & Rehabilitation', attending: 'Dr. Patricia Alonzo, SNF Medical Director',
+    los: 0, certifiedThrough: '2026-07-07', nextReview: '', requestedLos: 5,
+    status: 'pending-admission', pendReason: null, lastDenied: 0, dischargeDate: null,
+    priorAuthKey: 'eleanor',
+    segId: 0, cycleId: 0, procId: 0, procLines: [], segments: [], cycles: []
+  },
+  // Second complex-care demo patient — currently ADMITTED with a Concurrent Review due today
+  // (nextReview 2026-07-13, CR_TODAY 2026-07-14), so this one is a live "work through Concurrent
+  // Review" case rather than Eleanor's fully-played-out history or eleanorSnf's fresh Initial Review.
+  // 2 cycles already on record (Initial Review + Concurrent Review #1) for real depth, then the
+  // presenter opens Concurrent Review live to do the 3rd determination. Uses the 2nd pre-seeded
+  // Custom guideline link (COPD/respiratory-failure pathway) — see CUSTOM_GUIDELINE_LINKS.
+  walter: {
+    member: 'Walter Higgins', mbr: 'MBR#000618', authNo: 'IP934120', initials: 'WH', memberSub: '79M · FL Medicare Advantage',
+    dxPrimary: { code: 'J96.21', name: 'Acute and chronic respiratory failure with hypercapnia' },
+    diagnoses: [
+      { code: 'J44.1', name: 'COPD with (acute) exacerbation' },
+      { code: 'J18.9', name: 'Pneumonia, unspecified organism' },
+      { code: 'I50.9', name: 'Heart failure, unspecified' }
+    ],
+    admit: '2026-07-07', loc: 'Acute Inpatient', dx: 'J96.21 — Acute and chronic respiratory failure with hypercapnia',
+    admType: 'Emergency', admSource: 'Emergency Room',
+    facility: 'Lakeview Regional Medical Center', attending: 'Dr. Susan Delgado, Pulmonology & Critical Care',
+    los: 8, certifiedThrough: '2026-07-15', nextReview: '2026-07-15',
+    status: 'admitted', pendReason: null, lastDenied: 0, dischargeDate: null,
+    segId: 2, cycleId: 2, procId: 0,
+    procLines: [],
+    segments: [
+      { id: 1, loc: 'Acute Inpatient', start: '2026-07-07', end: '2026-07-10', days: 3, decision: 'Certified', src: 'Initial Review' },
+      { id: 2, loc: 'Acute Inpatient', start: '2026-07-10', end: '2026-07-15', days: 5, decision: 'Certified', src: 'Concurrent Review #1' }
+    ],
+    cycles: [
+      { id: 1, type: 'Initial Review', date: '2026-07-07', requested: 3, certified: 3, denied: 0, criteria: '5/5 Met', by: 'M Craft, UM Nurse', reviewedBy: 'M Craft, UM Nurse', reviewDate: '2026-07-07', nextReview: '2026-07-10', guideline: 'COPD Exacerbation & Hypercapnic Respiratory Failure — Complex Care Pathway (Facility Custom Guideline)', loc: 'Acute Inpatient', approvalCode: 'AP-CL-01 · Meets clinical criteria', notice: { type: 'certification', label: 'Certification / Approval Notice', audience: 'Provider', timing: 'Sent same business day, before the certified-through date expires — includes the next review date.', appeal: false, date: '2026-07-07' }, note: 'Admitted via ED with acute hypercapnic respiratory failure on BiPAP, COPD exacerbation, superimposed pneumonia, and acute decompensated heart failure — meets acute inpatient admission criteria.', source: 'custom', sourceLabel: 'Custom', locMode: 'confirm', dxType: 'diagnosis', dxValue: 'Acute and chronic respiratory failure with hypercapnia | J96.21 | ICD-10', amendments: [], critDetail: [
+        { text: 'Acute hypercapnic respiratory failure (pCO2 elevated, pH < 7.35) requiring non-invasive ventilation (BiPAP)', met: true },
+        { text: 'Superimposed pneumonia requiring IV antibiotic therapy', met: true },
+        { text: 'Continuous cardiopulmonary monitoring required', met: true },
+        { text: 'Acute decompensated heart failure requiring IV diuresis', met: true },
+        { text: 'Symptoms not manageable at a lower level of care', met: true }
+      ] },
+      { id: 2, type: 'Concurrent Review #1', date: '2026-07-10', requested: 5, certified: 5, denied: 0, criteria: '4/4 Met', by: 'M Craft, UM Nurse', reviewedBy: 'M Craft, UM Nurse', reviewDate: '2026-07-10', nextReview: '2026-07-15', guideline: 'COPD Exacerbation & Hypercapnic Respiratory Failure — Complex Care Pathway (Facility Custom Guideline)', loc: 'Acute Inpatient', locChange: null, approvalCode: 'AP-CL-01 · Meets clinical criteria', notice: { type: 'certification', label: 'Certification / Approval Notice', audience: 'Provider', timing: 'Sent same business day, before the certified-through date expires — includes the next review date.', appeal: false, date: '2026-07-10' }, note: 'Continued non-invasive ventilation wean in progress; ongoing IV antibiotics for pneumonia; still titrating IV diuretics for volume overload.', source: 'custom', sourceLabel: 'Custom', locMode: 'confirm', dxType: 'diagnosis', dxValue: 'Acute and chronic respiratory failure with hypercapnia | J96.21 | ICD-10', amendments: [], critDetail: [
+        { text: 'Continued non-invasive ventilation (BiPAP) support required', met: true },
+        { text: 'Ongoing IV antibiotic therapy for pneumonia', met: true },
+        { text: 'Persistent volume overload requiring continued IV diuretic titration', met: true },
+        { text: 'Respiratory status not yet stable for a lower level of care', met: true }
+      ] }
+    ]
   }
 };
 function crGet() { return crState[currentCase] || crState.james; }
@@ -5903,15 +6101,19 @@ function kv(l, v) { return '<div><div style="font-size:10px;font-weight:700;text
 // Auth History — the hx of authorizations over time for this member, distinct from the per-auth
 // Authorization History tab (which logs only this stay's own review cycles). Walks the readmission
 // links both directions so linked stays surface as one chronological chain.
+// Walks BOTH link types this member's auths can carry: readmissionOf/readmittedTo (an unplanned
+// return) and priorAuthKey/followUpAuthKey (a planned continuation of care into a follow-up auth,
+// e.g. an inpatient stay handing off to a separate SNF authorization) — either can appear at any
+// step of the chain.
 function ipAuthChain(key) {
   var chain = [key];
-  var back = crState[key].readmissionOf;
-  while (back && crState[back] && chain.indexOf(back) === -1) { chain.unshift(back); back = crState[back].readmissionOf; }
-  var fwd = crState[key].readmittedTo;
-  while (fwd && crState[fwd] && chain.indexOf(fwd) === -1) { chain.push(fwd); fwd = crState[fwd].readmittedTo; }
+  var back = crState[key].readmissionOf || crState[key].priorAuthKey;
+  while (back && crState[back] && chain.indexOf(back) === -1) { chain.unshift(back); back = crState[back].readmissionOf || crState[back].priorAuthKey; }
+  var fwd = crState[key].readmittedTo || crState[key].followUpAuthKey;
+  while (fwd && crState[fwd] && chain.indexOf(fwd) === -1) { chain.push(fwd); fwd = crState[fwd].readmittedTo || crState[fwd].followUpAuthKey; }
   return chain;
 }
-function ipStatusLabel(c) { return c.status === 'discharged' ? 'Discharged' : (c.status === 'pending-admission' ? 'Pending Admission' : 'Admitted'); }
+function ipStatusLabel(c) { return c.status === 'discharged' ? 'Discharged' : (c.status === 'completed' ? 'Completed' : (c.status === 'pending-admission' ? 'Pending Admission' : 'Admitted')); }
 // Renders straight into the "Auth History" accordion body (accordion #8) — the hx of authorizations
 // over time for this MEMBER (readmission chain), distinct from Determinations History (accordion #6),
 // which only logs this stay's own review cycles. Was a modal opened via a header button; now always
@@ -5961,6 +6163,7 @@ function crToast(msg) { var t = document.getElementById('aw-toast'); if (!t) ret
 // Inpatient process tree — Concurrent Review is an expandable phase listing each review cycle (determination + notice).
 function buildIpTree(cr) {
   var discharged = cr.status === 'discharged';
+  var completed = cr.status === 'completed';
   function phase(state, title, nav) {
     var clk = state !== 'upcoming' && nav;
     return '<div class="ph ' + state + (clk ? ' nav' : '') + '"><div class="ph-row" ' + (clk ? 'onclick="' + nav + '"' : '') + '><span class="ph-ico">' + (state === 'done' ? '&#10003;' : '') + '</span><span class="ph-title">' + title + '</span></div></div>';
@@ -5981,9 +6184,11 @@ function buildIpTree(cr) {
   var html = phase('done', 'Authorization', "navStep('auth')")
     + '<div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:rgba(255,255,255,0.35);padding:8px 8px 2px;">Review</div>'
     + phase('done', 'Initial Review', initialCycle ? ('openCycleDetail(' + initialCycle.id + ')') : "navStep('review')");
-  var crCls = discharged ? 'done' : (cr.status === 'pending' ? 'current parked' : 'current');
-  html += '<div class="ph ' + crCls + ' nav"><div class="ph-row" onclick="navStep(\'concurrent\')"><span class="ph-ico">' + (discharged ? '&#10003;' : '') + '</span><span class="ph-title">Concurrent Review</span>' + (discharged ? '' : '<span class="ph-chev">&#9662;</span>') + '</div>';
-  if (!discharged) {
+  var crCls = (discharged || completed) ? 'done' : (cr.status === 'pending' ? 'current parked' : 'current');
+  html += '<div class="ph ' + crCls + ' nav"><div class="ph-row" onclick="navStep(\'concurrent\')"><span class="ph-ico">' + ((discharged || completed) ? '&#10003;' : '') + '</span><span class="ph-title">Concurrent Review</span>' + ((discharged || completed) ? '' : '<span class="ph-chev">&#9662;</span>') + '</div>';
+  if (completed) {
+    html += '<div class="ph-subs"><div class="ph-sub done"><span class="ph-sub-dot" style="background:var(--gray-400);"></span>Not required — authorization completed at initial certification</div></div>';
+  } else if (!discharged) {
     var cyc = cr.cycles.filter(function (c) { return /^Concurrent Review/.test(c.type); });
     html += '<div class="ph-subs">';
     cyc.forEach(function (c) {
@@ -6008,6 +6213,8 @@ function renderIpStatus() {
   var continueBtn = '<button class="next-action-btn" onclick="ipResumeDraft()">&#9655; Continue Review</button>';
   if (cr.status === 'discharged') {
     html += '<span class="sb" style="background:var(--gray-100);color:var(--gray-600);">Discharged</span> <span class="status-lbl" style="margin-left:4px;">Next:</span> <span style="font-size:11px;color:var(--gray-500);">None — Completed</span>';
+  } else if (cr.status === 'completed') {
+    html += '<span class="sb" style="background:var(--gray-100);color:var(--gray-600);">Completed</span> <span class="status-lbl" style="margin-left:4px;">Next:</span> <span style="font-size:11px;color:var(--gray-500);">None — no concurrent review scheduled</span>';
   } else if (cr.status === 'mdreview') {
     var pc = null; cr.cycles.forEach(function (x) { if (x.mdStatus === 'pending') pc = x; });
     var isP2P = pc && pc.reviewType === 'P2P';
@@ -6021,7 +6228,7 @@ function renderIpStatus() {
   }
   el.innerHTML = html;
   var pn = document.getElementById('ip-pagename');
-  if (pn) pn.textContent = cr.status === 'pending-admission' ? 'Initial Review' : (cr.status === 'discharged' ? 'Discharge' : 'Concurrent Review');
+  if (pn) pn.textContent = cr.status === 'pending-admission' ? 'Initial Review' : (cr.status === 'discharged' ? 'Discharge' : (cr.status === 'completed' ? 'Completed' : 'Concurrent Review'));
 }
 
 // Diagnoses accordion is shared markup across every IP case — must be rebuilt per case, not just the
@@ -6065,10 +6272,22 @@ function renderIpHeader() {
       rb.style.display = 'block';
       rb.style.background = 'var(--gray-50)'; rb.style.borderColor = 'var(--gray-200)'; rb.style.color = 'var(--gray-600)';
       rb.innerHTML = '<span class="ai-badge">AI-GENERATED</span> AI flagged a possible readmission — marked <b>not a readmission</b> by ' + ai.decidedBy + ' on ' + regFmtDT(regParse(ai.decidedAt)) + (ai.reason ? ' — ' + ai.reason : '.') + changeBtn;
+    } else if (cr.priorAuthKey && crState[cr.priorAuthKey]) {
+      // Planned continuation of care (e.g. hospital -> SNF), NOT a readmission — distinct blue/
+      // informational styling so it never reads as a clinical concern like the amber readmission banner.
+      var priorA = crState[cr.priorAuthKey];
+      rb.style.display = 'block';
+      rb.style.background = 'var(--blue-bg)'; rb.style.borderColor = 'var(--blue-border)'; rb.style.color = 'var(--blue)';
+      rb.innerHTML = '&#8618; Follow-up authorization — continuation of care following discharge from <a href="#" onclick="openIpCase(\'' + cr.priorAuthKey + '\');return false;" style="color:var(--blue);text-decoration:underline;">Auth ' + priorA.authNo + '</a> (' + crFmt(priorA.dischargeDate) + ').';
+    } else if (cr.followUpAuthKey && crState[cr.followUpAuthKey]) {
+      var fu = crState[cr.followUpAuthKey];
+      rb.style.display = 'block';
+      rb.style.background = 'var(--blue-bg)'; rb.style.borderColor = 'var(--blue-border)'; rb.style.color = 'var(--blue)';
+      rb.innerHTML = '&#8618; Care continued under a follow-up authorization — see <a href="#" onclick="openIpCase(\'' + cr.followUpAuthKey + '\');return false;" style="color:var(--blue);text-decoration:underline;">Auth ' + fu.authNo + '</a>.';
     } else { rb.style.display = 'none'; rb.style.background = '#FFFBEB'; rb.style.borderColor = '#FDE68A'; rb.style.color = '#8a5a08'; }
   }
   var srb = document.getElementById('ip-start-readmit-banner');
-  if (srb) srb.style.display = (cr.status === 'discharged' && !cr.readmittedTo) ? 'block' : 'none';
+  if (srb) srb.style.display = (cr.status === 'discharged' && !cr.readmittedTo && !cr.followUpAuthKey) ? 'block' : 'none';
 }
 // Orchestrator — fills every inpatient accordion body + the action-bar status.
 // Keeps the dashboard worklist row's Next Action + Status cells in sync with live case state — the
@@ -6076,7 +6295,8 @@ function renderIpHeader() {
 // (e.g. Carol's row kept showing "Initial Review" after her admission was actually approved into
 // Concurrent Review, since nothing had ever written back to that row).
 function ipWorklistNbaStatus(cr) {
-  if (cr.status === 'discharged') return { nba: '<span class="nba" style="background:var(--gray-100);color:var(--gray-600);">Discharged</span>', status: '<span class="sb" style="background:var(--gray-100);color:var(--gray-600);">Discharged</span>' };
+  if (cr.status === 'discharged') return { nba: '<span class="nba" style="font-size:11px;background:var(--gray-100);color:var(--gray-600);">Discharged</span>', status: '<span class="sb" style="font-size:11px;background:var(--gray-100);color:var(--gray-600);">Discharged</span>' };
+  if (cr.status === 'completed') return { nba: '<span class="nba" style="font-size:11px;background:var(--gray-100);color:var(--gray-600);">Completed</span>', status: '<span class="sb" style="font-size:11px;background:var(--gray-100);color:var(--gray-600);">Completed</span>' };
   if (cr.status === 'mdreview') {
     var pc = null; cr.cycles.forEach(function (x) { if (x.mdStatus === 'pending') pc = x; });
     var isP2P = pc && pc.reviewType === 'P2P';
@@ -6084,7 +6304,7 @@ function ipWorklistNbaStatus(cr) {
   }
   if (cr.status === 'pending') return { nba: '<span class="nba nba-amber nba-act">&#9654; Follow Up RFI</span>', status: '<span class="sb sb-amber">Pending Information</span>' };
   if (cr.status === 'pending-admission') return { nba: '<span class="nba nba-blue nba-act">&#9655; Initial Review</span>', status: '<span class="sb sb-amber">Ready for Review</span>' };
-  return { nba: '<span class="nba nba-teal nba-act">&#8635; Concurrent Review' + (crDue(cr) ? ' (due)' : '') + '</span>', status: '<span class="sb sb-teal">Concurrent Review</span>' };
+  return { nba: '<span class="nba nba-teal nba-act" style="font-size:11px;">&#8635; Concurrent Review' + (crDue(cr) ? ' (due)' : '') + '</span>', status: '<span class="sb sb-teal" style="font-size:11px;">Concurrent Review</span>' };
 }
 function renderIpWorklistRow(key) {
   var tatCell = document.querySelector('#s-dashboard .wl-table [data-case="' + key + '"]'); if (!tatCell) return;
@@ -6105,8 +6325,8 @@ function renderIp() {
   var cr = crGet();
   var chip = document.getElementById('ip-cr-chip');
   if (chip) {
-    chip.className = 'sb btn-xs ' + (cr.status === 'discharged' ? 'sb-gray' : cr.status === 'mdreview' ? 'sb-blue' : cr.status === 'pending' ? 'sb-amber' : cr.status === 'pending-admission' ? 'sb-blue' : 'sb-teal');
-    chip.textContent = cr.status === 'discharged' ? 'Discharged' : cr.status === 'mdreview' ? 'Pending MD' : cr.status === 'pending' ? 'Pending Info' : cr.status === 'pending-admission' ? 'Ready for Review' : (cr.cycles.length + ' reviews');
+    chip.className = 'sb btn-xs ' + (cr.status === 'discharged' ? 'sb-gray' : cr.status === 'completed' ? 'sb-gray' : cr.status === 'mdreview' ? 'sb-blue' : cr.status === 'pending' ? 'sb-amber' : cr.status === 'pending-admission' ? 'sb-blue' : 'sb-teal');
+    chip.textContent = cr.status === 'discharged' ? 'Discharged' : cr.status === 'completed' ? 'Completed' : cr.status === 'mdreview' ? 'Pending MD' : cr.status === 'pending' ? 'Pending Info' : cr.status === 'pending-admission' ? 'Ready for Review' : (cr.cycles.length + ' reviews');
   }
   var dc = document.getElementById('ip-determ-chip'); if (dc) dc.textContent = cr.cycles.length + ' recorded';
   var nc = document.getElementById('ip-notif-chip'); if (nc) nc.textContent = cr.cycles.filter(function (c) { return c.notice; }).length + ' sent';
@@ -6120,8 +6340,8 @@ function renderIpAuthBody() {
     + kv('Admission Type', cr.admType || '—') + kv('Admission Source', cr.admSource || '—')
     + kv('Primary Payer', cr.eligLabel || cr.eligPayer || '—')
     + kv('Certified Through', crFmt(cr.certifiedThrough) + ' (' + cr.los + ' days)')
-    + kv('Next Review', cr.status === 'discharged' ? '—' : crFmt(cr.nextReview) + (crDue(cr) ? ' · due' : ''))
-    + kv('Stay Status', cr.status === 'discharged' ? 'Discharged ' + crFmt(cr.dischargeDate) : 'Admitted')
+    + kv('Next Review', cr.status === 'discharged' ? '—' : (cr.status === 'completed' ? 'None — no concurrent review scheduled' : crFmt(cr.nextReview) + (crDue(cr) ? ' · due' : '')))
+    + kv('Stay Status', cr.status === 'discharged' ? 'Discharged ' + crFmt(cr.dischargeDate) : (cr.status === 'completed' ? 'Admitted — Authorization Complete' : 'Admitted'))
     + '</div>'
     + renderRegBlock(currentCase);
 }
@@ -6354,7 +6574,8 @@ function renderIpLines() {
     stay = '<div class="li-stay"><div class="cr-banner b-done" style="margin:0;"><span>✓</span> Discharged ' + crFmt(cr.dischargeDate) + ' · ' + cr.los + ' days certified — stay complete.</div></div>';
   } else {
     var banner = '';
-    if (cr.status === 'mdreview') { var pc = null; cr.cycles.forEach(function (x) { if (x.mdStatus === 'pending') pc = x; }); banner = '<div class="cr-banner b-pend" style="margin:0 0 10px;"><span>👨‍⚕️</span> Adverse recommendation pending ' + (pc && pc.reviewType === 'P2P' ? 'peer-to-peer' : 'physician (MD)') + ' review — no notice until the reviewer determines.</div>'; }
+    if (cr.status === 'completed') banner = '<div class="cr-banner" style="margin:0 0 10px;background:var(--gray-50);border:1px solid var(--gray-200);color:var(--gray-600);"><span>✓</span> Initial stay certified — authorization complete. No concurrent review scheduled.</div>';
+    else if (cr.status === 'mdreview') { var pc = null; cr.cycles.forEach(function (x) { if (x.mdStatus === 'pending') pc = x; }); banner = '<div class="cr-banner b-pend" style="margin:0 0 10px;"><span>👨‍⚕️</span> Adverse recommendation pending ' + (pc && pc.reviewType === 'P2P' ? 'peer-to-peer' : 'physician (MD)') + ' review — no notice until the reviewer determines.</div>'; }
     else if (cr.status === 'pending') banner = '<div class="cr-banner b-pend" style="margin:0 0 10px;"><span>⏸</span> Pended — awaiting additional clinical (RFI).</div>';
     else if (cr.lastDenied > 0) banner = '<div class="cr-banner b-deny" style="margin:0 0 10px;"><span>✕</span> Last review denied ' + cr.lastDenied + ' day(s) — notice issued.</div>';
     var nextTxt = cr.nextReview ? (crFmt(cr.nextReview) + (due ? ' · <span style="color:var(--amber);font-weight:700;">DUE</span>' : '')) : '<span style="color:var(--gray-400);">None scheduled</span>';
@@ -6370,8 +6591,9 @@ function renderIpLines() {
     if (crBlocked) actions += '<button class="btn btn-outline btn-sm" onclick="openDischarge()">🏠 Discharge</button>';
     // Select-to-review checkbox now lives on the Bed-Day line card itself (matching every other line
     // type's leading checkbox) — see the `beds` map above. No checkbox here anymore.
+    var schedBtnLabel = cr.status === 'completed' ? '&#128197; Start Concurrent Review' : ('📅 ' + (cr.nextReview ? 'Change' : 'Schedule'));
     stay = '<div class="li-stay" id="ip-cr-panel">' + banner
-      + '<div class="li-stay-meta"><span>Certified through <b>' + crFmt(cr.certifiedThrough) + '</b> (' + cr.los + ' days)</span><span>Next review: <b>' + nextTxt + '</b> <button class="btn btn-outline btn-xs" onclick="openCrSchedule()">📅 ' + (cr.nextReview ? 'Change' : 'Schedule') + '</button></span><span>' + cr.cycles.length + ' review' + (cr.cycles.length == 1 ? '' : 's') + '</span></div>'
+      + '<div class="li-stay-meta"><span>Certified through <b>' + crFmt(cr.certifiedThrough) + '</b> (' + cr.los + ' days)</span><span>Next review: <b>' + nextTxt + '</b> <button class="btn btn-outline btn-xs" onclick="openCrSchedule()">' + schedBtnLabel + '</button></span><span>' + cr.cycles.length + ' review' + (cr.cycles.length == 1 ? '' : 's') + '</span></div>'
       + (actions ? '<div class="li-stay-actions">' + actions + '</div>' : '') + '</div>';
   }
   var extraIp = (cr.extraIpLines || []).map(ipExtraLineCard).join('');
@@ -6386,7 +6608,7 @@ function renderIpLines() {
   el.innerHTML =
     '<div class="li-group"><div class="li-group-hd"><span>🛏 Bed-Day Lines</span><span class="li-group-meta">' + cr.segments.length + ' line' + (cr.segments.length == 1 ? '' : 's') + ' · ' + cr.los + ' days certified · click a line to expand its review</span></div>'
     + beds + extraIp + stay + '</div>'
-    + procGroup + rxGroup + ipCombinedToolbarHtml({ concurrent: bottomBarConcurrent });
+    + procGroup + rxGroup + ipCombinedToolbarHtml({ concurrent: bottomBarConcurrent, dischargeOnly: cr.status === 'completed' });
   var cnt = document.getElementById('ip-li-count'); if (cnt) cnt.textContent = cr.segments.length + (cr.extraIpLines ? cr.extraIpLines.length : 0) + (cr.procLines ? cr.procLines.length : 0) + (cr.rxLines ? cr.rxLines.length : 0);
 }
 function renderIpCrBody() { /* retired — concurrent-review activity now lives under the bed-day lines */ }
@@ -6574,9 +6796,11 @@ function ipCombinedToolbarHtml(opts) {
   var all = ipLineArrFor('ip').concat(cr.procLines || [], cr.rxLines || []).filter(function (x) { return !x.determId; });
   var nSel = all.filter(function (x) { return x.selected; }).length;
   var due = crDue(cr);
-  var dischargeBtn = opts.concurrent ? ' <button class="btn btn-outline btn-sm" onclick="event.stopPropagation();openDischarge()">&#127968; Discharge</button>' : '';
+  var showDischarge = opts.concurrent || opts.dischargeOnly;
+  var dischargeBtn = showDischarge ? ' <button class="btn btn-outline btn-sm" onclick="event.stopPropagation();openDischarge()">&#127968; Discharge</button>' : '';
   if (!all.length) {
-    if (!opts.concurrent) return '';
+    if (!showDischarge) return '';
+    if (!opts.concurrent) return '<div class="li-toolbar" style="justify-content:flex-end;">' + dischargeBtn + '</div>';
     return '<div class="li-toolbar" style="justify-content:flex-end;"><button class="btn btn-primary btn-sm" onclick="openCrReview()">&#8635; Concurrent Review' + (due ? ' (due)' : '') + '</button>' + dischargeBtn + '</div>';
   }
   var reviewLabel = opts.concurrent
@@ -6909,6 +7133,7 @@ function renderIprStatusNba() {
   var cr = crGet();
   var status, cls, nba;
   if (cr.status === 'discharged') { status = 'Discharged'; cls = 'sb'; nba = 'Completed'; }
+  else if (cr.status === 'completed') { status = 'Completed'; cls = 'sb'; nba = 'None — Complete'; }
   else if (cr.status === 'mdreview') {
     var pc = null; cr.cycles.forEach(function (x) { if (x.mdStatus === 'pending') pc = x; });
     var isP2P = pc && pc.reviewType === 'P2P';
@@ -6988,15 +7213,29 @@ function crGuidelineLabelText() {
   if (String(glVal).indexOf('cgl:') === 0) { var link = cglFind(glVal); if (link) return link.label; }
   return 'the linked guideline';
 }
+// Consolidated with what used to be a SEPARATE "AI-GENERATED" banner rendered inside the criteria
+// checklist itself (aiPrereviewBannerHtml, called from crLoadCriteria()) — two purple AI boxes on the
+// same screen said overlapping things in different words. Now there's just this one: the pre-review
+// summary (pr.summary), when active, is appended to whichever mode-specific text already renders here.
 function renderIprAiNote(mode) {
   var cr = crGet(); var el = document.getElementById('ipr-ai-note-content'); if (!el) return;
   var metCount = crMetCount(); var total = Math.max(crTotalCrit(), 1);
+  var glVal = ipVal('cr-guideline');
+  var isAdm = mode === 'admission';
+  var link = String(glVal).indexOf('cgl:') === 0 ? cglFind(glVal) : null;
+  if (!link && !GUIDELINES[glVal] && CR_LINK_FALLBACK_BY_CASE[currentCase]) {
+    var fb = cglFind('cgl:' + CR_LINK_FALLBACK_BY_CASE[currentCase]);
+    if (fb && ((isAdm && fb.admissionCriteria) || fb.criteria)) link = fb;
+  }
+  var linkCritArr = link && ((isAdm && link.admissionCriteria) ? link.admissionCriteria : link.criteria);
+  var pr = (link && linkCritArr) ? AI_PREREVIEW_LINK[currentCase] : (ipVal('iprgl-source') === 'manual' ? AI_PREREVIEW[currentCase] : null);
+  var prText = pr ? (' <span class="ai-badge" style="margin-left:2px;">AI-GENERATED</span> ' + pr.summary) : '';
   if (mode === 'admission') {
-    el.innerHTML = 'Admission clinicals reviewed against ' + crGuidelineLabelText() + '.' + crExtNoteSuffix() + ' Requested level of care: <b>' + cr.loc + '</b>, ' + (cr.requestedLos || cr.los) + ' day(s) requested. Confirm criteria on the left before recording a determination.';
+    el.innerHTML = 'Admission clinicals reviewed against ' + crGuidelineLabelText() + '.' + crExtNoteSuffix() + ' Requested level of care: <b>' + cr.loc + '</b>, ' + (cr.requestedLos || cr.los) + ' day(s) requested. Confirm criteria on the left before recording a determination.' + prText;
   } else if (mode === 'md' || mode === 'p2p') {
     el.innerHTML = 'Nurse-recommended determination is pending physician review — see the read-only recommendation and criteria in the left panel before finalizing.';
   } else {
-    el.innerHTML = 'Continued-stay clinicals reviewed against the selected guideline — ' + metCount + ' of ' + total + ' criteria currently marked met.' + crExtNoteSuffix() + ' Certified through <b>' + crFmt(cr.certifiedThrough) + '</b>; next review ' + (cr.nextReview ? crFmt(cr.nextReview) : 'not yet scheduled') + '.';
+    el.innerHTML = 'Continued-stay clinicals reviewed against the selected guideline — ' + metCount + ' of ' + total + ' criteria currently marked met.' + crExtNoteSuffix() + ' Certified through <b>' + crFmt(cr.certifiedThrough) + '</b>; next review ' + (cr.nextReview ? crFmt(cr.nextReview) : 'not yet scheduled') + '.' + prText;
   }
 }
 // AI Progress Note (Progress Notes tab) — pre-determination summary + recommendation, mirroring the OP
@@ -7016,7 +7255,7 @@ function iprRenderPnPreview() {
   var prev = document.getElementById('ipr-pn-preview'); if (!prev) return;
   var detail = crCritDetail();
   prev.innerHTML = detail.length ? detail.map(function (c) {
-    return '<div style="font-size:11px;color:' + (c.met ? 'var(--green)' : '#DC2626') + ';font-weight:500;">' + (c.met ? '&#10003;' : '&#10007;') + ' ' + c.text + '</div>';
+    return '<div style="font-size:11px;color:' + (c.met ? 'var(--green)' : '#DC2626') + ';font-weight:500;">' + (c.met ? '&#10003;' : '&#10007;') + ' ' + c.text + (c.overrideNote ? '<div style="color:var(--gray-500);font-weight:400;font-style:italic;margin:1px 0 4px 18px;">Note: ' + c.overrideNote + '</div>' : '') + '</div>';
   }).join('') : '<div style="font-size:11px;color:var(--gray-400);grid-column:span 2;">No criteria loaded yet — select a guideline/source on the left.</div>';
 }
 function iprPnLineText() {
@@ -7044,13 +7283,20 @@ function iprGeneratePN() {
       '<div style="background:var(--green-bg);border:1px solid var(--green-border);border-radius:6px;padding:8px 10px;text-align:center;"><div style="font-size:18px;font-weight:700;color:var(--green);">' + met + '</div><div style="font-size:10px;font-weight:700;color:var(--green);text-transform:uppercase;">Criteria Met</div></div>'
     + '<div style="background:' + (notMet ? 'var(--red-bg)' : 'var(--gray-100)') + ';border:1px solid ' + (notMet ? 'var(--red-border)' : 'var(--gray-200)') + ';border-radius:6px;padding:8px 10px;text-align:center;"><div style="font-size:18px;font-weight:700;color:' + (notMet ? 'var(--red)' : 'var(--gray-500)') + ';">' + notMet + '</div><div style="font-size:10px;font-weight:700;color:' + (notMet ? 'var(--red)' : 'var(--gray-500)') + ';text-transform:uppercase;">Not Met</div></div>'
     + '<div style="background:' + (allMet ? 'var(--green-bg)' : 'var(--amber-bg)') + ';border:1px solid ' + (allMet ? 'var(--green-border)' : 'var(--amber-border)') + ';border-radius:6px;padding:8px 10px;text-align:center;"><div style="font-size:13px;font-weight:700;color:' + (allMet ? 'var(--green)' : 'var(--amber)') + ';">' + (allMet ? 'Certify' : 'MD Review') + '</div><div style="font-size:10px;font-weight:700;color:' + (allMet ? 'var(--green)' : 'var(--amber)') + ';text-transform:uppercase;">Recommended</div></div>';
-  var critLines = detail.map(function (c) { return (c.met ? '&#10003; ' : '&#10007; ') + c.text; }).join(' &nbsp;&middot;&nbsp; ');
+  var critLines = detail.map(function (c) { return (c.met ? '&#10003; ' : '&#10007; ') + c.text + (c.overrideNote ? ' (Note: ' + c.overrideNote + ')' : ''); }).join(' &nbsp;&middot;&nbsp; ');
   var extDetail = '';
   if (crUsingExternalResult()) {
     var res = cr.externalCriteriaResult, d = res.detail;
     if (d && d.kind === 'iq') extDetail = '<strong>SOURCE:</strong> ' + res.label + ' — ' + d.version + ', ' + d.reviewStatus + ', ' + d.status + ', ' + d.productDesc + ' / ' + d.productSubset + ', ' + d.episodeDay + '<br><br>';
     else if (d && d.kind === 'cwqi' && d.guidelineRow) extDetail = '<strong>SOURCE:</strong> ' + res.label + ' — ' + d.guidelineRow.name + ' (' + d.guidelineRow.code + '), ' + d.guidelineRow.status + ', reviewed ' + d.guidelineRow.date + '<br><br>';
     else extDetail = '<strong>SOURCE:</strong> ' + res.label + '<br><br>';
+  } else {
+    // Custom source has no externalCriteriaResult, but a saved guideline LINK with its own criteria
+    // (e.g. the Heart Failure guideline) is a real, attributable source too — document which one governed
+    // this determination, same as IQ/CWQI do above, instead of leaving the note silent on it.
+    var glValPn = ipVal('cr-guideline');
+    var linkPn = String(glValPn).indexOf('cgl:') === 0 ? cglFind(glValPn) : null;
+    if (linkPn && linkPn.criteria) extDetail = '<strong>SOURCE:</strong> ' + linkPn.label + ' (' + linkPn.url + ')<br><br>';
   }
   document.getElementById('ipr-pn-text').innerHTML =
       '<strong>LINE ITEM:</strong> ' + iprPnLineText() + '<br><br>'
@@ -7180,8 +7426,13 @@ function iprTab(name) {
   });
 }
 // Medical Records tab — same MED_REC source the old popup used, now inline (view-only, always visible).
+// A selected Custom guideline LINK with its own `medRec` (evidence written against ITS criteria
+// wording/order, e.g. the Heart Failure guideline) overrides the case default for as long as it's
+// selected — the case default has no idea which guideline is active, so it can't supply the right marks.
 function renderIprRecords() {
-  var mr = MED_REC[currentCase] || (isIpCase(currentCase) ? MED_REC.james : MED_REC[currentCase]) || MED_REC.james;
+  var glVal = (typeof ipVal === 'function') ? ipVal('cr-guideline') : null;
+  var link = glVal && String(glVal).indexOf('cgl:') === 0 && typeof cglFind === 'function' ? cglFind(glVal) : null;
+  var mr = (link && link.medRec) || MED_REC[currentCase] || (isIpCase(currentCase) ? MED_REC.james : MED_REC[currentCase]) || MED_REC.james;
   var list = document.getElementById('iprrec-crit-list');
   if (list) list.innerHTML = mr.criteria.map(function (c, i) {
     return '<div class="mr-crit ' + c.status + '" onclick="iprFlashEv(' + i + ')"><span class="mr-dot"></span><span>' + c.label + ' <span style="color:' + (c.status === 'met' ? 'var(--green)' : 'var(--amber)') + ';font-weight:700;white-space:nowrap;">· ' + (c.status === 'met' ? 'Met' : 'Needed') + '</span></span></div>';
@@ -7214,16 +7465,24 @@ function iprAddNote() {
 function renderIprGuidelines() {
   var glVal = ipVal('cr-guideline');
   var body = document.getElementById('iprgl-body'); if (!body) return;
-  if (glVal === 'url' || glVal === 'add-link' || String(glVal).indexOf('cgl:') === 0) {
-    var link = String(glVal).indexOf('cgl:') === 0 ? cglFind(glVal) : null;
+  var isAdmission = (typeof ipReviewMode !== 'undefined' && ipReviewMode === 'admission');
+  var link = String(glVal).indexOf('cgl:') === 0 ? cglFind(glVal) : null;
+  var linkCritArr = link && ((isAdmission && link.admissionCriteria) ? link.admissionCriteria : link.criteria);
+  // Same case-specific fallback as crLoadCriteria() — keeps this tab consistent with the checklist
+  // instead of surfacing an unrelated vendor guideline name when nothing more specific is selected.
+  if (!link && !GUIDELINES[glVal] && CR_LINK_FALLBACK_BY_CASE[currentCase]) {
+    var fbLink = cglFind('cgl:' + CR_LINK_FALLBACK_BY_CASE[currentCase]);
+    var fbCrit = fbLink && ((isAdmission && fbLink.admissionCriteria) ? fbLink.admissionCriteria : fbLink.criteria);
+    if (fbLink && fbCrit) { link = fbLink; linkCritArr = fbCrit; }
+  }
+  if ((glVal === 'url' || glVal === 'add-link' || String(glVal).indexOf('cgl:') === 0) && !linkCritArr) {
     body.innerHTML = '<div style="font-size:10px;font-weight:700;color:var(--gray-500);text-transform:uppercase;margin-bottom:9px;">Reference — Selected Guideline</div>'
       + '<div style="font-size:12px;color:var(--gray-700);">This review uses an externally-linked guideline'
       + (link ? (' — <b>' + link.label + '</b>') : '') + '. Open the link above to view its criteria.</div>';
     return;
   }
-  var g = GUIDELINES[glVal] || GUIDELINES[CR_GUIDELINE_BY_CASE[currentCase]] || GUIDELINES['mcg-chf'];
-  var isAdmission = (typeof ipReviewMode !== 'undefined' && ipReviewMode === 'admission');
-  var critArr = (isAdmission && g.admissionCriteria) ? g.admissionCriteria : g.criteria;
+  var g = link ? link : (GUIDELINES[glVal] || GUIDELINES[CR_GUIDELINE_BY_CASE[currentCase]] || GUIDELINES['mcg-chf']);
+  var critArr = linkCritArr || ((isAdmission && g.admissionCriteria) ? g.admissionCriteria : g.criteria);
   body.innerHTML = '<div style="font-size:10px;font-weight:700;color:var(--gray-500);text-transform:uppercase;margin-bottom:9px;">Reference — Selected Guideline' + (isAdmission ? ' (Admission)' : ' (Continued Stay)') + '</div>'
     + '<div style="font-weight:600;font-size:13px;color:var(--gray-800);margin-bottom:8px;">' + g.label + '</div>'
     + '<div style="font-size:12px;color:var(--gray-700);line-height:1.9;">' + critArr.map(function (t) { return '&bull; ' + t; }).join('<br>') + '</div>';
@@ -7240,10 +7499,32 @@ var OP_CRITERIA = {
 var AI_PREREVIEW = {
   m: { metIdx: [0, 1, 2, 4, 6], summary: 'AI pre-review matched 5 of 7 criteria from the attached clinicals — Prior LOC Failure and Recovery Environment are flagged as gaps for your review.' },
   rc: { metIdx: [0, 1, 2, 3, 4], summary: 'AI pre-review matched all 5 of 5 InterQual criteria from the attached clinicals.' },
-  newadmit1: { metIdx: [0, 1, 2, 3], summary: 'AI pre-review matched all 4 admission criteria from the attached clinicals — ready for review.' }
+  newadmit1: { metIdx: [0, 1, 2, 3], summary: 'AI pre-review matched all 4 admission criteria from the attached clinicals — ready for review.' },
+  // Walter's Manual-mode fallback resolves to the mcg-pna 4-item list (see CR_GUIDELINE_BY_CASE) — closer
+  // to his respiratory/infectious picture than the heart-failure default this case would otherwise fall
+  // back to.
+  walter: { metIdx: [0, 1], summary: 'AI pre-review matched 2 of 4 criteria from the attached clinicals — continued IV antibiotic and supplemental-oxygen needs support ongoing stay; hemodynamic and oral-intake criteria appear resolved, confirm before certifying.' },
+  // eleanorSnf's Manual-mode fallback resolves to iq-gen's 4-item admission list (see CR_GUIDELINE_BY_CASE) —
+  // the closest generic fit for a skilled-nursing/rehab admission in this demo's guideline library.
+  eleanorSnf: { metIdx: [2, 3], summary: 'AI pre-review matched 2 of 4 admission criteria from the attached hospital transfer summary — functional deconditioning supports skilled-level care; no acute instability identified, confirm skilled therapy needs before certifying.' }
 };
-function aiPrereviewBannerHtml(key) {
-  var pr = AI_PREREVIEW[key]; if (!pr) return '';
+// Separate from AI_PREREVIEW above because a case can have TWO differently-shaped checklists — its
+// Manual-mode native-guideline fallback (4-ish generic items) vs. a Custom guideline LINK that carries
+// its own criteria (a different length/order entirely). A single metIdx array can't safely serve both
+// shapes for the same case, so link-sourced pre-reviews get their own map, keyed by case, applied only
+// when crLoadCriteria() is rendering FROM a link's own criteria (never the Manual fallback).
+var AI_PREREVIEW_LINK = {
+  // Backs James's existing dashboard AI pill ("continued-stay summary drafted... LOS +1d vs GLOS") with
+  // real pre-checked indices against the 11-item Heart Failure custom guideline. For demo purposes all
+  // 11 are shown as AI-suggested met (green) — still fully editable; toggling any item off shows the
+  // override-reason dropdown, demonstrating the human-in-the-loop review rather than a rubber stamp.
+  james: { metIdx: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10], summary: 'AI pre-review matched all 11 of 11 continued-stay criteria from the attached day-5 progress note. Confirm each item — override any that don\'t reflect the current clinical picture.' }
+};
+// prOverride lets a caller pass an already-resolved pre-review object (e.g. from AI_PREREVIEW_LINK,
+// which isn't keyed the same way as this function's default AI_PREREVIEW[key] lookup) instead of
+// re-deriving which map applies here too.
+function aiPrereviewBannerHtml(key, prOverride) {
+  var pr = prOverride || AI_PREREVIEW[key]; if (!pr) return '';
   return '<div style="display:flex;align-items:flex-start;gap:6px;font-size:11px;color:#5B21B6;background:var(--purple-bg);border:1px solid #DDD6FE;border-radius:7px;padding:7px 10px;margin-bottom:10px;"><span class="ai-badge" style="flex-shrink:0;">AI-GENERATED</span><span>' + pr.summary + ' Confirm or adjust each item below.</span></div>';
 }
 // Guideline picker for OP's Custom source — parity with IP's GUIDELINES/crLoadCriteria. Each case's
@@ -7518,6 +7799,12 @@ function iprSourceChange() {
   if (typeof renderIprAiNote === 'function') renderIprAiNote(typeof ipReviewMode !== 'undefined' ? ipReviewMode : 'concurrent');
   if (typeof crUpdateRecommend === 'function') crUpdateRecommend();
   if (typeof iprResetPN === 'function') iprResetPN(); // source change means a different criteria set — clear any stale generated note
+  // Custom/Manual reviews aren't tied to a coded diagnosis/procedure lookup (that's only meaningful for
+  // the automated InterQual/CWQI criteria engines) — grey the whole Dx/Proc Code control out for them.
+  var dxRadios = document.querySelectorAll('input[name="ipr-lookup-type"]');
+  dxRadios.forEach(function (r) { r.disabled = isChecklist; });
+  if (isChecklist) { var dxField = document.getElementById('ipr-dx-value'); if (dxField) dxField.disabled = true; }
+  else lookupTypeChange('ipr'); // restores the field's disabled state per whichever radio is currently checked
 }
 // Builds the "like in the HTML" recap — the Criteria Details grid (InterQual) or Guideline Summary
 // table + aggregate note (CWQI) captured from criteria-lookup-launch.html at Complete/Save time, plus
@@ -7757,8 +8044,11 @@ function openCrSchedule() {
 function crScheduleConfirm() {
   var cr = crGet(); var v = ipVal('crsch-date'); if (!v) return;
   if (crParse(v) > crParse(cr.certifiedThrough)) v = cr.certifiedThrough; // can't schedule beyond the certified stay
+  var wasCompleted = cr.status === 'completed';
   cr.nextReview = v;
-  closeModal('m-crschedule'); syncIp(); crToast('📅 Next review scheduled — ' + crFmt(v));
+  if (wasCompleted) cr.status = 'admitted'; // setting a next review date is what starts the concurrent review cycle
+  closeModal('m-crschedule'); syncIp();
+  crToast(wasCompleted ? ('📅 Concurrent review started — next review ' + crFmt(v)) : ('📅 Next review scheduled — ' + crFmt(v)));
 }
 function crClearReview() { var cr = crGet(); cr.nextReview = ''; closeModal('m-crschedule'); syncIp(); crToast('Next review cleared — none scheduled'); }
 // Live requested-vs-approved summary + highlight the RECOMMENDED action — but every determination stays
@@ -7785,14 +8075,14 @@ function crUpdateRecommend() {
     det.className = 'btn btn-outline btn-sm'; det.innerHTML = '&#10003; Record Determination (Approve anyway)';
   } else if (full) {
     sum.style.background = 'var(--green-bg)'; sum.style.color = 'var(--green)';
-    sum.innerHTML = '&#10003; Criteria met &mdash; approving <b>all ' + req + '</b> requested day' + (req === 1 ? '' : 's') + '. Recommended action: record the determination (Approve).';
+    sum.innerHTML = '&#10003; Criteria met &mdash; recommend approving all <b>' + req + '</b> day' + (req === 1 ? '' : 's') + ' requested.';
     det.className = 'btn btn-primary btn-sm'; det.innerHTML = '&#10003; Record Determination (Approve)';
     md.className = 'btn btn-outline btn-sm'; md.innerHTML = '&#128104;&#8205;&#9877; Send to MD Review';
   } else if (partial) {
     sum.style.background = '#FFFBEB'; sum.style.color = '#B45309';
-    sum.innerHTML = '&#9682; Partial &mdash; approving <b>' + appr + ' of ' + req + '</b> day' + (req === 1 ? '' : 's') + ' (' + (req - appr) + ' not certified). Recommended action: <b>send to MD</b> for the non-certified portion.';
-    md.className = 'btn btn-primary btn-sm'; md.innerHTML = '&#128104;&#8205;&#9877; Send to MD (Partial)';
-    det.className = 'btn btn-outline btn-sm'; det.innerHTML = '&#10003; Record Determination (Partial)';
+    sum.innerHTML = '&#9682; Partial &mdash; recommend approving <b>' + appr + ' of ' + req + '</b> day' + (req === 1 ? '' : 's') + ' requested (' + (req - appr) + ' not certified). Record the determination directly, or send to MD if physician review is preferred.';
+    det.className = 'btn btn-primary btn-sm'; det.innerHTML = '&#10003; Record Determination (Partial)';
+    md.className = 'btn btn-outline btn-sm'; md.innerHTML = '&#128104;&#8205;&#9877; Send to MD (Partial)';
   } else {
     sum.style.background = '#FEF2F2'; sum.style.color = '#B91C1C';
     sum.innerHTML = '&#10007; Criteria not met &mdash; <b>0 of ' + req + '</b> day' + (req === 1 ? '' : 's') + ' certified. Recommended action: <b>send to MD</b> for the denial.';
@@ -7800,15 +8090,14 @@ function crUpdateRecommend() {
     det.className = 'btn btn-outline btn-sm'; det.innerHTML = '&#10003; Record Determination (Deny)';
   }
 }
-// Both buttons route to the same outcome set from whatever's currently entered — Record Determination
-// certifies directly on a full match (the only outcome a nurse can finalize herself for a concurrent
-// review); partial/zero still open the same recommend-to-MD modals Send to MD uses (a nurse can't
-// finalize an adverse concurrent-review outcome — see the m-crdeny banner), just reachable from either
-// button instead of only one.
+// Record Determination self-certifies whatever's entered in "Days to Approve" — a full match AND a
+// partial (fewer days than requested) are both nurse-recordable outcomes now (openCrApprove() handles
+// the partial math itself — see crApproveConfirm()'s isPartial branch). Only a zero-day approval has no
+// certifiable outcome and routes to denial. Send to MD (crSendPrimary) is left unchanged as the
+// alternative for a nurse who'd rather route a partial/denial for physician sign-off instead.
 function crDetermPrimary() {
-  var req = parseInt(ipVal('cr-days')) || 0, a = parseInt(ipVal('cr-approve')); if (isNaN(a)) a = req;
-  if (req > 0 && a === req) openCrApprove();
-  else if (a > 0) openCrPartial();
+  var a = parseInt(ipVal('cr-approve')); if (isNaN(a)) a = parseInt(ipVal('cr-days')) || 0;
+  if (a > 0) openCrApprove();
   else openCrDeny('Clinical');
 }
 function crSendPrimary() { var req = parseInt(ipVal('cr-days')) || 0, a = parseInt(ipVal('cr-approve')); if (isNaN(a)) a = req; if (a >= req && req > 0) openCrSend(); else if (a > 0) openCrPartial(); else openCrDeny('Clinical'); }
@@ -7836,29 +8125,89 @@ function crLoadCriteria() {
   var isLinkMode = glVal === 'url' || glVal === 'add-link' || String(glVal).indexOf('cgl:') === 0;
   cglRenderControls('cr', glVal);
   var src = document.getElementById('cr-crit-src');
-  if (isLinkMode) {
+  var isAdmission = (typeof ipReviewMode !== 'undefined' && ipReviewMode === 'admission');
+  // Fresh checklist load means fresh override notes — the checkboxes themselves always reset to the
+  // AI-suggested (or blank) default on every call here too, never persisting nurse edits across a
+  // guideline/source switch, so stale notes tied to a differently-shaped previous checklist would be
+  // meaningless if kept.
+  crGet().critOverrideNotes = {};
+  // A saved Custom guideline link normally has no structured criteria of its own — just a URL to open
+  // and document against in the progress note. But a link MAY carry its own criteria/admissionCriteria
+  // arrays (e.g. an organization-developed guideline like the Heart Failure one below), in which case it
+  // renders a real checklist here exactly like a named MCG/InterQual guideline would.
+  var link = String(glVal).indexOf('cgl:') === 0 ? cglFind(glVal) : null;
+  var linkCritArr = link && ((isAdmission && link.admissionCriteria) ? link.admissionCriteria : link.criteria);
+  // Case-specific link fallback (see CR_LINK_FALLBACK_BY_CASE) — only kicks in when nothing more
+  // specific is explicitly selected (no named guideline picked, no link picked), so it never overrides
+  // an explicit MCG/IQ/CWQI choice.
+  if (!link && !GUIDELINES[glVal] && CR_LINK_FALLBACK_BY_CASE[currentCase]) {
+    var fbLink = cglFind('cgl:' + CR_LINK_FALLBACK_BY_CASE[currentCase]);
+    var fbCrit = fbLink && ((isAdmission && fbLink.admissionCriteria) ? fbLink.admissionCriteria : fbLink.criteria);
+    if (fbLink && fbCrit) { link = fbLink; linkCritArr = fbCrit; }
+  }
+  if (isLinkMode && !linkCritArr) {
     if (src) src.textContent = '(from linked guideline)';
     document.getElementById('cr-crit-list').innerHTML = '<div style="font-size:13px;color:var(--gray-500);font-style:italic;">Review the linked guideline above, then document criteria met in the progress note.</div>';
     if (typeof renderIprGuidelines === 'function') renderIprGuidelines();
     return;
   }
-  var g = GUIDELINES[glVal] || GUIDELINES[CR_GUIDELINE_BY_CASE[currentCase]] || GUIDELINES['mcg-chf'];
-  var isAdmission = (typeof ipReviewMode !== 'undefined' && ipReviewMode === 'admission');
-  var critArr = (isAdmission && g.admissionCriteria) ? g.admissionCriteria : g.criteria;
+  var g = link ? link : (GUIDELINES[glVal] || GUIDELINES[CR_GUIDELINE_BY_CASE[currentCase]] || GUIDELINES['mcg-chf']);
+  var critArr = linkCritArr || ((isAdmission && g.admissionCriteria) ? g.admissionCriteria : g.criteria);
   var lbl = document.getElementById('cr-crit-label'); if (lbl) lbl.textContent = isAdmission ? 'Admission Criteria' : 'Continued-Stay Criteria';
   if (src) src.textContent = '(from ' + g.label.split(' — ')[0] + ')';
-  // Evidence links (Custom source only) require the selected guideline to be this case's native one —
-  // MED_REC's highlighted passages were written against that specific criteria wording/order.
-  var canLink = ipVal('iprgl-source') === 'custom' && CR_GUIDELINE_BY_CASE[currentCase] === ipVal('cr-guideline');
-  var pr = ipVal('iprgl-source') === 'manual' ? AI_PREREVIEW[currentCase] : null;
-  document.getElementById('cr-crit-list').innerHTML = (pr ? aiPrereviewBannerHtml(currentCase) : '') + critArr.map(function (t, i) {
+  // Evidence links require highlighted passages written against this exact criteria wording/order —
+  // either this case's native MCG/IQ guideline (MED_REC[currentCase]) or a saved link that carries its
+  // own medRec override (see renderIprRecords()); a plain link with no medRec has no matching passages.
+  var canLink = (link ? !!link.medRec : (ipVal('iprgl-source') === 'custom' && CR_GUIDELINE_BY_CASE[currentCase] === ipVal('cr-guideline')));
+  // AI pre-review pre-checks the same way for Manual (native-guideline fallback) and for a Custom link
+  // that carries its own criteria — both are "the checklist for this case," just reached differently.
+  var pr = (link && linkCritArr) ? AI_PREREVIEW_LINK[currentCase] : (ipVal('iprgl-source') === 'manual' ? AI_PREREVIEW[currentCase] : null);
+  var dischargeNote = (link && link.dischargeNote && !isAdmission) ? '<div style="font-size:11.5px;color:var(--gray-600);background:var(--gray-50);border:1px solid var(--gray-200);border-radius:7px;padding:8px 10px;margin-top:10px;"><b>Discharge / lower-level transition:</b> ' + link.dischargeNote + '</div>' : '';
+  // The AI-generated summary (pr.summary) now lives ONLY in the consolidated AI Authorization Note above
+  // (see renderIprAiNote()) — no separate purple banner duplicated here; this list is just the checklist.
+  document.getElementById('cr-crit-list').innerHTML = critArr.map(function (t, i) {
     var ev = canLink ? '<span class="cc-ev-link" title="View supporting evidence in Medical Records" onclick="event.preventDefault();event.stopPropagation();iprViewEvidence(' + i + ')">&#128196;</span>' : '';
-    var met = pr && pr.metIdx.indexOf(i) > -1;
-    return '<label class="cr-crit' + (met ? ' met' : '') + '" id="crcrit-' + i + '"><input type="checkbox" ' + (met ? 'checked' : '') + ' onchange="this.closest(\'.cr-crit\').classList.toggle(\'met\',this.checked);renderIprCriteriaDetails();renderIprAiNote(ipReviewMode);iprRenderPnPreview();crUpdateRecommend();"><span class="cc-txt">' + t + '</span>' + ev + '</label>';
-  }).join('');
+    var aiMet = pr ? (pr.metIdx.indexOf(i) > -1) : null;
+    var met = aiMet === true;
+    // A reason prompt appears only once the nurse's checked state disagrees with the AI-suggested one —
+    // capturing WHY she overrode the recommendation, not just that she did.
+    var changedNow = aiMet !== null && met !== aiMet;
+    var mark = '<span class="cc-mark" id="critmark-' + i + '" style="' + (met ? 'color:var(--green);' : 'color:#DC2626;') + '">' + (met ? '&#10003;' : '&#10007;') + '</span>';
+    return '<label class="cr-crit' + (met ? ' met' : '') + '" id="crcrit-' + i + '"><input type="checkbox" ' + (met ? 'checked' : '') + ' onchange="crCritToggle(' + i + ', this, ' + (aiMet === null ? 'null' : aiMet) + ')">' + mark + '<span class="cc-txt">' + t + '</span>' + ev + '</label>'
+      + '<div class="cr-crit-note" id="critnote-' + i + '" style="display:' + (changedNow ? 'block' : 'none') + ';margin:-3px 0 8px 26px;">'
+      + '<select class="form-ctrl" style="font-size:11.5px;" onchange="crCritNoteChange(' + i + ', this.value)">'
+      + '<option value="">&mdash; Optional: reason for change &mdash;</option>'
+      + '<option>Clinical judgment based on full chart review</option>'
+      + '<option>Additional clinical information received since AI pre-review</option>'
+      + '<option>Criterion not clinically applicable to this case</option>'
+      + '<option>Documentation insufficient to support AI-suggested status</option>'
+      + '<option>Other &mdash; see progress note</option>'
+      + '</select>'
+      + '</div>';
+  }).join('') + dischargeNote;
   if (typeof renderIprGuidelines === 'function') renderIprGuidelines();
   if (typeof renderIprCriteriaDetails === 'function') renderIprCriteriaDetails();
   if (typeof renderIprAiNote === 'function') renderIprAiNote(typeof ipReviewMode !== 'undefined' ? ipReviewMode : 'concurrent');
+  if (typeof renderIprRecords === 'function') renderIprRecords(); // a link with its own medRec overrides the case default — refresh on every guideline change
+}
+// A checkbox that disagrees with its AI-suggested state (aiMet — null when there's no AI pre-review
+// active at all) reveals a note field so the override reason is captured, not just the changed value.
+function crCritToggle(i, checkbox, aiMet) {
+  checkbox.closest('.cr-crit').classList.toggle('met', checkbox.checked);
+  var mark = document.getElementById('critmark-' + i);
+  if (mark) { mark.innerHTML = checkbox.checked ? '&#10003;' : '&#10007;'; mark.style.color = checkbox.checked ? 'var(--green)' : '#DC2626'; }
+  var noteWrap = document.getElementById('critnote-' + i);
+  if (noteWrap) {
+    var changed = aiMet !== null && checkbox.checked !== aiMet;
+    noteWrap.style.display = changed ? 'block' : 'none';
+    if (!changed) { var sel = noteWrap.querySelector('select'); if (sel) sel.value = ''; crCritNoteChange(i, ''); }
+  }
+  renderIprCriteriaDetails(); renderIprAiNote(ipReviewMode); iprRenderPnPreview(); crUpdateRecommend();
+}
+function crCritNoteChange(i, val) {
+  var cr = crGet(); cr.critOverrideNotes = cr.critOverrideNotes || {};
+  if (val) cr.critOverrideNotes[i] = val; else delete cr.critOverrideNotes[i];
+  if (typeof iprRenderPnPreview === 'function') iprRenderPnPreview();
 }
 function crGuidelineUrlChange() { cglInputChange('cr'); }
 // Jump to Medical Records and flash the passage supporting criterion index i (Custom-source mapping).
@@ -7872,7 +8221,14 @@ function crSyncNextReview() { var cr = crGet(); var req = parseInt(document.getE
 function crUsingExternalResult() { var cr = crGet(); var src = ipVal('iprgl-source'); return src !== 'custom' && cr.externalCriteriaResult && cr.externalCriteriaResult.sourceVal === src; }
 function crMetCount() { if (crUsingExternalResult()) return crGet().externalCriteriaResult.metCount; return document.querySelectorAll('#cr-crit-list .cr-crit.met').length; }
 function crTotalCrit() { if (crUsingExternalResult()) return crGet().externalCriteriaResult.total; return document.querySelectorAll('#cr-crit-list .cr-crit').length || 4; }
-function crCritDetail() { if (crUsingExternalResult()) return crGet().externalCriteriaResult.criteria; return [].slice.call(document.querySelectorAll('#cr-crit-list .cr-crit')).map(function (el) { return { text: el.querySelector('.cc-txt').textContent, met: el.querySelector('input').checked }; }); }
+function crCritDetail() {
+  if (crUsingExternalResult()) return crGet().externalCriteriaResult.criteria;
+  var notes = crGet().critOverrideNotes || {};
+  return [].slice.call(document.querySelectorAll('#cr-crit-list .cr-crit')).map(function (el) {
+    var idx = parseInt(el.id.replace('crcrit-', ''), 10);
+    return { text: el.querySelector('.cc-txt').textContent, met: el.querySelector('input').checked, overrideNote: notes[idx] || '' };
+  });
+}
 var CR_CS_GUIDELINE = 'MCG — Continued Inpatient Stay';
 // Clear visual numbering for concurrent-review cycles — a "CR #N" badge wherever a review is referenced
 // (bed-day line cards, Determinations/Notifications History, the bed-line expand). Initial/Discharge
@@ -7915,8 +8271,12 @@ function crReviewCtx() {
   var dcBody = document.getElementById('cr-dc-body');
   var dischargePlanning = (dcBody && dcBody.style.display !== 'none' && (ipVal('cr-dc-readiness') || ipVal('cr-dc-date') || ipVal('cr-dc-note')))
     ? { readiness: ipVal('cr-dc-readiness'), date: ipVal('cr-dc-date'), note: ipVal('cr-dc-note') } : null;
+  var req = parseInt(ipVal('cr-days')) || 0;
+  var apprEl = document.getElementById('cr-approve');
+  var appr = apprEl && apprEl.value !== '' ? parseInt(apprEl.value) : req;
+  if (isNaN(appr)) appr = req; if (appr < 0) appr = 0; if (appr > req) appr = req;
   return {
-    req: parseInt(ipVal('cr-days')) || 0, loc: crNewLoc(), guideline: crCurGuideline(), critDetail: crCritDetail(),
+    req: req, appr: appr, loc: crNewLoc(), guideline: crCurGuideline(), critDetail: crCritDetail(),
     metCount: crMetCount(), total: crTotalCrit(), note: ipVal('cr-note'), next: ipVal('cr-next'),
     source: src, sourceLabel: SOURCE_LABEL_MAP[src] || src, sourceDetail: extDetail,
     locMode: locMode, dxType: dxType, dxValue: ipVal('ipr-dx-value'), dischargePlanning: dischargePlanning
@@ -7925,10 +8285,33 @@ function crReviewCtx() {
 function openCrApprove() {
   var cr = crGet(); var req = parseInt(ipVal('cr-days')) || 0; if (req < 1) return;
   crPendingReview = crReviewCtx();
-  document.getElementById('cra-ctx').innerHTML = 'Certify <b>' + req + ' day(s)</b> at <b>' + crPendingReview.loc + '</b> — through ' + crFmt(crAddDays(cr.certifiedThrough, req)) + '.';
+  var appr = crPendingReview.appr;
+  var isAdmission = ipReviewMode === 'admission';
+  document.getElementById('cra-title').textContent = isAdmission ? 'Approve Admission' : 'Approve Continued Stay';
+  document.getElementById('cra-ctx').innerHTML = 'Certify <b>' + appr + ' day(s)</b>' + (appr < req ? ' of ' + req + ' requested' : '') + ' at <b>' + crPendingReview.loc + '</b> — through ' + crFmt(crAddDays(cr.certifiedThrough, appr)) + '.';
   var s = document.getElementById('cra-code'); s.innerHTML = crCodeOptions(APPROVAL_CODES); s.style.borderColor = '';
   document.getElementById('cra-note').value = crPendingReview.note;
+  // The Concurrent Review Date is settable right here on the final certify screen for BOTH admission
+  // and ongoing concurrent-review certifications — admission additionally gets a second HITL button
+  // (whether to start the concurrent-review cycle at all); an ongoing concurrent review is already in
+  // that cycle, so it only ever gets one button, but the date itself stays editable here rather than
+  // only on the earlier clinical review screen (carried forward from that screen's own Next Review
+  // Date field as the default, not re-suggested by AI).
+  var wrap = document.getElementById('cra-nextreview-wrap'), btn = document.getElementById('cra-setnext-btn');
+  if (wrap) wrap.style.display = 'block';
+  if (btn) btn.style.display = isAdmission ? 'inline-block' : 'none';
+  var aiOn = !document.body.classList.contains('ai-off');
+  var dateEl = document.getElementById('cra-nextreview'), aiTag = document.getElementById('cra-ai-tag');
+  dateEl.value = isAdmission ? (aiOn ? crAddDays(cr.admit, appr) : '') : (crPendingReview.next || crAddDays(cr.certifiedThrough, appr));
+  if (aiTag) aiTag.innerHTML = (isAdmission && aiOn) ? '&#10024; AI-recommended' : '';
+  craUpdateNextSummary();
   openModal('m-crapprove');
+}
+function craUpdateNextSummary() {
+  var el = document.getElementById('cra-ctx'); if (!el) return;
+  var date = ipVal('cra-nextreview');
+  var base = el.innerHTML.split(' &middot; Concurrent review date:')[0];
+  el.innerHTML = base + (date ? ' &middot; Concurrent review date: <b>' + crFmt(date) + '</b>' : '');
 }
 // Re-review certify: amends the cycle IN PLACE (this is the one outcome a nurse can finalize herself,
 // same authority as a fresh review) — prior values are snapshotted to c.amendments first, so nothing is
@@ -7953,7 +8336,7 @@ function crAmendCertify(c, r, code) {
   cr.nextReview = c.nextReview || cr.nextReview; cr.lastDenied = 0; cr.loc = r.loc; cr.status = 'admitted';
   rrAmendCycleId = null;
 }
-function crApproveConfirm() {
+function crApproveConfirm(setNext) {
   var code = ipVal('cra-code'); if (!code) { document.getElementById('cra-code').style.borderColor = 'var(--red)'; return; }
   var r = crPendingReview, cr = crGet();
   cr.draftReview = null; // determination recorded — clear any saved-for-later draft for this stay
@@ -7967,30 +8350,38 @@ function crApproveConfirm() {
     }
     rrAmendCycleId = null; // stale id — fall through to a normal fresh-review certify rather than silently failing
   }
+  // Approving fewer days than requested is a nurse-recordable outcome, not a forced MD route — a
+  // "Partial" cycle/segment gets logged (denied = req - appr) but stays self-certifiable here, same as
+  // a full match. Only a genuine zero-day approval routes elsewhere (see crDetermPrimary/openCrDeny).
+  var appr = r.appr != null ? r.appr : r.req;
+  var isPartial = appr < r.req;
   if (ipReviewMode === 'admission') {
     // First certification of the stay — creates the Initial Review cycle/segment (not a numbered
-    // concurrent review), then routes into the same Approve & Save / Approve & Set Review Date gate
-    // used by wizard-created inpatient auths.
-    var astart = cr.admit, aend = crAddDays(astart, r.req);
-    cr.segId++; cr.segments.push({ id: cr.segId, loc: r.loc, start: astart, end: aend, days: r.req, decision: 'Certified', src: 'Initial Review' });
-    cr.cycleId++; cr.cycles.push({ id: cr.cycleId, type: 'Initial Review', date: cr.admit, requested: r.req, certified: r.req, denied: 0, criteria: r.metCount + '/' + r.total + ' Met', by: 'M Craft, UM Nurse', reviewedBy: 'M Craft, UM Nurse', reviewDate: cr.admit, nextReview: '', guideline: r.guideline, loc: r.loc, critDetail: r.critDetail, approvalCode: code, notice: crNotice('certification'), note: ipVal('cra-note') || 'Admission certified.', amendments: [] });
+    // concurrent review). One screen, two HITL outcomes: "Certify & Notify" leaves the concurrent
+    // review date unscheduled (opt in later via Schedule/Change or the next review's own auto-suggest);
+    // "Certify & Set Concurrent Review Date" (setNext=true) schedules it right here from the same form
+    // — no second follow-up popup.
+    var astart = cr.admit, aend = crAddDays(astart, appr);
+    cr.segId++; cr.segments.push({ id: cr.segId, loc: r.loc, start: astart, end: aend, days: appr, decision: isPartial ? 'Partial' : 'Certified', src: 'Initial Review' });
+    cr.cycleId++; cr.cycles.push({ id: cr.cycleId, type: 'Initial Review', date: cr.admit, requested: r.req, certified: appr, denied: r.req - appr, criteria: r.metCount + '/' + r.total + ' Met', by: 'M Craft, UM Nurse', reviewedBy: 'M Craft, UM Nurse', reviewDate: cr.admit, nextReview: '', guideline: r.guideline, loc: r.loc, critDetail: r.critDetail, approvalCode: code, notice: crNotice(isPartial ? 'partial' : 'certification'), note: ipVal('cra-note') || (isPartial ? 'Admission partially certified.' : 'Admission certified.'), amendments: [] });
     ipTagCombinedAdmitExtras(); // any other Inpatient Lines reviewed together with the admission get approved alongside it
-    cr.los = r.req; cr.certifiedThrough = aend; cr.nextReview = ''; cr.lastDenied = 0; cr.status = 'admitted'; cr.loc = r.loc;
-    closeModal('m-crapprove');
-    openIpAdmitApprove(currentCase);
+    var nextDate = setNext ? (ipVal('cra-nextreview') || aend) : '';
+    cr.los = appr; cr.certifiedThrough = aend; cr.nextReview = nextDate; cr.lastDenied = r.req - appr; cr.status = setNext ? 'admitted' : 'completed'; cr.loc = r.loc;
+    closeModal('m-crapprove'); showScreen('s-auth-detail-ip');
+    crToast(setNext ? ('✓ Admission certified ' + appr + 'd · concurrent review set for ' + crFmt(nextDate) + ' · notice issued') : ('✓ Admission certified ' + appr + 'd · authorization complete · notice issued'));
     return;
   }
   var downgrade = LOC_RANK(r.loc) < LOC_RANK(cr.loc);
-  var kind = downgrade ? 'reduction' : 'certification';
-  var start = cr.certifiedThrough, end = crAddDays(start, r.req), n = crReviewNum();
-  var next = r.next || crAddDays(start, r.req);
-  cr.segId++; cr.segments.push({ id: cr.segId, loc: r.loc, start: start, end: end, days: r.req, decision: 'Certified', src: 'Concurrent Review #' + n });
-  cr.cycleId++; cr.cycles.push({ id: cr.cycleId, type: 'Concurrent Review #' + n, date: CR_TODAY, requested: r.req, certified: r.req, denied: 0, criteria: r.metCount + '/' + r.total + ' Met', by: 'M Craft, UM Nurse', reviewedBy: 'M Craft, UM Nurse', reviewDate: CR_TODAY, nextReview: next, guideline: r.guideline, loc: r.loc, locChange: downgrade ? (cr.loc + ' → ' + r.loc) : null, critDetail: r.critDetail, approvalCode: code, notice: crNotice(kind), note: ipVal('cra-note') || 'Continued-stay criteria met; certifying additional days.', amendments: [], source: r.source, sourceLabel: r.sourceLabel, sourceDetail: r.sourceDetail, locMode: r.locMode, dxType: r.dxType, dxValue: r.dxValue, dischargePlanning: r.dischargePlanning });
+  var kind = downgrade ? 'reduction' : (isPartial ? 'partial' : 'certification');
+  var start = cr.certifiedThrough, end = crAddDays(start, appr), n = crReviewNum();
+  var next = ipVal('cra-nextreview') || r.next || crAddDays(start, appr);
+  cr.segId++; cr.segments.push({ id: cr.segId, loc: r.loc, start: start, end: end, days: appr, decision: isPartial ? 'Partial' : 'Certified', src: 'Concurrent Review #' + n });
+  cr.cycleId++; cr.cycles.push({ id: cr.cycleId, type: 'Concurrent Review #' + n, date: CR_TODAY, requested: r.req, certified: appr, denied: r.req - appr, criteria: r.metCount + '/' + r.total + ' Met', by: 'M Craft, UM Nurse', reviewedBy: 'M Craft, UM Nurse', reviewDate: CR_TODAY, nextReview: next, guideline: r.guideline, loc: r.loc, locChange: downgrade ? (cr.loc + ' → ' + r.loc) : null, critDetail: r.critDetail, approvalCode: code, notice: crNotice(kind), note: ipVal('cra-note') || (isPartial ? 'Continued-stay partially certified — ' + appr + ' of ' + r.req + ' day(s).' : 'Continued-stay criteria met; certifying additional days.'), amendments: [], source: r.source, sourceLabel: r.sourceLabel, sourceDetail: r.sourceDetail, locMode: r.locMode, dxType: r.dxType, dxValue: r.dxValue, dischargePlanning: r.dischargePlanning });
   ipTagCombinedConcurrentExtras(); // any other Inpatient Lines reviewed together with this stay review get approved alongside it
   cr._crSelected = true;
-  cr.los += r.req; cr.certifiedThrough = end; cr.nextReview = next; cr.lastDenied = 0; cr.status = 'admitted'; cr.loc = r.loc;
+  cr.los += appr; cr.certifiedThrough = end; cr.nextReview = next; cr.lastDenied = r.req - appr; cr.status = 'admitted'; cr.loc = r.loc;
   closeModal('m-crapprove'); showScreen('s-auth-detail-ip');
-  crToast(downgrade ? '⇩ Certified ' + r.req + 'd at ' + r.loc + ' (step-down) · notice issued' : '✓ Certified ' + r.req + 'd · ' + code.split(' · ')[0] + ' · notice issued');
+  crToast(downgrade ? ('⇩ Certified ' + appr + 'd at ' + r.loc + ' (step-down) · notice issued') : (isPartial ? ('◑ Certified ' + appr + ' of ' + r.req + 'd · notice issued') : ('✓ Certified ' + appr + 'd · ' + code.split(' · ')[0] + ' · notice issued')));
 }
 function openCrDeny(type) {
   var req = parseInt(ipVal('cr-days')) || 0; if (req < 1) return;
@@ -8663,7 +9054,10 @@ var regData = {
   maria:  { lob: 'Medicaid', lobLabel: 'NY Medicaid (Managed Care)', category: 'Behavioral', received: '2026-07-14T10:30:00', cls: 'Expedited', expReason: 'Acute psychiatric crisis — unable to perform ADLs / care for children; risk of deterioration', extension: null, criteria: { source: 'MCG Behavioral Health Care', version: '28th Edition (2024)', module: 'Partial Hospitalization Program — Adult' } },
   robert: { lob: 'Commercial', lobLabel: 'CO PPO-2025 (Commercial)', category: 'Medical', received: '2026-07-12T09:00:00', cls: 'Standard', expReason: '', extension: null, criteria: { source: 'InterQual', version: '2025.1', module: 'Musculoskeletal — ACL Reconstruction' } },
   james:  { lob: 'Medicare Advantage', lobLabel: 'FL Medicare Advantage', category: 'Medical', received: '2026-07-10T08:00:00', cls: 'Standard', expReason: '', extension: null, criteria: { source: 'MCG Inpatient & Surgical Care', version: '28th Edition (2024)', module: 'Heart Failure — Acute Inpatient' } },
-  newadmit1: { lob: 'Commercial', lobLabel: 'Commercial PPO', category: 'Medical', received: '2026-07-14T08:00:00', cls: 'Standard', expReason: '', extension: null, criteria: { source: 'MCG Inpatient & Surgical Care', version: '28th Edition (2024)', module: 'Pneumonia — Acute Inpatient' } }
+  newadmit1: { lob: 'Commercial', lobLabel: 'Commercial PPO', category: 'Medical', received: '2026-07-14T08:00:00', cls: 'Standard', expReason: '', extension: null, criteria: { source: 'MCG Inpatient & Surgical Care', version: '28th Edition (2024)', module: 'Pneumonia — Acute Inpatient' } },
+  eleanor: { lob: 'Medicare Advantage', lobLabel: 'FL Medicare Advantage', category: 'Medical', received: '2026-06-28T09:15:00', cls: 'Standard', expReason: '', extension: null, criteria: { source: 'Custom', version: 'Facility Pathway', module: 'Sepsis Management & Post-Acute Transition Pathway' } },
+  eleanorSnf: { lob: 'Medicare Advantage', lobLabel: 'FL Medicare Advantage', category: 'Medical', received: '2026-07-07T14:00:00', cls: 'Standard', expReason: '', extension: null, criteria: { source: 'Custom', version: 'Facility Pathway', module: 'Sepsis Management & Post-Acute Transition Pathway' } },
+  walter: { lob: 'Medicare Advantage', lobLabel: 'FL Medicare Advantage', category: 'Medical', received: '2026-07-07T10:00:00', cls: 'Standard', expReason: '', extension: null, criteria: { source: 'Custom', version: 'Facility Pathway', module: 'COPD Exacerbation & Hypercapnic Respiratory Failure — Complex Care Pathway' } }
 };
 // Member appeal-rights language by line of business (the mandated content of a member adverse notice).
 // NOTE: deadlines/cites are directional — validate exact values + state addenda with Compliance.
@@ -8886,9 +9280,11 @@ function renderTat() {
   var atRisk = 0;
   document.querySelectorAll('.tat-cell').forEach(function (td) {
     var c = td.getAttribute('data-case');
-    var dl;
-    // Every row gets a tooltip with the actual deadline/date the countdown is measuring — the cell
-    // itself only ever shows a relative countdown or "Overdue", never the calendar date/time.
+    var dl, dateSuffix = '';
+    // Every row gets a tooltip with the actual deadline/date the countdown is measuring. For a
+    // scheduled concurrent review specifically, the date is ALSO shown directly in the cell (not
+    // just on hover) — the CM/nurse needs to see when the next review is due at a glance from the
+    // dashboard, not have to hover every row to find out.
     if (c) {
       if (isIpCase(c)) {
         var crc = crState[c] || {};
@@ -8897,9 +9293,13 @@ function renderTat() {
           // Review's own regulatory turnaround (same mechanism OP uses), not cr.nextReview.
           var d0 = regDue(c); dl = d0 ? d0.getTime() : NaN;
           td.title = d0 ? ('Initial Review due: ' + regFmtDT(d0)) : 'No deadline on file';
+        } else if (crc.status === 'completed') {
+          // Certified without scheduling a concurrent review — no clock running.
+          dl = NaN; td.title = 'No concurrent review scheduled — authorization complete';
         } else {
           var nr = crc.nextReview; dl = nr ? regParse(nr + 'T09:00:00').getTime() : NaN; // IP worklist clock = concurrent-review due
           td.title = nr ? ('Next review: ' + crFmt(nr)) : 'No next review scheduled';
+          if (nr) dateSuffix = crFmt(nr);
         }
       } else {
         var d1 = regDue(c); dl = d1 ? d1.getTime() : NaN;
@@ -8909,14 +9309,15 @@ function renderTat() {
       dl = Date.parse(td.getAttribute('data-deadline'));
       td.title = isNaN(dl) ? '' : ('Due: ' + regFmtDT(new Date(dl)));
     }
+    var dateLine = dateSuffix ? '<br><span style="font-size:9.5px;color:var(--gray-400);">' + dateSuffix + '</span>' : '';
     if (isNaN(dl)) { td.innerHTML = '<span style="color:var(--gray-400);">—</span>'; return; }
     var rem = dl - now;
-    if (rem <= 0) { var o = -rem, od = Math.floor(o / 86400000), oh = Math.floor((o % 86400000) / 3600000), om = Math.floor((o % 3600000) / 60000); td.innerHTML = '<span class="tat-red" style="white-space:nowrap;">⚠ Overdue ' + (od > 0 ? od + 'd ' : '') + oh + 'h ' + om + 'm</span>'; atRisk++; return; }
+    if (rem <= 0) { var o = -rem, od = Math.floor(o / 86400000), oh = Math.floor((o % 86400000) / 3600000), om = Math.floor((o % 3600000) / 60000); td.innerHTML = '<span class="tat-red" style="white-space:nowrap;">⚠ Overdue ' + (od > 0 ? od + 'd ' : '') + oh + 'h ' + om + 'm</span>' + dateLine; atRisk++; return; }
     var d = Math.floor(rem / 86400000), h = Math.floor((rem % 86400000) / 3600000), m = Math.floor((rem % 3600000) / 60000);
     if (rem <= 3 * 86400000) atRisk++;
-    if (d >= 3) { td.innerHTML = '<span style="color:var(--gray-600);">' + d + 'd</span>'; return; }
+    if (d >= 3) { td.innerHTML = '<span style="color:var(--gray-600);">' + d + 'd</span>' + dateLine; return; }
     var cls = rem < 86400000 ? 'tat-red' : 'tat-amber';
-    td.innerHTML = '<span class="' + cls + '" style="white-space:nowrap;">' + d + 'd ' + h + 'h ' + m + 'm</span>';
+    td.innerHTML = '<span class="' + cls + '" style="white-space:nowrap;">' + d + 'd ' + h + 'h ' + m + 'm</span>' + dateLine;
   });
   var fc = document.getElementById('tat-fc-count'); if (fc) fc.textContent = atRisk;
 }
@@ -9624,35 +10025,6 @@ function showAuthCreatedToast(authType, ip, isDraft) {
     : '<span style="font-size:15px;">&#10003;</span> New ' + (authType ? authType + ' ' : '') + 'authorization created &mdash; added to the worklist.';
   t.classList.add('show');
   setTimeout(function () { t.classList.remove('show'); }, 3600);
-}
-// Admission-approval gate for a new inpatient auth — confirms the initial certification only. Concurrent
-// Review is a separate, later phase (hasn't started yet at this point), so no review date is scheduled
-// or mentioned here; that happens via the stay panel's own Schedule/Change action or the first actual
-// concurrent review's own auto-suggested date.
-var ipAdmitPendingKey = null;
-function openIpAdmitApprove(key) {
-  ipAdmitPendingKey = key;
-  var cr = crState[key];
-  document.getElementById('ipa-los').value = cr.los;
-  document.getElementById('ipa-notes').value = '';
-  ipaUpdateSummary();
-  openModal('m-ip-admit-approve');
-}
-function ipaUpdateSummary() {
-  var los = document.getElementById('ipa-los').value;
-  var el = document.getElementById('ipa-summary'); if (!el) return;
-  el.innerHTML = '<span style="color:var(--green);">&#8505;&#65039;</span> Approved ' + los + ' initial day' + (los == 1 ? '' : 's') + '.';
-}
-function ipaCommitNotes(cr) {
-  var text = (document.getElementById('ipa-notes').value || '').trim();
-  if (text) { cr.notes = cr.notes || []; cr.notes.push({ text: text, by: 'M Craft, UM Nurse', stamp: CR_TODAY }); }
-}
-function ipAdmitApproveSave() {
-  var key = ipAdmitPendingKey, cr = key ? crState[key] : null;
-  if (cr) ipaCommitNotes(cr);
-  closeModal('m-ip-admit-approve');
-  if (key) openIpCase(key);
-  ipAdmitPendingKey = null;
 }
 </script>
 <!-- ===== Intake: upload / OCR review modal ===== -->
