@@ -11,12 +11,19 @@
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:13px;color:#1E293B;background:#F4F8FB;}
 
 /* ===== THEMES ===== */
+/* Base palette switched from the original teal ("Ocean Blue") to a corporate blue matching the real
+   NextGen/Zyter production app's current look — reuses the same values the "Sapphire" theme swatch
+   already had, just promoted to the default instead of an opt-in alternate. --topnav-bg/--topnav-text
+   are NEW and deliberately separate from --nav-bg (which still drives the dark case-detail process-tree
+   sidebar, .side-nav/.pv-* — that sidebar's whole design assumes a dark background with white/rgba
+   accents, so it keeps using --nav-bg unchanged; only the 44px top bar switches to the real app's white). */
 :root{
-  --primary:#0A6B8A;--primary-dark:#084E66;--primary-light:#1A90B0;
-  --primary-pale:#E8F4F8;--primary-pale2:#D0EBF4;
-  --nav-bg:#08425A;--nav-text:white;
-  --teal:#0D8A7A;--teal-light:#E8F5F3;
-  --accent:#4DD0E1;
+  --primary:#1D4ED8;--primary-dark:#1E3A8A;--primary-light:#3B82F6;
+  --primary-pale:#EFF6FF;--primary-pale2:#BFDBFE;
+  --nav-bg:#1E3A8A;--nav-text:white;
+  --topnav-bg:#FFFFFF;--topnav-text:#1E293B;--topnav-border:#E2E8F0;
+  --teal:#1D4ED8;--teal-light:#EFF6FF;
+  --accent:#93C5FD;
 }
 [data-theme="indigo"]{
   --primary:#4338CA;--primary-dark:#3730A3;--primary-light:#6366F1;
@@ -112,9 +119,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-siz
 .modal-overlay.active{display:flex;}
 
 /* NAV */
-.top-nav{background:var(--nav-bg);color:white;display:flex;align-items:center;justify-content:space-between;padding:0 16px;height:44px;flex-shrink:0;}
+.top-nav{background:var(--topnav-bg);color:var(--topnav-text);border-bottom:1px solid var(--topnav-border);display:flex;align-items:center;justify-content:space-between;padding:0 16px;height:44px;flex-shrink:0;}
 .logo{font-weight:700;font-size:17px;letter-spacing:0.3px;}
-.logo span{color:var(--accent);}
+.logo span{color:var(--primary);}
 /* Light app rail (Dashboard / Members) — matches the screenshots */
 .app-rail{width:62px;background:white;border-right:1px solid var(--gray-200);display:flex;flex-direction:column;align-items:center;padding-top:12px;gap:8px;flex-shrink:0;}
 .rail-item{display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;color:var(--gray-500);}
@@ -126,8 +133,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-siz
 .nav-right{display:flex;align-items:center;gap:14px;font-size:12px;}
 .status-dot{width:8px;height:8px;border-radius:50%;background:#4CAF50;display:inline-block;margin-right:4px;}
 .user-avatar{width:28px;height:28px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--nav-bg);}
-.user-name{font-size:12px;line-height:1.3;}
-.user-role{font-size:10px;color:rgba(255,255,255,0.5);}
+.user-name{font-size:12px;line-height:1.3;font-weight:600;}
+.user-role{font-size:10px;color:var(--gray-500);}
 
 .app-layout{display:flex;flex:1;overflow:hidden;}
 /* Vertical process bar (left sidebar) — dark panel; Dashboard/Members ride on top */
@@ -457,7 +464,7 @@ tr.clickable:hover td{background:var(--primary-pale);cursor:pointer;}
 .nba-amber{background:var(--amber-bg);color:var(--amber);border:1px solid var(--amber-border);}
 .mem-link{color:var(--primary);font-weight:500;cursor:pointer;}
 /* ===== DASHBOARD ENGAGEMENT (nav bell + row activity chips, live filters, row CTAs) ===== */
-.nav-bell{position:relative;background:rgba(255,255,255,0.12);border:none;color:#fff;font-size:15px;border-radius:8px;padding:4px 9px;cursor:pointer;line-height:1;font-family:inherit;}
+.nav-bell{position:relative;background:var(--gray-100);border:none;color:var(--gray-600);font-size:15px;border-radius:8px;padding:4px 9px;cursor:pointer;line-height:1;font-family:inherit;}
 .nav-bell:hover{background:rgba(255,255,255,0.24);}
 .nav-bell .ib-badge{position:absolute;top:-5px;right:-6px;}
 .ib-badge{background:#DC2626;color:#fff;min-width:16px;height:16px;border-radius:999px;font-size:9.5px;font-weight:800;display:inline-flex;align-items:center;justify-content:center;padding:0 4px;box-shadow:0 1px 3px rgba(0,0,0,0.3);}
@@ -924,7 +931,7 @@ mark.ev-flash{animation:evFlash 1.4s ease;}
 <div class="theme-bar" id="theme-bar">
   <span class="theme-grip" title="Drag to move">&#10303;</span>
   <span class="theme-bar-label">Theme</span>
-  <div class="theme-swatch active" style="background:#08425A;" title="Ocean Blue" onclick="setTheme('ocean',this)"></div>
+  <div class="theme-swatch active" style="background:#1E3A8A;" title="Zyter Blue (default)" onclick="setTheme('ocean',this)"></div>
   <div class="theme-swatch" style="background:#312E81;" title="Indigo" onclick="setTheme('indigo',this)"></div>
   <div class="theme-swatch" style="background:#1B4332;" title="Forest Green" onclick="setTheme('forest',this)"></div>
   <div class="theme-swatch" style="background:#111827;" title="Charcoal" onclick="setTheme('charcoal',this)"></div>
