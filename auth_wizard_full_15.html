@@ -41,6 +41,8 @@
   .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:14px}
   .grid4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px;margin-bottom:14px}
   .grp{margin-bottom:14px}
+  .chk-row{display:flex;gap:18px;flex-wrap:wrap;margin-bottom:6px;font-size:13px;color:var(--ink)}
+  .chk-row label{display:flex;align-items:center;gap:6px;font-weight:400;cursor:pointer}
   .with-icon{position:relative}.with-icon .ic{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--faint);font-size:13px}.with-icon .in{padding-left:30px}
   .browse-wrap{display:flex;gap:8px}.browse-wrap .with-icon{flex:1}
   .btn-violet{border:1px solid var(--violet);color:var(--violet);background:#fff;border-radius:8px;padding:0 13px;font-size:12.5px;font-weight:600;cursor:pointer;white-space:nowrap}
@@ -126,6 +128,21 @@
   .btn-ghost:disabled{opacity:.5;cursor:not-allowed}
   .btn-primary{background:var(--teal);color:#fff}.btn-primary:hover{background:var(--teal-dark)}
   .tmpl-note{font-size:11px;color:var(--faint);font-style:italic;margin-top:5px}
+  /* provider directory picker: provider | office location | specialty */
+  .prov-row{display:grid;grid-template-columns:1.35fr 1.25fr 1fr;gap:12px;margin-bottom:14px;align-items:start}
+  .prov-meta{font-size:11px;color:var(--muted);margin-top:5px;line-height:1.45}
+  .prov-meta .net{display:inline-block;padding:0 6px;border-radius:9px;font-weight:600;font-size:10.5px}
+  .prov-meta .net.net-in{background:var(--green-soft);color:var(--green)}.prov-meta .net.net-oon{background:#fef3c7;color:#b45309}
+  .field-err{color:#c0392b;font-size:11.5px;margin-top:4px;display:none}
+  .field-err.show{display:block}
+  .in.err{border-color:#ef4444}
+  .prov-detail{display:grid;grid-template-columns:repeat(6,1fr) 1.1fr;gap:10px;background:#f8fafc;border:1px solid var(--line-soft);border-radius:10px;padding:10px 12px;margin:-4px 0 16px}
+  .prov-detail .k{font-size:10.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--faint);margin-bottom:3px}
+  .prov-detail .v{font-size:12.5px;color:var(--ink);font-weight:600;word-break:break-word}
+  .prov-detail .v.none{color:var(--faint);font-weight:400;font-style:italic}
+  .prov-detail select.in{padding:5px 8px;font-size:12.5px}
+  .sca-hint{grid-column:1/-1;font-size:11.5px;color:#8a5a08;background:#fdf6e6;border:1px solid #f4d488;border-radius:8px;padding:6px 10px}
+  .r-proc-1m{grid-template-columns:1.05fr .95fr 1.4fr .6fr .8fr}
   .svc-indicator{display:flex;align-items:center;gap:8px;font-size:12.5px;color:#374151;background:#f3f7f8;border:1px solid var(--line-soft);border-radius:9px;padding:9px 13px;margin-bottom:14px}
   .svc-indicator .chip{background:var(--teal-soft);color:var(--teal-dark);font-weight:600;font-size:12px;padding:3px 10px;border-radius:14px}
   .svc-indicator .muted{color:var(--faint)}
@@ -140,8 +157,12 @@
     <!-- STEP 1 MEMBER -->
     <div class="pane" id="pane1">
       <div class="grid2" style="margin-bottom:2px">
-        <div><label class="fl">Auth Type <span class="req">*</span></label><select class="in" id="authType" onchange="onServiceType()"><option>Medical Inpatient</option><option>Behavioral Inpatient</option><option>Medical Outpatient</option><option>Behavioral Outpatient</option><option>Pharmacy (RX)</option></select><div class="tmpl-note">Determines the request structure and category (Medical/Behavioral). Outpatient service types (and their fields) are set per line, from BHP templates.</div></div>
+        <div><label class="fl">Auth Type <span class="req">*</span></label><select class="in" id="authType" onchange="onServiceType()"><option>Medical Inpatient</option><option>Behavioral Inpatient</option><option>Medical Outpatient</option><option>Behavioral Outpatient</option><option>Dental Outpatient</option><option>Pharmacy (RX)</option></select><div class="tmpl-note">Determines the request structure and category (Medical/Behavioral/Dental). Outpatient service types (and their fields) are set per line, from BHP templates.</div></div>
         <div><label class="fl">Urgency</label><select class="in" id="urgency"><option>Standard</option><option>Expedited</option></select></div>
+      </div>
+      <div class="grid2" style="margin-bottom:2px">
+        <div><label class="fl">Request Method <span class="req">*</span></label><select class="in" id="reqMethod" onchange="clearFieldErr(this)"></select><div class="field-err" id="reqMethodErr">Select how the request was received.</div><div class="tmpl-note">How the request arrived: drives TAT clock start and the default reply/notification channel.</div></div>
+        <div><label class="fl">Request Source <span class="req">*</span></label><select class="in" id="reqSource" onchange="clearFieldErr(this)"></select><div class="field-err" id="reqSourceErr">Select who submitted the request.</div><div class="tmpl-note">Who submitted it: drives intake routing and who receives the determination notice.</div></div>
       </div>
       <div class="sec-label">Member <span class="req">*</span></div>
       <div class="with-icon" style="max-width:440px;margin:0 0 4px" id="memberSearchWrap"><span class="ic">🔍</span><input class="in" id="memberSearchInput" placeholder="Search by name or member ID..." autocomplete="off" oninput="searchMembers(this.value)" onfocus="searchMembers(this.value)"><div class="member-results" id="memberResults"></div></div>
@@ -185,6 +206,15 @@
         <div id="procLines"></div>
       </div>
 
+      <div id="dentalSection" style="display:none">
+        <div class="section-head" style="margin-top:22px">
+          <div><h3>Dental Procedure Lines</h3>
+            <p class="desc">Each tooth/procedure is its own line — determinations are made at the line level, so one tooth can be approved while another is denied or pended.</p></div>
+          <button class="btn btn-add" onclick="addDental()">+ Add Dental Procedure Line</button>
+        </div>
+        <div id="dentalLines"></div>
+      </div>
+
       <div id="rxSection" style="display:none">
         <div class="section-head" style="margin-top:22px">
           <div><h3>RX Lines <span class="opt">(medications)</span></h3>
@@ -195,6 +225,7 @@
       </div>
 
       <div id="rxNote" style="display:none"></div>
+      <datalist id="modList"></datalist>
 
       <div class="upload"><h4>📎 Upload Clinical Documents</h4>
         <p>Attach clinical records, medical notes, or supporting documents for this authorization.</p>
@@ -230,10 +261,16 @@
   </div>
 </div>
 
+<script src="provider-directory.js"></script>
 <script>
 const LOC_OPTIONS=["Acute Inpatient","Observation","Inpatient Rehab","Skilled Nursing","Long-Term Acute Care"];
+// CPT/HCPCS modifiers offered as suggestions; the field still takes any 2-character code (up to 4).
+const MODIFIER_OPTIONS=[['RT','Right side'],['LT','Left side'],['50','Bilateral procedure'],['59','Distinct procedural service'],['XS','Separate structure'],['25','Significant, separately identifiable E/M'],['26','Professional component'],['TC','Technical component'],['22','Increased procedural services'],['51','Multiple procedures'],['76','Repeat procedure, same physician'],['80','Assistant surgeon'],['GP','Outpatient physical therapy plan'],['GO','Outpatient occupational therapy plan'],['GN','Outpatient speech-language plan'],['KX','Requirements specified in policy met'],['NU','New equipment'],['RR','Rental'],['UE','Used equipment'],['95','Synchronous telemedicine'],['GT','Interactive telecommunication'],['HA','Child/adolescent program'],['HK','Specialized mental health program']];
+function normMods(v){ return (v||'').toUpperCase().split(/[\s,;]+/).filter(x=>/^[A-Z0-9]{2}$/.test(x)).slice(0,4).join(', '); }
 const UNIT_OPTIONS=["Units","Days","Visits","Sessions","Hours"];
 const OP_SERVICE_TYPES=["DME","Home Health","Imaging / Radiology","Therapy (PT/OT/ST)","Infusion","Behavioral Health","Ambulatory Surgery"];
+const DENTAL_SPECIALTIES=["General Dentistry","Endodontics","Periodontics","Oral & Maxillofacial Surgery","Orthodontics","Prosthodontics","Pediatric Dentistry"];
+const DENTAL_REQUEST_TYPES=["Pre-service","Concurrent","Retrospective"];
 const IP_SERVICE_TYPES=["Medical/Surgical","Behavioral Health","Rehabilitation","Skilled Nursing","Maternity","Hospice","Long-Term Acute Care"];
 const IP_LOS_BENCHMARK={"Medical/Surgical":4,"Behavioral Health":7,"Rehabilitation":14,"Skilled Nursing":20,"Maternity":2,"Hospice":5,"Long-Term Acute Care":25};
 const IP_SVC_TO_LOC={"Medical/Surgical":"Acute Inpatient","Behavioral Health":"Acute Inpatient","Rehabilitation":"Inpatient Rehab","Skilled Nursing":"Skilled Nursing","Maternity":"Acute Inpatient","Hospice":"Acute Inpatient","Long-Term Acute Care":"Long-Term Acute Care"};
@@ -260,11 +297,32 @@ function posOptsFor(it){
   return list.map(o=>`<option ${o===it.pos?'selected':''}>${o}</option>`).join('');
 }
 const REQUESTING_PROVIDER='Dr. Samuel Obi';
+// Request Method / Source feed business rules (TAT clock start, routing, notice recipient), so both
+// start blank and are required — a silently defaulted value would send the rules down the wrong branch.
+const REQUEST_METHODS=['Phone / Call Center','Fax','Zyter Provider Portal','Client Portal','API – X12 278','API – FHIR','Email','Mail'];
+const REQUEST_SOURCES=['Requesting Provider','Servicing Provider / Facility','Member','Member Authorized Representative','Pharmacy','Hospital Case Manager / Discharge Planner','Delegated Vendor','Internal – Health Plan Staff'];
+// Provider directory (PROVIDER_DIR, pdDetail, ProviderSearch modal) lives in provider-directory.js —
+// shared with um-nav.html so both pick from the same providers/locations/identifiers.
 const TODAY=(()=>{ const d=new Date(); const p=x=>String(x).padStart(2,'0'); return d.getUTCFullYear()+'-'+p(d.getUTCMonth()+1)+'-'+p(d.getUTCDate()); })();
 const STEPS=["Request Details","Procedures & Docs","Eligibility","Review"];
 let step=1, ipId=0, prId=0, ipSeeded=false;
 const auth={loc:'Acute Inpatient', member:null, activeElig:0};
-const ipState=[], prState=[];
+const ipState=[], prState=[], dnState=[]; let dnId=0;
+// Which of tooth/surface/quadrant/arch apply, by CDT category (first 2 chars) — an unrecognized code
+// defaults to showing all four rather than silently hiding a field that might be needed.
+const CDT_TOOTH_RULES=[
+  {re:/^D2/,tooth:true,surface:true,quadrant:false,arch:false},   // restorative (fillings, crowns)
+  {re:/^D3/,tooth:true,surface:false,quadrant:false,arch:false},  // endodontics
+  {re:/^D4/,tooth:false,surface:false,quadrant:true,arch:false},  // periodontics
+  {re:/^D5/,tooth:false,surface:false,quadrant:false,arch:true},  // prosthodontics, removable
+  {re:/^D6/,tooth:true,surface:false,quadrant:false,arch:false},  // implant services
+  {re:/^D7/,tooth:true,surface:false,quadrant:false,arch:false},  // oral & maxillofacial surgery
+  {re:/^D8/,tooth:false,surface:false,quadrant:false,arch:true}   // orthodontics
+];
+function dentalFieldsFor(code){
+  const rule=CDT_TOOTH_RULES.find(r=>r.re.test((code||'').toUpperCase()));
+  return rule || {tooth:true,surface:true,quadrant:true,arch:true};
+}
 let dxSeq=1;
 const dxState=[{id:1, code:'I50.9', name:'Heart failure, unspecified', codeSet:'ICD-10', primary:true}];
 const ADMISSION_TYPES=['Elective','Emergency','Urgent','Newborn','Trauma'];
@@ -359,6 +417,7 @@ function renderSelectedMember(){
 document.addEventListener('click', e=>{
   const box=document.getElementById('memberResults');
   if(box && !e.target.closest('#memberSearchWrap')) box.classList.remove('show');
+  ['req','serv'].forEach(role=>{ const b=document.getElementById(role+'ProvResults'); if(b && !e.target.closest('#'+role+'ProvWrap') && !e.target.closest('#'+role+'ProvBrowse')) b.classList.remove('show'); });
 });
 /* ---------- diagnoses (multi, one flagged primary) ---------- */
 function primaryDx(){ return dxState.find(d=>d.primary)||dxState[0]; }
@@ -431,6 +490,25 @@ function checkRetro(){
 // or both.
 function eligLabel(e){ return e.label || e.payer || e.planType || 'Coverage'; }
 function renderEligibility(){
+  // Dental has its own benefit shape (annual $ maximum, per-code frequency, replacement periods, age
+  // limits) that doesn't fit the Medical/Behavioral elig grid (annual max DAYS, copay/coinsurance) —
+  // DEMO_MEMBERS has no 'Dental' planType entries at all, so falling through to the generic renderer
+  // below would either show nothing or silently show an irrelevant Medical/BH plan. Show the
+  // configured dental benefit rules directly instead (mirrors the guide's "Benefit and policy checks"
+  // list — this is a reference/preview of what will be evaluated once lines are added, not a live
+  // per-code check yet, since no CDT codes exist until Step 2).
+  if(isDentalType(currentType())){
+    const toggleEl=document.getElementById('eligToggle'); if(toggleEl){ toggleEl.style.display='none'; toggleEl.innerHTML=''; }
+    const grid=document.getElementById('eligGrid'), benTitle=document.getElementById('eligBenTitle'), benGrid=document.getElementById('eligBenGrid');
+    if(grid) grid.innerHTML=`<div><span class="k">Plan:</span> ${val('servFac')||'Dental Plan'}</div><div><span class="k">Member #:</span> ${(auth.member&&auth.member.mbr)||'—'}</div>
+      <div><span class="k">Category:</span> Dental</div><div><span class="k">Effective:</span> Current benefit year</div>`;
+    if(benTitle) benTitle.textContent='Dental Benefits';
+    if(benGrid) benGrid.innerHTML=`<div>Annual Maximum: <b>$1,500</b></div><div>Used Year-to-Date: <b>Not yet verified</b></div>
+      <div>Frequency — Prophylaxis (D1110/D1120): <b>2 per year</b></div><div>Frequency — Bitewing X-rays (D0274): <b>1 per year</b></div>
+      <div>Replacement — Crowns/Bridges (D2740+): <b>5 years</b></div><div>Replacement — Dentures (D5110/D5120): <b>7 years</b></div>
+      <div>Age Limit — Orthodontics (D8xxx): <b>Under 19</b></div><div>Missing-Tooth Clause: <b>Applies — verify prior extraction date</b></div>`;
+    return;
+  }
   const m=auth.member;
   const list=m?(m.elig||[]):[];
   if(auth.activeElig==null || auth.activeElig>=list.length) auth.activeElig=0;
@@ -548,6 +626,7 @@ function next(){
     document.getElementById('memberSearchInput').focus();
     return;
   }
+  if(step===1 && !validateRequestDetails()) return;
   if(step===4){ wizCreated(); return;}
   go(step+1);
 }
@@ -564,17 +643,26 @@ var resumeDraftId=null;
 function wizBuildDraftPayload(){
   var t=currentType();
   return {
-    draftId:resumeDraftId, authType:t, urgency:val('urgency'),
+    draftId:resumeDraftId, authType:t, urgency:val('urgency'), reqMethod:val('reqMethod'), reqSource:val('reqSource'),
+    prov:JSON.parse(JSON.stringify(auth.prov)), sca:auth.sca,
     mbr:(auth.member&&auth.member.mbr)||'', member:(auth.member&&auth.member.name)||'', memberSub:(auth.member&&auth.member.sub)||'',
     activeElig:auth.activeElig||0, eligTouched:!!auth._eligTouched,
     diagnoses:dxState.map(function(d){ return {code:d.code, name:d.name, codeSet:d.codeSet, primary:d.primary}; }),
     reqProv:val('reqProv'), servFac:val('servFac'), clinicalNote:val('clinicalNote'),
     loc:auth.loc, admit:getAdmit(), los:getLos(), admType:val('admType'), admSource:val('admSource'),
     opFrom:val('opFrom'), opTo:val('opTo'), opPos:val('opPos'),
+    dentSpecialty:val('dentSpecialty'), dentRequestType:val('dentRequestType'), dentAccident:val('dentAccident'), dentAccidentDate:val('dentAccidentDate'), dentCob:val('dentCob'),
+    dentAttachments:dentAttachmentState(),
     ipLines:ipState.map(function(it){ return {loc:it.loc, days:it.days, pos:it.pos, reqDate:it.reqDate, start:it.start, svcType:it.svcType||'', code:it.code||'', units:it.units||''}; }),
-    procLines:prState.map(function(it){ return {code:it.code, desc:it.desc, qty:it.qty, unit:it.unit, pos:it.pos, facility:it.facility, sameAsReq:it.sameAsReq, svcType:it.svcType, start:it.start, end:it.end, reqDate:it.reqDate}; }),
+    procLines:prState.map(function(it){ return {code:it.code, mod:it.mod||'', desc:it.desc, qty:it.qty, unit:it.unit, pos:it.pos, facility:it.facility, sameAsReq:it.sameAsReq, svcType:it.svcType, start:it.start, end:it.end, reqDate:it.reqDate}; }),
+    dentalLines:dnState.map(function(it){ return {code:it.code, desc:it.desc, qty:it.qty, unit:it.unit, tooth:it.tooth, surface:it.surface, quadrant:it.quadrant, arch:it.arch, reqDate:it.reqDate, charge:it.charge, facility:it.facility, sameAsReq:it.sameAsReq}; }),
     rxLines:rxState.map(function(it){ return {drug:it.drug, form:it.form, qty:it.qty, days:it.days, refills:it.refills, sameAsReq:it.sameAsReq, prescriber:it.prescriber, pharmacy:it.pharmacy, reqDate:it.reqDate}; })
   };
+}
+function dentAttachmentState(){
+  var ids=['dentAttXray','dentAttPhoto','dentAttPerio','dentAttPlan','dentAttNarr','dentAttHist'];
+  var out={}; ids.forEach(function(id){ var e=document.getElementById(id); if(e) out[id]=e.checked; });
+  return out;
 }
 function wizSave(){
   var payload=wizBuildDraftPayload();
@@ -588,8 +676,11 @@ function wizSave(){
 function wizResume(p){
   if(!p) return;
   resumeDraftId=p.draftId||null;
-  var typeEl=document.getElementById('authType'); if(typeEl) typeEl.value=p.authType||'Medical Inpatient';
+  var typeEl=document.getElementById('authType'); if(typeEl){ typeEl.value=p.authType||'Medical Inpatient'; if(!typeEl.value) typeEl.value='Medical Inpatient'; } // e.g. a Dental draft while dental is off
   var urgEl=document.getElementById('urgency'); if(urgEl) urgEl.value=p.urgency||'Standard';
+  ['reqMethod','reqSource'].forEach(function(id){ var e=document.getElementById(id); if(e) e.value=p[id]||''; });
+  auth.prov=p.prov?JSON.parse(JSON.stringify(p.prov)):{req:null, serv:null};
+  auth.sca=p.sca||'No';
   auth.member=p.mbr?(DEMO_MEMBERS.find(function(m){ return m.mbr===p.mbr; })||null):null;
   auth.activeElig=p.activeElig||0; auth._eligTouched=!!p.eligTouched;
   renderSelectedMember();
@@ -603,18 +694,23 @@ function wizResume(p){
   renderTypeFields(currentType());
   var setVal=function(id,v){ var e=document.getElementById(id); if(e&&v!=null&&v!=='') e.value=v; };
   setVal('admit',p.admit); setVal('los',p.los); setVal('admType',p.admType); setVal('admSource',p.admSource);
-  setVal('reqProv',p.reqProv); setVal('servFac',p.servFac);
+  if(!p.prov){ setVal('reqProv',p.reqProv); setVal('servFac',p.servFac); } // drafts saved before the provider directory
   setVal('opFrom',p.opFrom); setVal('opTo',p.opTo); setVal('opPos',p.opPos);
   setVal('clinicalNote',p.clinicalNote);
   ipState.length=0;
   (p.ipLines||[]).forEach(function(it,i){ ipId++; ipState.push({id:ipId, loc:it.loc||auth.loc, days:it.days||1, pos:it.pos||'21 – Inpatient Hospital', reqDate:it.reqDate||TODAY, start:i===0?undefined:it.start, svcType:it.svcType||'', code:it.code||'', units:it.units||''}); });
   if(!ipState.length){ ipId++; ipState.push({id:ipId, loc:auth.loc, days:1, pos:'21 – Inpatient Hospital', reqDate:TODAY, code:'', units:''}); }
   prState.length=0;
-  (p.procLines||[]).forEach(function(it){ prId++; prState.push({id:prId, code:it.code||'', desc:it.desc||'', qty:it.qty||1, unit:it.unit||'Units', pos:it.pos||'— Not specified —', facility:it.facility||'', sameAsReq:!!it.sameAsReq, svcType:it.svcType||OP_SERVICE_TYPES[0], start:it.start||'', end:it.end||'', reqDate:it.reqDate||TODAY}); });
+  (p.procLines||[]).forEach(function(it){ prId++; prState.push({id:prId, code:it.code||'', mod:it.mod||'', desc:it.desc||'', qty:it.qty||1, unit:it.unit||'Units', pos:it.pos||'— Not specified —', facility:it.facility||'', sameAsReq:!!it.sameAsReq, svcType:it.svcType||OP_SERVICE_TYPES[0], start:it.start||'', end:it.end||'', reqDate:it.reqDate||TODAY}); });
+  dnState.length=0;
+  (p.dentalLines||[]).forEach(function(it){ dnId++; dnState.push({id:dnId, code:it.code||'', desc:it.desc||'', qty:it.qty||1, unit:it.unit||'Units', tooth:it.tooth||'', surface:it.surface||'', quadrant:it.quadrant||'', arch:it.arch||'', reqDate:it.reqDate||TODAY, charge:it.charge||'', facility:it.facility||'', sameAsReq:!!it.sameAsReq}); });
   rxState.length=0;
   (p.rxLines||[]).forEach(function(it){ rxId++; rxState.push({id:rxId, drug:it.drug||'', form:it.form||'', qty:it.qty||30, days:it.days||30, refills:it.refills||0, sameAsReq:it.sameAsReq!==false, prescriber:it.prescriber||REQUESTING_PROVIDER, pharmacy:it.pharmacy||'', reqDate:it.reqDate||TODAY}); });
   renderSvcInd(); adaptStep3();
-  renderInpatient(); renderProc(); renderRx();
+  setVal('dentSpecialty',p.dentSpecialty); setVal('dentRequestType',p.dentRequestType); setVal('dentAccident',p.dentAccident); setVal('dentAccidentDate',p.dentAccidentDate); setVal('dentCob',p.dentCob);
+  if(p.dentAttachments){ Object.keys(p.dentAttachments).forEach(function(id){ var e=document.getElementById(id); if(e) e.checked=!!p.dentAttachments[id]; }); }
+  if(isDentalType(currentType())) renderDentAccidentDate();
+  renderInpatient(); renderProc(); renderDental(); renderRx();
   recalcDischarge();
   renderEligibility();
   go(1);
@@ -628,14 +724,23 @@ function wizCreated(){
   var pDx=primaryDx();
   var eligList=(auth.member&&auth.member.elig)||[];
   var activeE=eligList[auth.activeElig||0];
-  var payload={ draftId:resumeDraftId, authType:t, urgency:val('urgency'), category:authCategory(t), member:(auth.member&&auth.member.name)||'', mbr:(auth.member&&auth.member.mbr)||'', memberSub:(auth.member&&auth.member.sub)||'', dxCode:pDx.code, dxName:pDx.name, diagnoses:dxState.map(function(d){ return {code:d.code, name:d.name, codeSet:d.codeSet, primary:d.primary}; }), eligPayer:activeE?activeE.payer:'', eligLabel:activeE?eligLabel(activeE):'', eligCob:activeE?activeE.cob:'', reqProv:val('reqProv'), servFac:val('servFac') };
+  var payload={ draftId:resumeDraftId, authType:t, urgency:val('urgency'), category:authCategory(t), member:(auth.member&&auth.member.name)||'', mbr:(auth.member&&auth.member.mbr)||'', memberSub:(auth.member&&auth.member.sub)||'', dxCode:pDx.code, dxName:pDx.name, diagnoses:dxState.map(function(d){ return {code:d.code, name:d.name, codeSet:d.codeSet, primary:d.primary}; }), eligPayer:activeE?activeE.payer:'', eligLabel:activeE?eligLabel(activeE):'', eligCob:activeE?activeE.cob:'', reqProv:val('reqProv'), servFac:val('servFac'), reqMethod:val('reqMethod'), reqSource:val('reqSource'), sca:provRolesFor(t).indexOf('serv')>=0?auth.sca:'' };
+  ['req','serv'].forEach(function(role){ var s=auth.prov[role], pr=s&&provById(s.id), l=provLoc(role); if(!pr) return;
+    payload[role+'ProvDetail']={id:pr.id, name:pr.name, npi:pr.npi, kind:pr.kind, groupNum:pr.groupNum, groupName:pr.groupName, provNum:l?l.provNum:'', state:l?l.state:'', networkId:l?l.networkId:'', policyNums:l?l.policyNums.slice():[], locationId:l?l.id:'', location:l?l.name:'', address:l?l.addr:'', tin:l?l.tin:'', network:l?l.net:'', specialty:s.spec||''}; });
   if(isInpatientType(t)){
     payload.admit=getAdmit(); payload.los=getLos(); payload.loc=auth.loc;
     payload.admType=val('admType'); payload.admSource=val('admSource');
     var retro=checkRetro();
     payload.isRetro=retro.isRetro; payload.retroDays=retro.daysAgo||0; payload.retroCapped=!!retro.capped;
     payload.ipLines=computeChain().map(function(it){ return {loc:it.loc, days:+it.days||0, start:it.dStart, end:it.dEnd, pos:it.pos, svcType:it.svcType||'', code:it.code||'', units:it.units||'', reqDate:it.reqDate||''}; });
-    payload.procLines=prState.map(function(it){ return {svcType:it.svcType, code:it.code, desc:it.desc, qty:it.qty, unit:it.unit, pos:it.pos, provider:it.sameAsReq?REQUESTING_PROVIDER:it.facility, start:it.start, end:it.end}; });
+    payload.procLines=prState.map(function(it){ return {svcType:it.svcType, code:it.code, mod:it.mod||'', desc:it.desc, qty:it.qty, unit:it.unit, pos:it.pos, provider:it.sameAsReq?(val('reqProv')||REQUESTING_PROVIDER):it.facility, start:it.start, end:it.end}; });
+  }
+  if(isDentalType(t)){
+    payload.dentSpecialty=val('dentSpecialty'); payload.dentRequestType=val('dentRequestType');
+    payload.dentAccident=val('dentAccident'); payload.dentAccidentDate=val('dentAccidentDate'); payload.dentCob=val('dentCob');
+    payload.dentAttachments=dentAttachmentState();
+    payload.mbrDob=(auth.member&&auth.member.dob)||'';
+    payload.dentalLines=dnState.map(function(it){ return {code:it.code, desc:it.desc, qty:it.qty, unit:it.unit, tooth:it.tooth, surface:it.surface, quadrant:it.quadrant, arch:it.arch, reqDate:it.reqDate, charge:it.charge, provider:it.sameAsReq?(val('reqProv')||REQUESTING_PROVIDER):it.facility}; });
   }
   if(wizEmbedded){ window.parent.postMessage({type:'authwizard-created', authType:t, payload:payload}, '*'); } else { alert('Authorization created (prototype).'); }
 }
@@ -656,13 +761,13 @@ const val=id=>{ const e=document.getElementById(id); return e?e.value:''; };
 function isInpatientType(t){ return /Inpatient$/.test(t||currentType()); }
 function isOutpatientType(t){ return /Outpatient$/.test(t||currentType()); }
 function isPharmacyType(t){ return (t||currentType())==='Pharmacy (RX)'; }
-function authCategory(t){ t=t||currentType(); return t.indexOf('Behavioral')===0 ? 'Behavioral' : (t.indexOf('Medical')===0 ? 'Medical' : ''); }
+function isDentalType(t){ return /^Dental/.test(t||currentType()); }
+function authCategory(t){ t=t||currentType(); return t.indexOf('Behavioral')===0 ? 'Behavioral' : (t.indexOf('Medical')===0 ? 'Medical' : (t.indexOf('Dental')===0 ? 'Dental' : '')); }
 function renderTypeFields(t){
   const el=document.getElementById('typeFields'); if(!el) return;
   const posOut=['— Not specified —','11 – Office','19 – Off-Campus Outpatient Hospital','22 – On-Campus Outpatient Hospital','23 – Emergency Room – Hospital','24 – Ambulatory Surgical Center','02 – Telehealth'];
-  const provRow=(p1,v1,p2,v2)=>`<div class="grid2">
-    <div><label class="fl">${p1} <span class="req">*</span></label><div class="browse-wrap"><div class="with-icon"><span class="ic">🔍</span><input class="in" id="reqProv" value="${v1}"></div><button class="btn-violet">🔍 Browse</button></div></div>
-    <div><label class="fl">${p2} <span class="req">*</span></label><div class="browse-wrap"><div class="with-icon"><span class="ic">🔍</span><input class="in" id="servFac" value="${v2}"></div><button class="btn-violet">🔍 Browse</button></div></div></div>`;
+  ensureProvDefaults(t);
+  const provRow=(p1,p2)=>provPickerRow('req',p1)+provPickerRow('serv',p2);
   // Preserve Admission Type/Source/Date/LOS across a re-render (e.g. toggling Medical Inpatient ↔
   // Behavioral Inpatient, or navigating Back to this step) — this rebuilds the whole panel from
   // scratch, so anything not re-read from the outgoing DOM would silently snap back to its hardcoded
@@ -674,7 +779,7 @@ function renderTypeFields(t){
   const losVal = val('los') || '5';
   let html='';
   if(isInpatientType(t)){
-    html=provRow('Requesting Provider','Dr. Samuel Obi','Servicing Facility','Mercy General Hospital')
+    html=provRow('Requesting Provider','Servicing Facility')
       +`<label class="fl">Level of Care <span class="req">*</span></label><div class="loc-row" id="locRow"></div>`
       +`<div class="grid2"><div><label class="fl">Admission Type <span class="req">*</span></label><select class="in" id="admType">${ADMISSION_TYPES.map(o=>`<option ${o===admTypeVal?'selected':''}>${o}</option>`).join('')}</select></div>
         <div><label class="fl">Admission Source <span class="req">*</span></label><select class="in" id="admSource">${ADMISSION_SOURCES.map(o=>`<option ${o===admSourceVal?'selected':''}>${o}</option>`).join('')}</select></div></div>`
@@ -682,31 +787,246 @@ function renderTypeFields(t){
         <div><label class="fl">Requested Length of Stay (LOS) <span class="req">*</span></label><div class="los-wrap"><input class="in" type="number" min="1" id="los" value="${losVal}" oninput="setLos(this.value)"><span class="u">days</span></div></div></div>`
       +`<div id="retroFlag" style="display:none;margin-bottom:14px;"></div>`
       +`<div class="grp" style="max-width:48%"><label class="fl">Target Discharge Date <span class="opt-tag">calculated from stay lines</span></label><input class="in readonly" id="discharge" readonly></div>`;
+  } else if(isDentalType(t)){
+    const dentSpecVal = val('dentSpecialty') || DENTAL_SPECIALTIES[0];
+    const dentReqVal = val('dentRequestType') || DENTAL_REQUEST_TYPES[0];
+    html=provRow('Requesting Dentist','Servicing Dentist / Facility')
+      +`<div class="grid2">
+        <div><label class="fl">Dental Specialty <span class="req">*</span></label><select class="in" id="dentSpecialty">${DENTAL_SPECIALTIES.map(o=>`<option ${o===dentSpecVal?'selected':''}>${o}</option>`).join('')}</select></div>
+        <div><label class="fl">Request Type <span class="req">*</span></label><select class="in" id="dentRequestType">${DENTAL_REQUEST_TYPES.map(o=>`<option ${o===dentReqVal?'selected':''}>${o}</option>`).join('')}</select></div></div>`
+      +`<div class="grid2"><div><label class="fl">Proposed Treatment Date (From) <span class="req">*</span></label><input class="in" type="date" id="opFrom" value="2026-06-22"></div>
+        <div><label class="fl">Proposed Treatment Date (To)</label><input class="in" type="date" id="opTo" value="2026-06-22"></div></div>`
+      +`<div class="grid2">
+        <div><label class="fl">Accident / Trauma <span class="opt-tag">optional</span></label><select class="in" id="dentAccident" onchange="renderDentAccidentDate()"><option value="none" selected>Not accident-related</option><option value="auto">Auto Accident</option><option value="other">Other Accident</option></select></div>
+        <div><label class="fl">Coordination of Benefits <span class="opt-tag">optional</span></label><select class="in" id="dentCob"><option value="no" selected>No other coverage</option><option value="yes">Member has other dental coverage</option></select></div></div>`
+      +`<div id="dentAccidentDateRow" style="display:none;margin-bottom:14px;"><label class="fl">Accident Date</label><input class="in" type="date" id="dentAccidentDate" style="max-width:48%"></div>`
+      +`<div class="grp"><label class="fl">Expected Attachments <span class="opt-tag">check what's included with this request</span></label>
+        <div class="chk-row"><label><input type="checkbox" id="dentAttXray"> Diagnostic X-rays</label><label><input type="checkbox" id="dentAttPhoto"> Intraoral photographs</label><label><input type="checkbox" id="dentAttPerio"> Periodontal charting</label></div>
+        <div class="chk-row"><label><input type="checkbox" id="dentAttPlan"> Treatment plan</label><label><input type="checkbox" id="dentAttNarr"> Clinical narrative</label><label><input type="checkbox" id="dentAttHist"> Previous treatment history</label></div>
+      </div>`;
   } else if(isOutpatientType(t)){
-    html=provRow('Requesting Provider','Dr. Samuel Obi','Servicing Provider','Radiology Associates')
+    html=provRow('Requesting Provider','Servicing Provider')
       +`<div class="grid2"><div><label class="fl">Requested Service Date (From) <span class="req">*</span></label><input class="in" type="date" id="opFrom" value="2026-06-22"></div>
         <div><label class="fl">Requested Service Date (To)</label><input class="in" type="date" id="opTo" value="2026-06-22"></div></div>`
       +`<div class="grp" style="max-width:48%"><label class="fl">Place of Service <span class="req">*</span></label><select class="in" id="opPos">${posOut.map(o=>`<option ${o.indexOf('22')===0?'selected':''}>${o}</option>`).join('')}</select></div>`;
   } else if(isPharmacyType(t)){
-    html=`<div class="grid2">
-      <div><label class="fl">Prescribing Provider <span class="req">*</span></label><div class="browse-wrap"><div class="with-icon"><span class="ic">🔍</span><input class="in" id="reqProv" value="Dr. Samuel Obi"></div><button class="btn-violet">🔍 Browse</button></div></div>
-      <div><label class="fl">Dispensing Pharmacy <span class="opt-tag">optional</span></label><div class="browse-wrap"><div class="with-icon"><span class="ic">🔍</span><input class="in" id="servFac" placeholder="Specialty pharmacy, if required..."></div><button class="btn-violet">🔍 Browse</button></div></div>
+    const pharmVal = val('servFac');
+    html=provPickerRow('req','Prescribing Provider')+`<div class="grid2">
+      <div><label class="fl">Dispensing Pharmacy <span class="opt-tag">optional</span></label><div class="browse-wrap"><div class="with-icon"><span class="ic">🔍</span><input class="in" id="servFac" placeholder="Specialty pharmacy, if required..." value="${pharmVal}"></div><button class="btn-violet">🔍 Browse</button></div></div>
+      <div></div>
     </div>
     <div class="tmpl-note" style="margin-top:2px">Prescriptions are entered as RX lines on the next step. Dispensing pharmacy is optional (mainly for specialty drugs).</div>`;
   } else {
-    html=provRow('Requesting Provider','Dr. Samuel Obi','Servicing Provider','Contracted Provider')
+    html=provRow('Requesting Provider','Servicing Provider')
       +`<div class="grid2"><div><label class="fl">Requested Start Date <span class="req">*</span></label><input class="in" type="date" id="gStart" value="2026-06-22"></div>
         <div><label class="fl">Requested Through Date</label><input class="in" type="date" id="gEnd" value="2026-07-22"></div></div>`
       +`<div class="tmpl-note" style="margin-top:2px">Additional ${t} fields are applied from the BHP template.</div>`;
   }
   el.innerHTML=html;
+  provRolesFor(t).forEach(renderProvSub);
   if(isInpatientType(t)){ renderLocRow(); recalcDischarge(); }
+  if(isDentalType(t)) renderDentAccidentDate();
+}
+/* ---------- provider picker (directory search → office location → specialty) ---------- */
+// State lives in auth.prov, not the DOM, because renderTypeFields() rebuilds this panel on every visit to
+// Step 1 and on every Auth Type change — reading values back from the inputs is what used to snap typed
+// providers back to the hardcoded defaults.
+auth.prov={req:null, serv:null};
+const PROV_KINDS={ // which directory entries each role may pick, by auth type
+  ip:{req:['prov'], serv:['fac']},
+  dental:{req:['dent'], serv:['dent','dgrp']},
+  op:{req:['prov'], serv:['prov','fac']},
+  rx:{req:['prov']},
+  other:{req:['prov'], serv:['prov','fac']}
+};
+const PROV_DEFAULTS={ ip:{req:'P-OBI', serv:'F-MERCY'}, dental:{req:'D-ANAND', serv:'D-RDG'}, op:{req:'P-OBI', serv:'F-RAD'}, rx:{req:'P-OBI'}, other:{req:'P-OBI', serv:'F-HH'} };
+function provTypeKey(t){ t=t||currentType(); return isInpatientType(t)?'ip':isDentalType(t)?'dental':isOutpatientType(t)?'op':isPharmacyType(t)?'rx':'other'; }
+function provRolesFor(t){ return Object.keys(PROV_KINDS[provTypeKey(t)]); }
+function provById(id){ return PROVIDER_DIR.find(p=>p.id===id)||null; }
+function provLoc(role){ const s=auth.prov[role], p=s&&provById(s.id); return p?(p.locations.find(l=>l.id===s.loc)||null):null; }
+function provSpecOptions(role){
+  const s=auth.prov[role], p=s&&provById(s.id); if(!p) return [];
+  const l=provLoc(role); return (l&&l.specs)||p.specialties;
+}
+// A fresh pick: one location → select it; several → the user must choose, since the location decides
+// network status + TIN. Specialty auto-fills only when there's exactly one to choose from.
+function provState(id){
+  const p=provById(id); if(!p) return null;
+  const st={id:p.id, name:p.name, loc:p.locations.length===1?p.locations[0].id:'', spec:''};
+  const specs=st.loc?(p.locations[0].specs||p.specialties):p.specialties;
+  if(specs.length===1) st.spec=specs[0];
+  return st;
+}
+// Seeds the demo defaults (first location, first specialty) and swaps the pick when an Auth Type change
+// makes it the wrong kind (e.g. a physician left in the servicing slot after switching to Inpatient).
+function ensureProvDefaults(t){
+  const key=provTypeKey(t);
+  Object.keys(PROV_KINDS[key]).forEach(role=>{
+    const s=auth.prov[role], p=s&&provById(s.id);
+    const fits = s && (p ? PROV_KINDS[key][role].indexOf(p.kind)>=0 : !!s.name);
+    if(fits) return;
+    const def=provState(PROV_DEFAULTS[key][role]); if(!def){ auth.prov[role]=null; return; }
+    const pr=provById(def.id); def.loc=pr.locations[0].id;
+    auth.prov[role]=def;
+    if(!def.spec) def.spec=provSpecOptions(role)[0]||'';
+  });
+}
+function provPickerRow(role,label){
+  const s=auth.prov[role]||{name:''};
+  const idIn = role==='req'?'reqProv':'servFac';
+  return `<div class="prov-row">
+    <div><label class="fl">${label} <span class="req">*</span></label>
+      <div class="browse-wrap"><div class="with-icon" id="${role}ProvWrap"><span class="ic">🔍</span><input class="in" id="${idIn}" value="${(s.name||'').replace(/"/g,'&quot;')}" placeholder="Name, NPI, Provider #, Tax ID, Network ID, Group #..." autocomplete="off" oninput="provSearch('${role}',this.value,true)" onfocus="provSearch('${role}',this.value)"><div class="member-results" id="${role}ProvResults"></div></div><button class="btn-violet" type="button" id="${role}ProvBrowse" onclick="provBrowse('${role}')">🔍 Browse</button></div>
+      <div class="prov-meta" id="${role}Meta"></div><div class="field-err" id="${role}ProvErr">Select a provider from the directory.</div></div>
+    <div id="${role}LocCell"></div>
+    <div id="${role}SpecCell"></div>
+  </div>${role==='serv'?'<div class="prov-detail" id="servDetail"></div>':''}`;
+}
+function renderProvSub(role){
+  const locCell=document.getElementById(role+'LocCell'), specCell=document.getElementById(role+'SpecCell'), meta=document.getElementById(role+'Meta');
+  if(!locCell) return;
+  const s=auth.prov[role], p=s&&provById(s.id), l=provLoc(role);
+  const isFac = p && (p.kind==='fac' || p.kind==='dgrp');
+  const locLabel = p&&p.kind==='fac' ? 'Facility Location' : 'Office Location';
+  const specLabel = p&&p.kind==='fac' ? 'Facility Type / Specialty' : 'Specialty';
+  if(!p){
+    locCell.innerHTML=`<label class="fl">${locLabel} <span class="req">*</span></label><select class="in" disabled><option>Select a provider first</option></select>`;
+    specCell.innerHTML=`<label class="fl">${specLabel} <span class="req">*</span></label><select class="in" disabled><option>—</option></select>`;
+    meta.innerHTML='';
+    renderServDetail();
+    return;
+  }
+  const locOpts=(p.locations.length>1?`<option value="" ${!s.loc?'selected':''}>— Select location (${p.locations.length}) —</option>`:'')
+    + p.locations.map(x=>`<option value="${x.id}" ${x.id===s.loc?'selected':''}>${x.name}${x.net!=='In-Network'?' · OON':''}</option>`).join('');
+  locCell.innerHTML=`<label class="fl">${locLabel} <span class="req">*</span></label><select class="in" id="${role}Loc" onchange="provSetLoc('${role}',this.value)">${locOpts}</select>
+    <div class="prov-meta">${l?`${l.addr}<br>TIN ${l.tin} · <span class="net ${l.net==='In-Network'?'net-in':'net-oon'}">${l.net}</span>`:'<span style="color:var(--faint)">Location sets network status &amp; TIN</span>'}</div>
+    <div class="field-err" id="${role}LocErr">Select a location.</div>`;
+  const specs=provSpecOptions(role);
+  const specOpts=(specs.length>1?`<option value="" ${!s.spec?'selected':''}>— Select specialty —</option>`:'')+specs.map(x=>`<option ${x===s.spec?'selected':''}>${x}</option>`).join('');
+  const specNote = l&&l.specs ? 'Credentialed at this location' : (specs.length>1 ? specs.length+' credentialed specialties' : (isFac?'From facility record':'From provider record'));
+  specCell.innerHTML=`<label class="fl">${specLabel} <span class="req">*</span></label><select class="in" id="${role}Spec" onchange="provSetSpec('${role}',this.value)">${specOpts}</select>
+    <div class="prov-meta">${specNote}</div>
+    <div class="field-err" id="${role}SpecErr">Select a specialty.</div>`;
+  meta.innerHTML=`NPI ${p.npi}${p.cred?' · '+p.cred:''} · ${p.locations.length} location${p.locations.length==1?'':'s'}`;
+  renderServDetail();
+}
+// Servicing provider identifiers the downstream rules/claims match on. Location-level values stay
+// blank until a location is picked, rather than guessing from the provider's first site.
+auth.sca='No';
+function renderServDetail(){
+  const el=document.getElementById('servDetail'); if(!el) return;
+  const s=auth.prov.serv, p=s&&provById(s.id), l=provLoc('serv');
+  const cell=(k,v)=>`<div><div class="k">${k}</div><div class="v ${v?'':'none'}">${v||'—'}</div></div>`;
+  const oon = l && l.net!=='In-Network';
+  el.innerHTML = cell('Provider #', l&&l.provNum)
+    + cell('State', l&&l.state)
+    + cell('Tax ID', l&&l.tin)
+    + cell('Network ID', l ? (l.networkId || 'None (OON)') : '')
+    + cell('Group #', p&&p.groupNum)
+    + cell('Policy #s', l ? (l.policyNums.length ? l.policyNums.join(', ') : 'None on file') : '')
+    + `<div><div class="k">Single Case Agreement</div><select class="in" id="sca" onchange="auth.sca=this.value;renderServDetail();renderPreviewMaybe()"><option ${auth.sca==='No'?'selected':''}>No</option><option ${auth.sca==='Yes'?'selected':''}>Yes</option></select></div>`
+    + (oon && auth.sca!=='Yes' ? `<div class="sca-hint">⚠ ${l.name} is ${l.net} with no contract policy on file — a Single Case Agreement may be needed to cover this service at in-network rates.</div>` : '');
+}
+function provSearch(role,q,typed){
+  const box=document.getElementById(role+'ProvResults'); if(!box) return;
+  const kinds=PROV_KINDS[provTypeKey()][role]||[];
+  if(typed){ // free text means the previous pick no longer holds — clear location/specialty until they choose
+    const cur=auth.prov[role];
+    if(!cur || cur.name!==q){ auth.prov[role]={id:null, name:q, loc:'', spec:''}; renderProvSub(role); }
+  }
+  const s=auth.prov[role];
+  q=(q||'').trim().toLowerCase();
+  if(s && s.id && s.name.toLowerCase()===q) q=''; // focusing an already-picked provider shows the whole list
+  const hay=p=>[p.name,p.npi,p.groupNum,p.groupName].concat(p.specialties, ...p.locations.map(l=>[l.provNum,l.tin,l.networkId,l.state,l.name].concat(l.policyNums))).join(' ').toLowerCase();
+  const matches=PROVIDER_DIR.filter(p=>kinds.indexOf(p.kind)>=0 && (!q || hay(p).includes(q)));
+  box.innerHTML = matches.length ? matches.map(p=>
+    `<div class="member-result" onmousedown="event.preventDefault()" onclick="provSelect('${role}','${p.id}')"><span class="av">${p.kind==='fac'||p.kind==='dgrp'?'🏥':memberInitials(p.name.replace(/^Dr\.\s*/,''))}</span><div><div class="nm">${p.name}${p.cred?', '+p.cred:''}</div><div class="sub">NPI ${p.npi} · Group ${p.groupNum} · ${p.specialties.join(', ')}</div><div class="sub">${p.locations.map(l=>`${l.provNum} · ${l.state} · TIN ${l.tin} · ${l.networkId||'OON'}`).join('<br>')}</div></div></div>`
+  ).join('') : '<div class="member-result-empty">No matching providers in the directory</div>';
+  box.classList.add('show');
+}
+function provBrowse(role){
+  const box=document.getElementById(role+'ProvResults'); if(box) box.classList.remove('show');
+  const cur=auth.prov[role];
+  const t=currentType();
+  const title='Search '+(role==='req' ? (isDentalType(t)?'Requesting Dentist':isPharmacyType(t)?'Prescribing Provider':'Requesting Provider')
+                                    : (isInpatientType(t)?'Servicing Facility':isDentalType(t)?'Servicing Dentist / Facility':'Servicing Provider'));
+  ProviderSearch.open({ title:title, kinds:PROV_KINDS[provTypeKey()][role]||[], query:(cur&&!cur.id)?cur.name:'',
+    onSelect:function(d){
+      auth.prov[role]={id:d.id, name:d.name, loc:d.locationId, spec:d.specialty}; // modal pre-fills specialty only when it's unambiguous
+      const i=document.getElementById(role==='req'?'reqProv':'servFac'); if(i){ i.value=d.name; i.classList.remove('err'); }
+      clearFieldErr(document.getElementById(role+'ProvErr'));
+      renderProvSub(role); provSyncDental(role); provSyncLines(role);
+      if(step===4) renderReview();
+    }});
+}
+function provSelect(role,id){
+  auth.prov[role]=provState(id);
+  const box=document.getElementById(role+'ProvResults'); if(box) box.classList.remove('show');
+  const i=document.getElementById(role==='req'?'reqProv':'servFac'); if(i){ i.value=auth.prov[role].name; i.classList.remove('err'); i.blur(); }
+  clearFieldErr(document.getElementById(role+'ProvErr'));
+  renderProvSub(role); provSyncDental(role); provSyncLines(role);
+  if(step===4) renderReview();
+}
+function provSetLoc(role,locId){
+  const s=auth.prov[role]; if(!s) return;
+  s.loc=locId;
+  const specs=provSpecOptions(role);
+  if(specs.indexOf(s.spec)<0) s.spec = specs.length===1 ? specs[0] : ''; // a location can narrow the specialty list
+  renderProvSub(role); provSyncDental(role);
+}
+function provSetSpec(role,spec){ const s=auth.prov[role]; if(!s) return; s.spec=spec; renderProvSub(role); provSyncDental(role); }
+// Dental Specialty (auth-level field) follows the requesting dentist's specialty when it's a dental one.
+function provSyncDental(role){
+  if(role!=='req' || !isDentalType()) return;
+  const s=auth.prov.req, sel=document.getElementById('dentSpecialty');
+  if(s && s.spec && sel && DENTAL_SPECIALTIES.indexOf(s.spec)>=0) sel.value=s.spec;
+}
+// Lines marked "Same as requesting provider" display the requesting name — refresh them on a new pick.
+function provSyncLines(role){ if(role!=='req') return; renderProc(); renderDental(); renderRx(); }
+function provSummary(role){
+  const s=auth.prov[role], l=provLoc(role);
+  if(!s || !s.name) return '—';
+  const p=s&&provById(s.id);
+  let out = s.name + (l?' · '+l.name:'') + (s.spec?' · '+s.spec:'') + (l&&l.net!=='In-Network'?' · <span style="color:#b45309;font-weight:600">'+l.net+'</span>':'');
+  if(role==='serv' && l) out += `<div style="color:var(--muted);font-size:12px;margin-top:2px">Provider # ${l.provNum} · ${l.state} · Tax ID ${l.tin} · Network ID ${l.networkId||'None (OON)'} · Group # ${p.groupNum} · Policy #s ${l.policyNums.join(', ')||'None'}</div>`;
+  return out;
+}
+function clearFieldErr(el){
+  if(!el) return;
+  const isErr=el.classList.contains('field-err');
+  const err=isErr?el:document.getElementById(el.id+'Err');
+  if(err) err.classList.remove('show');
+  if(!isErr) el.classList.remove('err');
+}
+// Step 1 required-field check for the BRE inputs and provider picks. Returns true when clean.
+function validateRequestDetails(){
+  let first=null;
+  const flag=(inputId,errId)=>{ const e=document.getElementById(errId); if(e) e.classList.add('show'); const i=document.getElementById(inputId); if(i){ i.classList.add('err'); if(!first) first=i; } };
+  if(!val('reqMethod')) flag('reqMethod','reqMethodErr');
+  if(!val('reqSource')) flag('reqSource','reqSourceErr');
+  provRolesFor().forEach(role=>{
+    const s=auth.prov[role];
+    if(!s || !s.id){ flag(role==='req'?'reqProv':'servFac', role+'ProvErr'); return; }
+    if(!s.loc) flag(role+'Loc', role+'LocErr');
+    if(!s.spec) flag(role+'Spec', role+'SpecErr');
+  });
+  if(first) first.focus();
+  return !first;
+}
+function renderMethodSource(){
+  const fill=(id,list)=>{ const el=document.getElementById(id); if(!el) return; const cur=el.value; el.innerHTML='<option value="">— Select —</option>'+list.map(o=>`<option ${o===cur?'selected':''}>${o}</option>`).join(''); };
+  fill('reqMethod',REQUEST_METHODS); fill('reqSource',REQUEST_SOURCES);
+}
+function renderDentAccidentDate(){
+  const row=document.getElementById('dentAccidentDateRow'); if(!row) return;
+  row.style.display = val('dentAccident')==='none' ? 'none' : '';
 }
 function adaptStep3(){
   const t=currentType();
-  const ip=document.getElementById('ipSection'), pr=document.getElementById('procSection'), rxs=document.getElementById('rxSection'), rx=document.getElementById('rxNote');
+  const ip=document.getElementById('ipSection'), pr=document.getElementById('procSection'), dn=document.getElementById('dentalSection'), rxs=document.getElementById('rxSection'), rx=document.getElementById('rxNote');
   if(!ip) return;
   rx.style.display='none';
+  dn.style.display='none';
   if(isInpatientType(t)){
     ip.style.display=''; pr.style.display=''; rxs.style.display='';
     document.getElementById('procTitle').innerHTML='Service Lines <span class="opt">(Optional for Inpatient)</span>';
@@ -717,6 +1037,9 @@ function adaptStep3(){
     ip.style.display='none'; pr.style.display='none'; rxs.style.display='';
     document.getElementById('rxDesc').textContent='Prescription lines for this pharmacy authorization. Prescribing provider defaults to the requesting provider.';
     if(!rxState.length) addRx();
+  } else if(isDentalType(t)){
+    ip.style.display='none'; pr.style.display='none'; rxs.style.display='none'; dn.style.display='';
+    if(!dnState.length) addDental();
   } else {
     ip.style.display='none'; pr.style.display=''; rxs.style.display='';
     document.getElementById('procTitle').textContent='Service Lines';
@@ -830,8 +1153,9 @@ function procCard(item){
     </div>`;
   return `<div class="card"><div class="card-top"><div style="font-size:13px;font-weight:700;color:#374151">Service line</div><button class="trash" onclick="removeProc(${item.id})">🗑</button></div>
     ${svcRow}
-    <div class="row r-proc-1">
+    <div class="row r-proc-1m">
       <div><label class="fl">Procedure Code <span class="req">*</span></label><div class="with-icon"><span class="ic">▤</span><input class="in" placeholder="CPT/HCPCS..." value="${item.code}" onchange="setPr(${item.id},'code',this.value)"></div></div>
+      <div><label class="fl">Modifier(s) <span class="opt-tag">up to 4</span></label><input class="in" list="modList" placeholder="e.g. RT, 59" value="${item.mod||''}" onchange="this.value=normMods(this.value);setPr(${item.id},'mod',this.value)"></div>
       <div><label class="fl">Description</label><input class="in" placeholder="Auto-fills from code..." value="${item.desc}" onchange="setPr(${item.id},'desc',this.value)"></div>
       <div><label class="fl">Quantity</label><input class="in" type="number" min="1" value="${item.qty}" onchange="setPr(${item.id},'qty',this.value)"></div>
       <div><label class="fl">Unit</label><select class="in" onchange="setPr(${item.id},'unit',this.value)">${units}</select></div>
@@ -844,7 +1168,7 @@ function procCard(item){
     ${overEnd ? `<div style="font-size:11.5px;color:#8a5a08;background:#fdf6e6;border:1px solid #f4d488;border-radius:8px;padding:8px 11px;margin-bottom:11px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;">⚠ End date is beyond the last inpatient day (target discharge ${fmt(ipLastDay)}). A service line can't run past discharge. <button type="button" class="btn-violet" style="padding:2px 9px;font-size:11px;" onclick="setPr(${item.id},'end','${ipLastDay}');renderProc()">Cap to ${fmt(ipLastDay)}</button> <span style="color:#9ca3af;">— care needed after discharge belongs on a separate outpatient / post-acute authorization.</span></div>` : ''}
     <div class="row r-proc-2">
       <div><div class="fl-line"><label class="fl" style="margin-bottom:0">Servicing Provider <span class="req">*</span></label><label class="same-req"><input type="checkbox" ${item.sameAsReq?'checked':''} onchange="toggleSameReq(${item.id},this.checked)"> Same as requesting provider</label></div>
-        <div class="browse-wrap"><div class="with-icon"><span class="ic">🔍</span><input class="in" placeholder="Search servicing provider..." value="${item.sameAsReq?REQUESTING_PROVIDER:item.facility}" ${item.sameAsReq?'disabled':''} onchange="setPr(${item.id},'facility',this.value)"></div><button class="btn-violet" ${item.sameAsReq?'disabled':''}>🔍 Browse</button></div></div>
+        <div class="browse-wrap"><div class="with-icon"><span class="ic">🔍</span><input class="in" placeholder="Search servicing provider..." value="${item.sameAsReq?(val('reqProv')||REQUESTING_PROVIDER):item.facility}" ${item.sameAsReq?'disabled':''} onchange="setPr(${item.id},'facility',this.value)"></div><button class="btn-violet" ${item.sameAsReq?'disabled':''}>🔍 Browse</button></div></div>
       <div><label class="fl">Place of Service <span class="opt-tag">defaults by service type</span></label><select class="in" onchange="setPr(${item.id},'pos',this.value)">${posOpts(item.pos)}</select></div>
     </div></div>`;
 }
@@ -858,15 +1182,52 @@ function setPr(id,key,val){
   }
   renderPreviewMaybe();
 }
-function toggleSameReq(id,c){ const it=prState.find(x=>x.id===id); it.sameAsReq=c; if(c) it.facility=REQUESTING_PROVIDER; renderProc(); }
+function toggleSameReq(id,c){ const it=prState.find(x=>x.id===id); it.sameAsReq=c; if(c) it.facility=val('reqProv')||REQUESTING_PROVIDER; renderProc(); }
 function addProcedure(){
   const t=currentType();
   const s = isInpatientType(t) ? getAdmit() : (val('opFrom')||'');
   const e = isInpatientType(t) ? addDays(getAdmit(), getLos()) : (val('opTo')||val('opFrom')||'');
-  prState.push({id:++prId,code:'',desc:'',qty:1,unit:'Units',pos:'— Not specified —',facility:'',sameAsReq:false,svcType:OP_SERVICE_TYPES[0],start:s,end:e,reqDate:TODAY});
+  prState.push({id:++prId,code:'',mod:'',desc:'',qty:1,unit:'Units',pos:'— Not specified —',facility:'',sameAsReq:false,svcType:OP_SERVICE_TYPES[0],start:s,end:e,reqDate:TODAY});
   renderProc();
 }
 function removeProc(id){ const i=prState.findIndex(x=>x.id===id); prState.splice(i,1); renderProc(); }
+/* ---------- dental service lines ---------- */
+function dnCard(item){
+  const f=dentalFieldsFor(item.code);
+  const toothF = f.tooth ? `<div><label class="fl">Tooth #/Letter</label><input class="in" placeholder="e.g. 14, 3, A" value="${item.tooth||''}" onchange="setDn(${item.id},'tooth',this.value)"></div>` : '';
+  const surfF = f.surface ? `<div><label class="fl">Surface</label><input class="in" placeholder="e.g. MOD" value="${item.surface||''}" onchange="setDn(${item.id},'surface',this.value)"></div>` : '';
+  const quadF = f.quadrant ? `<div><label class="fl">Quadrant</label><select class="in" onchange="setDn(${item.id},'quadrant',this.value)"><option value="" ${!item.quadrant?'selected':''}>— None —</option>${['UR','UL','LR','LL'].map(q=>`<option ${q===item.quadrant?'selected':''}>${q}</option>`).join('')}</select></div>` : '';
+  const archF = f.arch ? `<div><label class="fl">Arch</label><select class="in" onchange="setDn(${item.id},'arch',this.value)"><option value="" ${!item.arch?'selected':''}>— None —</option>${['Upper','Lower','Both'].map(a=>`<option ${a===item.arch?'selected':''}>${a}</option>`).join('')}</select></div>` : '';
+  const toothCells=[toothF,surfF,quadF,archF].filter(Boolean);
+  const toothRow = toothCells.length ? `<div class="row" style="grid-template-columns:repeat(${toothCells.length},1fr)">${toothCells.join('')}</div>` : `<div class="tmpl-note" style="margin:-4px 0 11px">Tooth/surface/quadrant/arch aren't applicable to this CDT code.</div>`;
+  return `<div class="card"><div class="card-top"><div style="font-size:13px;font-weight:700;color:#374151">Dental line</div><button class="trash" onclick="removeDn(${item.id})">🗑</button></div>
+    <div class="row r-proc-1">
+      <div><label class="fl">CDT Code <span class="req">*</span></label><div class="with-icon"><span class="ic">▤</span><input class="in" placeholder="e.g. D2740" value="${item.code}" onchange="setDn(${item.id},'code',this.value)"></div></div>
+      <div><label class="fl">Description</label><input class="in" placeholder="Auto-fills from code..." value="${item.desc}" onchange="setDn(${item.id},'desc',this.value)"></div>
+      <div><label class="fl">Units</label><input class="in" type="number" min="1" value="${item.qty}" onchange="setDn(${item.id},'qty',this.value)"></div>
+    </div>
+    ${toothRow}
+    <div class="row" style="grid-template-columns:1fr 1fr">
+      <div><label class="fl">Requested Date <span class="req">*</span></label><input class="in" type="date" value="${item.reqDate||''}" onchange="setDn(${item.id},'reqDate',this.value)"></div>
+      <div><label class="fl">Requested Charge <span class="opt-tag">optional</span></label><input class="in" type="number" min="0" step="0.01" placeholder="$" value="${item.charge||''}" onchange="setDn(${item.id},'charge',this.value)"></div>
+    </div>
+    <div class="row r-proc-2">
+      <div><div class="fl-line"><label class="fl" style="margin-bottom:0">Servicing Dentist <span class="opt-tag">optional override</span></label><label class="same-req"><input type="checkbox" ${item.sameAsReq?'checked':''} onchange="toggleDnSameReq(${item.id},this.checked)"> Same as requesting dentist</label></div>
+        <div class="browse-wrap"><div class="with-icon"><span class="ic">🔍</span><input class="in" placeholder="Search servicing dentist..." value="${item.sameAsReq?(val('reqProv')||REQUESTING_PROVIDER):(item.facility||'')}" ${item.sameAsReq?'disabled':''} onchange="setDn(${item.id},'facility',this.value)"></div><button class="btn-violet" ${item.sameAsReq?'disabled':''}>🔍 Browse</button></div></div>
+    </div></div>`;
+}
+function renderDental(){ const el=document.getElementById('dentalLines'); if(!el) return; el.innerHTML=dnState.map(dnCard).join(''); renderPreviewMaybe(); }
+function setDn(id,key,val){
+  const it=dnState.find(x=>x.id===id); if(!it) return; it[key]=val;
+  if(key==='code'){ renderDental(); return; }
+  renderPreviewMaybe();
+}
+function toggleDnSameReq(id,c){ const it=dnState.find(x=>x.id===id); it.sameAsReq=c; if(c) it.facility=val('reqProv')||REQUESTING_PROVIDER; renderDental(); }
+function addDental(){
+  dnState.push({id:++dnId,code:'',desc:'',qty:1,unit:'Units',tooth:'',surface:'',quadrant:'',arch:'',reqDate:TODAY,charge:'',facility:'',sameAsReq:false});
+  renderDental();
+}
+function removeDn(id){ const i=dnState.findIndex(x=>x.id===id); dnState.splice(i,1); renderDental(); }
 
 /* ---------- RX lines (IP / OP / RX auths) ---------- */
 let rxId=0;
@@ -906,39 +1267,59 @@ function renderReview(){
   const t=currentType();
   const chain=computeChain();
   let authLines='', li='', liCount=0, showLines=true;
+  const reqWho = isDentalType(t)?'Requesting Dentist':isPharmacyType(t)?'Prescribing Provider':'Requesting Provider';
+  const servWho = isInpatientType(t)?'Servicing Facility':isDentalType(t)?'Servicing Dentist / Facility':'Servicing Provider';
+  const srcLine=`<div class="ln"><b>Request Method / Source:</b> ${val('reqMethod')||'—'} · ${val('reqSource')||'—'}</div>`
+    + (provRolesFor(t).indexOf('serv')>=0 ? `<div class="ln"><b>Single Case Agreement:</b> ${auth.sca}</div>` : '');
   if(isInpatientType(t)){
     const disc=addDays(getAdmit(),totalDays());
     const retro=checkRetro();
     authLines=`<div class="ln"><b>Level of Care:</b> ${auth.loc}</div>
       <div class="ln"><b>Admission Type:</b> ${val('admType')}</div>
       <div class="ln"><b>Admission Source:</b> ${val('admSource')}</div>
-      <div class="ln"><b>Requesting Provider:</b> ${val('reqProv')}</div>
-      <div class="ln"><b>Servicing Facility:</b> ${val('servFac')}</div>
+      <div class="ln"><b>${reqWho}:</b> ${provSummary('req')}</div>
+      <div class="ln"><b>${servWho}:</b> ${provSummary('serv')}</div>
       <div class="ln"><b>Admission / Anticipated Discharge:</b> ${fmt(getAdmit())} – ${fmt(disc)}</div>
       <div class="ln"><b>Requested LOS:</b> ${totalDays()} day${totalDays()==1?'':'s'}</div>
       ${retro.isRetro ? `<div class="ln" style="color:#b45309;"><b>⚠ Retroactive Request:</b> admission is ${retro.daysAgo} day(s) in the past${retro.capped?' (capped at the '+RETRO_MAX_DAYS+'-day policy limit)':''}.</div>` : ''}`;
     chain.forEach(it=>{ li+=`<div class="rev-li"><span class="rev-tag ip">INPATIENT</span><b>${it.loc}</b> · ${fmt(it.dStart)} – ${fmt(it.dEnd)} · ${it.days} day${it.days==1?'':'s'}${it.pos&&it.pos!=='— Not specified —'?' · POS '+it.pos.split(' – ')[0]:''}${it.code?' · Code '+it.code:''}${it.units?' · '+it.units+' unit'+(it.units==1?'':'s'):''}</div>`; });
     liCount+=ipState.length;
+  } else if(isDentalType(t)){
+    const accVal=val('dentAccident');
+    authLines=`<div class="ln"><b>${reqWho}:</b> ${provSummary('req')}</div>
+      <div class="ln"><b>${servWho}:</b> ${provSummary('serv')}</div>
+      <div class="ln"><b>Dental Specialty:</b> ${val('dentSpecialty')}</div>
+      <div class="ln"><b>Request Type:</b> ${val('dentRequestType')}</div>
+      <div class="ln"><b>Proposed Treatment Dates:</b> ${fmt(val('opFrom'))} – ${fmt(val('opTo'))}</div>
+      ${accVal!=='none' ? `<div class="ln"><b>${accVal==='auto'?'Auto Accident':'Other Accident'}:</b> ${fmt(val('dentAccidentDate'))||'date not entered'}</div>` : ''}
+      ${val('dentCob')==='yes' ? `<div class="ln"><b>Coordination of Benefits:</b> member has other dental coverage</div>` : ''}`;
   } else if(isOutpatientType(t)){
-    authLines=`<div class="ln"><b>Requesting Provider:</b> ${val('reqProv')}</div>
-      <div class="ln"><b>Servicing Provider:</b> ${val('servFac')}</div>
+    authLines=`<div class="ln"><b>${reqWho}:</b> ${provSummary('req')}</div>
+      <div class="ln"><b>${servWho}:</b> ${provSummary('serv')}</div>
       <div class="ln"><b>Service Dates:</b> ${fmt(val('opFrom'))} – ${fmt(val('opTo'))}</div>
       <div class="ln"><b>Place of Service:</b> ${val('opPos')}</div>`;
   } else if(isPharmacyType(t)){
-    authLines=`<div class="ln"><b>Prescribing Provider:</b> ${val('reqProv')}</div>
+    authLines=`<div class="ln"><b>${reqWho}:</b> ${provSummary('req')}</div>
       <div class="ln"><b>Dispensing Pharmacy:</b> ${val('servFac')||'—'}</div>`;
   } else {
-    authLines=`<div class="ln"><b>Requesting Provider:</b> ${val('reqProv')}</div>
-      <div class="ln"><b>Servicing Provider:</b> ${val('servFac')}</div>
+    authLines=`<div class="ln"><b>${reqWho}:</b> ${provSummary('req')}</div>
+      <div class="ln"><b>${servWho}:</b> ${provSummary('serv')}</div>
       <div class="ln"><b>Requested Dates:</b> ${fmt(val('gStart'))} – ${fmt(val('gEnd'))}</div>
       <div class="ln" style="color:var(--faint)">Additional ${t} fields per BHP template</div>`;
   }
   if(!isInpatientType(t) && !isPharmacyType(t)){
-    prState.forEach(it=>{ li+=`<div class="rev-li"><span class="rev-tag pr">SERVICE</span>${it.svcType?'<b>'+it.svcType+'</b> · ':''}${it.code||'No code'} · ${it.desc||'—'} · ${it.qty||1} ${(it.unit||'Units').toLowerCase()}${it.start?' · '+fmt(it.start)+'–'+fmt(it.end):''}${it.pos&&it.pos!=='— Not specified —'?' · POS '+it.pos.split(' – ')[0]:''}</div>`; });
+    prState.forEach(it=>{ li+=`<div class="rev-li"><span class="rev-tag pr">SERVICE</span>${it.svcType?'<b>'+it.svcType+'</b> · ':''}${it.code||'No code'}${it.mod?'-'+it.mod.replace(/, /g,'-'):''} · ${it.desc||'—'} · ${it.qty||1} ${(it.unit||'Units').toLowerCase()}${it.start?' · '+fmt(it.start)+'–'+fmt(it.end):''}${it.pos&&it.pos!=='— Not specified —'?' · POS '+it.pos.split(' – ')[0]:''}</div>`; });
   } else if(isInpatientType(t)){
-    prState.forEach(it=>{ li+=`<div class="rev-li"><span class="rev-tag pr">PROCEDURE</span>${it.svcType?'<b>'+it.svcType+'</b> · ':''}${it.code||'No code'} · ${it.desc||'—'} · ${it.qty||1} ${(it.unit||'Units').toLowerCase()}${it.start?' · '+fmt(it.start)+'–'+fmt(it.end):''}${it.pos&&it.pos!=='— Not specified —'?' · POS '+it.pos.split(' – ')[0]:''}</div>`; });
+    prState.forEach(it=>{ li+=`<div class="rev-li"><span class="rev-tag pr">PROCEDURE</span>${it.svcType?'<b>'+it.svcType+'</b> · ':''}${it.code||'No code'}${it.mod?'-'+it.mod.replace(/, /g,'-'):''} · ${it.desc||'—'} · ${it.qty||1} ${(it.unit||'Units').toLowerCase()}${it.start?' · '+fmt(it.start)+'–'+fmt(it.end):''}${it.pos&&it.pos!=='— Not specified —'?' · POS '+it.pos.split(' – ')[0]:''}</div>`; });
   }
   if(showLines){ liCount+=prState.length; }
+  if(isDentalType(t)){
+    dnState.forEach(it=>{
+      const toothBits=[it.tooth?'Tooth '+it.tooth:'', it.surface?'Surface '+it.surface:'', it.quadrant?'Quad '+it.quadrant:'', it.arch?it.arch+' arch':''].filter(Boolean).join(' · ');
+      li+=`<div class="rev-li"><span class="rev-tag pr">DENTAL</span>${it.code||'No CDT code'} · ${it.desc||'—'} · ${it.qty||1} ${(it.unit||'Units').toLowerCase()}${toothBits?' · '+toothBits:''}${it.reqDate?' · '+fmt(it.reqDate):''}${it.charge?' · $'+it.charge:''}</div>`;
+    });
+    liCount+=dnState.length;
+  }
   rxState.forEach(it=>{ li+=`<div class="rev-li"><span class="rev-tag rx">RX</span><b>${it.drug||'Drug'}</b>${it.form?' '+it.form:''} · Qty ${it.qty} · ${it.days} days · ${it.refills} refill${it.refills==1?'':'s'} · Rx: ${it.sameAsReq?(val('reqProv')||REQUESTING_PROVIDER):(it.prescriber||'—')}${it.pharmacy?' · '+it.pharmacy:''}</div>`; });
   liCount+=rxState.length;
   if(!li) li='<div class="rev-li" style="color:var(--faint)">No line items</div>';
@@ -956,7 +1337,7 @@ function renderReview(){
       <div class="ln"><b>Auth Type:</b> ${t}</div>
       <div class="ln"><b>Urgency:</b> ${val('urgency')}</div>
       <div class="ln"><b>Auth Category:</b> ${authCategory(t)}</div>
-      ${authLines}
+      ${srcLine}${authLines}
       ${dxLines}
     </div>
     <div class="rev-block"><div class="lbl">Line Items (${liCount})</div>${li}</div>
@@ -966,6 +1347,12 @@ function renderReview(){
 
 /* init */
 renderSelectedMember();
+// Dental is switched off for now (matches FEATURE_DENTAL in um-nav.html) — hide the auth type; the
+// dental code paths stay but can't be reached. Set to true to restore.
+const FEATURE_DENTAL=false;
+if(!FEATURE_DENTAL){ const o=[...document.getElementById('authType').options].find(x=>/^Dental/.test(x.value)); if(o) o.remove(); }
+renderMethodSource();
+document.getElementById('modList').innerHTML=MODIFIER_OPTIONS.map(m=>`<option value="${m[0]}">${m[0]} – ${m[1]}</option>`).join('');
 renderTypeFields(currentType());
 renderDx();
 ipState.push({id:++ipId, loc:auth.loc, days:getLos(), pos:'21 – Inpatient Hospital', reqDate:TODAY, code:'', units:''});
